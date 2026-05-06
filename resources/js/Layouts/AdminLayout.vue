@@ -18,6 +18,7 @@ import {
     ChevronDown
 } from 'lucide-vue-next'
 import { computed, ref, onMounted } from 'vue'
+import Toast from '@/Components/Toast.vue'
 
 const page = usePage()
 const permissions = page.props.auth.user?.permissions ?? []
@@ -227,26 +228,7 @@ onMounted(() => {
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto p-6 lg:p-8">
                 <div class="mx-auto max-w-7xl">
-                    <!-- Flash Messages -->
-                    <transition enter-active-class="transition duration-300 ease-out"
-                        enter-from-class="transform -translate-y-4 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition duration-200 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-4 opacity-0">
-                        <div v-if="page.props.flash.success"
-                            class="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 text-sm text-emerald-800 backdrop-blur-sm">
-                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-200/50">
-                                <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            {{ page.props.flash.success }}
-                        </div>
-                    </transition>
-
+                    <Toast />
                     <slot />
                 </div>
             </main>
