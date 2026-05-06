@@ -6,23 +6,35 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --color-background: #f8fafc;
-    --color-foreground: #172033;
-    --color-card: #ffffff;
-    --color-card-foreground: #172033;
-    --color-primary: #0f766e;
-    --color-primary-foreground: #ffffff;
-    --color-secondary: #e8eef2;
-    --color-secondary-foreground: #172033;
-    --color-muted: #f1f5f9;
-    --color-muted-foreground: #64748b;
-    --color-border: #d8e0e7;
-    --color-input: #d8e0e7;
-    --color-ring: #0f766e;
-    --color-destructive: #dc2626;
-    --color-destructive-foreground: #ffffff;
+    --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    
+    --color-background: oklch(0.98 0.01 240);
+    --color-foreground: oklch(0.2 0.02 240);
+    
+    --color-card: oklch(1 0 0);
+    --color-card-foreground: oklch(0.2 0.02 240);
+    
+    --color-primary: oklch(0.5 0.15 240);
+    --color-primary-foreground: oklch(0.98 0.01 240);
+    
+    --color-secondary: oklch(0.95 0.02 240);
+    --color-secondary-foreground: oklch(0.2 0.02 240);
+    
+    --color-muted: oklch(0.92 0.02 240);
+    --color-muted-foreground: oklch(0.5 0.05 240);
+    
+    --color-accent: oklch(0.9 0.05 240);
+    --color-accent-foreground: oklch(0.2 0.02 240);
+    
+    --color-border: oklch(0.9 0.02 240);
+    --color-input: oklch(0.9 0.02 240);
+    --color-ring: oklch(0.5 0.15 240);
+    
+    --color-destructive: oklch(0.6 0.2 25);
+    --color-destructive-foreground: oklch(0.98 0.01 240);
+
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
 }
 
 @layer base {
@@ -31,6 +43,22 @@
     }
 
     body {
+        background-color: var(--color-background);
         color: var(--color-foreground);
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     }
 }
+
+@layer utilities {
+    .glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .sidebar-gradient {
+        background: linear-gradient(180deg, oklch(0.5 0.15 240) 0%, oklch(0.4 0.15 240) 100%);
+    }
+}
+
