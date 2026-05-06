@@ -131,6 +131,7 @@ Core modules:
 - Forecasting
 - Reports
 - Printing
+- Invoice Delivery
 - Excel Import / Export
 - Audit Logs
 - Administration / Settings
@@ -215,13 +216,21 @@ Future modules:
 - Price history report.
 - Audit report.
 
-### 6.9 Invoice Printing
+### 6.9 Invoice Printing and Delivery
 
 - Printable invoice/billing note format.
 - Shop-wise invoice.
 - Daily route bundle printing.
 - PDF generation.
 - Optional thermal or A5 format.
+- Send invoice to shop by email.
+- Send invoice to shop by WhatsApp using a provider integration.
+- Support delivery options from the invoice screen: `Print`, `Email`, and `WhatsApp`.
+- Store invoice delivery history, including channel, recipient, delivery status, sent user, and timestamp.
+- Allow reprint/resend without changing invoice financial data.
+- Allow shop-level preferred invoice delivery method.
+- Validate that email address or WhatsApp phone number exists before sending.
+- Queue email and WhatsApp sending so the invoice screen remains fast.
 
 ### 6.10 Excel Import / Export
 
@@ -305,6 +314,9 @@ Usability:
 | name | varchar | Shop name |
 | owner_name | varchar nullable | Owner/contact person |
 | phone | varchar nullable | Contact |
+| email | varchar nullable | Invoice email recipient |
+| whatsapp_phone | varchar nullable | Invoice WhatsApp recipient |
+| preferred_invoice_delivery | varchar nullable | print/email/whatsapp |
 | address | text nullable | Address |
 | route_id | bigint nullable fk | Future route support |
 | credit_limit | numeric(12,2) default 0 | Optional control |
@@ -395,6 +407,27 @@ Usability:
 | updated_at | timestamp | Laravel timestamp |
 
 Important: `invoice_items.unit_price`, `newspaper_code`, and `newspaper_name` are snapshots and must not be recalculated from current newspaper data.
+
+#### invoice_deliveries
+
+| Column | Type | Notes |
+|---|---|---|
+| id | bigserial pk | Primary key |
+| invoice_id | bigint fk | Invoice |
+| channel | varchar | print/email/whatsapp |
+| recipient | varchar nullable | Email address or WhatsApp number |
+| status | varchar | pending/sent/delivered/failed/cancelled |
+| provider | varchar nullable | Mail driver or WhatsApp provider |
+| provider_message_id | varchar nullable | External provider reference |
+| error_message | text nullable | Failure reason |
+| sent_by | bigint nullable fk users | User who triggered delivery |
+| sent_at | timestamp nullable | Send timestamp |
+| delivered_at | timestamp nullable | Delivery confirmation timestamp |
+| metadata | jsonb nullable | Payload summary, template, file path |
+| created_at | timestamp | Laravel timestamp |
+| updated_at | timestamp | Laravel timestamp |
+
+Invoice delivery records are operational/audit records. They must never modify invoice totals, invoice items, or historical prices.
 
 ### 8.3 Return Tables
 
@@ -681,6 +714,9 @@ Recommended application services:
 - `DailyReportService`
 - `MonthlyReportService`
 - `OutstandingReportService`
+- `InvoiceDeliveryService`
+- `InvoiceEmailService`
+- `InvoiceWhatsAppService`
 - `ExcelImportService`
 - `ExcelExportService`
 - `AuditLogService`
@@ -732,6 +768,7 @@ Repository interfaces:
 - `InvoiceItemRepositoryInterface`
 - `ReturnRepositoryInterface`
 - `PaymentRepositoryInterface`
+- `InvoiceDeliveryRepositoryInterface`
 - `LedgerRepositoryInterface`
 - `ForecastRepositoryInterface`
 - `ReportRepositoryInterface`
@@ -742,6 +779,7 @@ Repository implementations:
 - `EloquentShopRepository`
 - `EloquentNewspaperRepository`
 - `EloquentInvoiceRepository`
+- `EloquentInvoiceDeliveryRepository`
 - `EloquentPaymentRepository`
 - `PostgresReportRepository`
 
@@ -768,6 +806,7 @@ Recommended module boundaries:
 - `Payments` owns collections and allocations.
 - `Ledger` owns receivable movements.
 - `Reports` reads from invoices, returns, payments, and ledger but does not mutate them.
+- `InvoiceDelivery` owns printing, email sending, WhatsApp sending, delivery logs, and provider status updates.
 - `Imports` validates and delegates to domain services.
 - `Audit` listens to important events and records history.
 
@@ -783,6 +822,9 @@ Route::post('dispatch/forecast', [DispatchController::class, 'forecast']);
 Route::post('invoices', [InvoiceController::class, 'store']);
 Route::post('invoices/{invoice}/confirm', [InvoiceConfirmationController::class, 'store']);
 Route::post('invoices/{invoice}/print', [InvoicePrintController::class, 'store']);
+Route::post('invoices/{invoice}/send-email', [InvoiceEmailController::class, 'store']);
+Route::post('invoices/{invoice}/send-whatsapp', [InvoiceWhatsAppController::class, 'store']);
+Route::get('invoices/{invoice}/deliveries', [InvoiceDeliveryController::class, 'index']);
 
 Route::resource('returns', ReturnController::class);
 Route::post('returns/{return}/approve', [ReturnApprovalController::class, 'store']);
@@ -817,8 +859,11 @@ Workflow:
 6. System creates invoice and invoice items in `draft`.
 7. User confirms invoice.
 8. Confirmation locks business values and creates ledger debit.
-9. User prints invoice or route-wise billing notes.
-10. Any later correction uses cancellation/reversal, not silent editing.
+9. User chooses delivery option: print, email, or WhatsApp.
+10. System generates the invoice PDF or printable view from immutable invoice snapshot data.
+11. System records an `invoice_deliveries` entry for every print, email, or WhatsApp attempt.
+12. Email and WhatsApp deliveries are processed through queued jobs.
+13. Any later correction uses cancellation/reversal, not silent editing.
 
 Important rules:
 
@@ -827,6 +872,38 @@ Important rules:
 - Confirmed invoice totals must match item snapshots.
 - Invoice number should be generated only once and remain stable.
 - Reprinting should not change invoice contents.
+- Resending by email or WhatsApp should not change invoice contents.
+- Delivery failures should be logged and retried without duplicating financial records.
+
+### 14.1 Invoice Delivery Options
+
+Print:
+
+- Generate a browser printable view or PDF.
+- Support single invoice printing.
+- Support route-wise batch printing.
+- Record print activity in `invoice_deliveries`.
+
+Email:
+
+- Send invoice PDF as an attachment or secure link.
+- Use shop email by default and allow authorized one-time override.
+- Queue sending through Laravel jobs.
+- Record provider status and error messages.
+
+WhatsApp:
+
+- Send invoice PDF or invoice link through a WhatsApp Business API provider.
+- Use shop WhatsApp number by default.
+- Queue sending through Laravel jobs.
+- Record provider message id and delivery callback status where supported.
+
+Recommended delivery UI:
+
+- Show buttons: `Print`, `Email`, `WhatsApp`.
+- Disable `Email` if the shop has no email address.
+- Disable `WhatsApp` if the shop has no WhatsApp phone number.
+- Show latest delivery status and full delivery history.
 
 ---
 
@@ -971,6 +1048,8 @@ CREATE UNIQUE INDEX idx_invoices_invoice_no ON invoices(invoice_no);
 
 CREATE INDEX idx_invoice_items_invoice_id ON invoice_items(invoice_id);
 CREATE INDEX idx_invoice_items_newspaper_id ON invoice_items(newspaper_id);
+CREATE INDEX idx_invoice_deliveries_invoice_id ON invoice_deliveries(invoice_id);
+CREATE INDEX idx_invoice_deliveries_channel_status ON invoice_deliveries(channel, status);
 
 CREATE INDEX idx_returns_shop_date ON returns(shop_id, return_date);
 CREATE INDEX idx_returns_business_date ON returns(business_date);
@@ -1089,6 +1168,11 @@ Financial security:
 - Audit all financial changes.
 - Prevent direct editing of confirmed records.
 - Use database constraints as a second line of defense.
+- Restrict invoice email/WhatsApp sending to authorized users.
+- Avoid exposing public invoice PDFs without signed URLs or authentication.
+- Log every invoice print/send action with recipient and user.
+- Do not include sensitive customer data in WhatsApp messages beyond what is required.
+- Validate and normalize phone numbers before WhatsApp sending.
 
 Operational security:
 
@@ -1223,6 +1307,7 @@ Technical scalability:
 - Draft/confirm workflow.
 - Invoice item snapshots.
 - Invoice printing.
+- Invoice delivery by email and WhatsApp.
 - Daily dispatch report.
 
 ### Phase 4: Returns
@@ -1270,6 +1355,7 @@ Recommended MVP:
 - Basic forecasting using previous same weekday.
 - Invoice confirmation.
 - Invoice printing.
+- Invoice delivery options: print, email, and WhatsApp.
 - Return entry and approval.
 - Payment collection.
 - Outstanding report.
@@ -1298,7 +1384,8 @@ Defer from MVP:
 - Shop credit scoring.
 - Automatic low/high quantity alerts.
 - Holiday-aware forecasting.
-- WhatsApp invoice delivery.
+- Advanced WhatsApp delivery templates and provider callbacks.
+- Customer invoice portal with secure invoice links.
 - Customer portal for shops.
 - Publisher purchase and settlement tracking.
 - Profit margin reports using cost price.
@@ -1392,6 +1479,20 @@ Frontend:
 - `cancelled`
 - `reversed`
 
+`InvoiceDeliveryChannel`:
+
+- `print`
+- `email`
+- `whatsapp`
+
+`InvoiceDeliveryStatus`:
+
+- `pending`
+- `sent`
+- `delivered`
+- `failed`
+- `cancelled`
+
 `ReturnStatus`:
 
 - `draft`
@@ -1450,6 +1551,16 @@ draft -> confirmed -> printed
 draft -> cancelled
 confirmed -> reversed
 printed -> reprinted
+```
+
+Invoice Delivery:
+
+```text
+pending -> sent -> delivered
+pending -> failed
+sent -> failed
+failed -> pending
+pending -> cancelled
 ```
 
 Return:
@@ -1512,6 +1623,14 @@ ADD CONSTRAINT chk_newspaper_prices_price_non_negative CHECK (price >= 0);
 ALTER TABLE invoices
 ADD CONSTRAINT chk_invoice_totals_non_negative
 CHECK (gross_total >= 0 AND net_total >= 0 AND paid_total >= 0 AND balance_total >= 0);
+
+ALTER TABLE invoice_deliveries
+ADD CONSTRAINT chk_invoice_deliveries_channel
+CHECK (channel IN ('print', 'email', 'whatsapp'));
+
+ALTER TABLE invoice_deliveries
+ADD CONSTRAINT chk_invoice_deliveries_status
+CHECK (status IN ('pending', 'sent', 'delivered', 'failed', 'cancelled'));
 ```
 
 Recommended uniqueness:
