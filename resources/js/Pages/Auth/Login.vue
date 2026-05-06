@@ -5,6 +5,7 @@ import { Button } from '@/Components/ui/button'
 import { Card } from '@/Components/ui/card'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
+import { router } from "@inertiajs/vue3";
 
 const form = useForm({
     email: '',
