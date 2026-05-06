@@ -4,8 +4,9 @@ import { Plus, Pencil, Trash2, Users, Search, MoreHorizontal } from 'lucide-vue-
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import Swal from 'sweetalert2'
+import { useDeleteConfirm } from '@/Composables/useDeleteConfirm'
 
 defineProps({
     users: Object,
@@ -15,43 +16,20 @@ defineProps({
 const { props } = usePage()
 const permissions = computed(() => props.auth.user?.permissions ?? [])
 
-
 const canEdit = computed(() => permissions.value.includes('edit users') || permissions.value.includes('manage users'))
 const canDelete = computed(() => permissions.value.includes('delete users') || permissions.value.includes('manage users'))
 const canCreate = computed(() => permissions.value.includes('create users') || permissions.value.includes('manage users'))
 
-const deleting = ref(false)
+const { deleting, confirmDelete } = useDeleteConfirm('This action cannot be undone. This will permanently delete the User')
 
-const confirmDelete = async (userId) => {
-    const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: 'This action cannot be undone. This will permanently delete the user.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: 'var(--color-destructive)',
-        cancelButtonColor: 'var(--color-muted-foreground)',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel',
-        reverseButtons: true,
-        customClass: {
-            popup: 'rounded-2xl',
-            confirmButton: 'rounded-xl',
-            cancelButton: 'rounded-xl'
-        }
-    })
-
-    if (result.isConfirmed) {
-        deleting.value = true
+const handleDelete = (userId) => {
+    confirmDelete(() => 
         router.delete(`/admin/users/${userId}`, {
-            onFinish: () => {
-                deleting.value = false
-            },
             onError: (errors) => {
-                deleting.value = false
                 Swal.fire('Error!', Object.values(errors)[0] || 'Failed to delete user.', 'error')
             }
         })
-    }
+    )
 }
 </script>
 
@@ -132,7 +110,7 @@ const confirmDelete = async (userId) => {
                                             <Pencil class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <button v-if="canDelete" @click="confirmDelete(user.id)"
+                                    <button v-if="canDelete" @click="handleDelete(user.id)"
                                         class="h-8 w-8 inline-flex items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                                         :disabled="deleting">
                                         <Trash2 class="h-4 w-4" />

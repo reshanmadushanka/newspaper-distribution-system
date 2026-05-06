@@ -3,8 +3,9 @@ import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import { Plus, Pencil, Trash2, KeyRound, Search } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import Swal from 'sweetalert2'
+import { useDeleteConfirm } from '@/Composables/useDeleteConfirm'
 
 defineProps({
     permissions: Array,
@@ -17,38 +18,16 @@ const canEdit = computed(() => perms.value.includes('manage permissions'))
 const canDelete = computed(() => perms.value.includes('manage permissions'))
 const canCreate = computed(() => perms.value.includes('manage permissions'))
 
-const deleting = ref(false)
+const { deleting, confirmDelete } = useDeleteConfirm('This action cannot be undone. This will permanently delete the Permission.')
 
-const confirmDelete = async (permId) => {
-    const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: 'This action cannot be undone. This will permanently delete the permission.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: 'var(--color-destructive)',
-        cancelButtonColor: 'var(--color-muted-foreground)',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel',
-        reverseButtons: true,
-        customClass: {
-            popup: 'rounded-2xl',
-            confirmButton: 'rounded-xl',
-            cancelButton: 'rounded-xl'
-        }
-    })
-
-    if (result.isConfirmed) {
-        deleting.value = true
+const handleDelete = (permId) => {
+    confirmDelete(() => 
         router.delete(`/admin/permissions/${permId}`, {
-            onFinish: () => {
-                deleting.value = false
-            },
             onError: (errors) => {
-                deleting.value = false
                 Swal.fire('Error!', Object.values(errors)[0] || 'Failed to delete permission.', 'error')
             }
         })
-    }
+    )
 }
 </script>
 
@@ -110,8 +89,7 @@ const confirmDelete = async (permId) => {
                                             <Pencil class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <button v-if="canDelete && permission.name !== 'manage users'"
-                                        @click="confirmDelete(permission.id)"
+                                    <button v-if="canDelete && permission.name !== 'manage users'" @click="handleDelete(permission.id)"
                                         class="h-8 w-8 inline-flex items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                                         :disabled="deleting">
                                         <Trash2 class="h-4 w-4" />
