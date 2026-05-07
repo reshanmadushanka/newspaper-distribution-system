@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3'
-import { Plus, Pencil, Trash2, Newspaper, Search, DollarSign } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Newspaper, DollarSign } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
@@ -13,7 +13,7 @@ defineProps({
     canDelete: { type: Boolean, default: true },
 })
 
-const { deleting, confirmDelete } = useDeleteConfirm('This action cannot be undone. This will permanently delete the newspaper and its price history.')
+const { deleting, confirmDelete } = useDeleteConfirm('This action cannot be undone. This will permanently delete the newspaper.')
 
 const handleDelete = (newspaperId) => {
     confirmDelete(() => 
@@ -81,25 +81,16 @@ const languageVariant = (lang) => {
                                 <div class="text-xs font-medium">{{ newspaper.frequency }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center gap-1.5 text-xs font-semibold text-green-600">
-                                    <DollarSign class="h-3 w-3" /> {{ newspaper.current_price || '—' }}
-                                </div>
+                                <div class="text-xs font-semibold text-green-600">Rs. {{ newspaper.price || '—' }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <DollarSign class="h-3 w-3" /> {{ newspaper.current_cost_price || '—' }}
-                                </div>
+                                <div class="text-xs text-muted-foreground">Rs. {{ newspaper.cost_price || '—' }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                                     <Link v-if="canEdit" :href="`/admin/newspapers/${newspaper.id}/edit`">
                                         <Button variant="ghost" size="icon" class="h-8 w-8 rounded-lg">
                                             <Pencil class="h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                    <Link v-if="canEdit" :href="`/admin/newspapers/${newspaper.id}/prices`">
-                                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-lg" title="Price History">
-                                            <Search class="h-4 w-4" />
                                         </Button>
                                     </Link>
                                     <button v-if="canDelete" @click="handleDelete(newspaper.id)"

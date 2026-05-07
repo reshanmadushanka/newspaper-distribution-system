@@ -6,7 +6,6 @@ use App\Domain\Newspapers\Enums\Language;
 use App\Domain\Newspapers\Enums\NewspaperStatus;
 use App\Domain\Newspapers\Enums\PublicationFrequency;
 use App\Domain\Newspapers\Models\Newspaper;
-use App\Domain\Pricing\Models\NewspaperPrice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -80,16 +79,11 @@ class NewspaperStoreTest extends TestCase
         $newspaper = Newspaper::where('name', 'Price Times')->first();
         $this->assertNotNull($newspaper);
 
-        $this->assertDatabaseHas('newspaper_prices', [
-            'newspaper_id' => $newspaper->id,
+        $this->assertDatabaseHas('newspapers', [
+            'name' => 'Price Times',
             'price' => 75.00,
             'cost_price' => 50.00,
-            'effective_to' => null,
         ]);
-
-        $priceRecord = NewspaperPrice::where('newspaper_id', $newspaper->id)->first();
-        $this->assertNotNull($priceRecord);
-        $this->assertTrue($priceRecord->isCurrentPrice());
     }
 
     public function test_store_creates_newspaper_without_price_when_not_provided(): void
@@ -106,7 +100,8 @@ class NewspaperStoreTest extends TestCase
 
         $newspaper = Newspaper::where('name', 'No Price Paper')->first();
         $this->assertNotNull($newspaper);
-        $this->assertDatabaseCount('newspaper_prices', 0);
+        $this->assertNull($newspaper->price);
+        $this->assertNull($newspaper->cost_price);
     }
 
     public function test_store_validates_required_fields(): void

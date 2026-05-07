@@ -4,15 +4,12 @@ namespace App\Domain\Newspapers\Services;
 
 use App\Domain\Newspapers\Models\Newspaper;
 use App\Domain\Newspapers\Repositories\NewspaperRepositoryInterface;
-use App\Domain\Pricing\Services\PriceHistoryService;
-use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class NewspaperService
 {
     public function __construct(
-        private NewspaperRepositoryInterface $newspaperRepository,
-        private PriceHistoryService $priceHistoryService
+        private NewspaperRepositoryInterface $newspaperRepository
     ) {}
 
     public function getPaginatedNewspapers(int $perPage = 10): LengthAwarePaginator
@@ -22,25 +19,7 @@ class NewspaperService
 
     public function createNewspaper(array $data): Newspaper
     {
-        $price = $data['price'] ?? null;
-        $costPrice = $data['cost_price'] ?? null;
-        unset($data['price'], $data['cost_price']);
-
-        $newspaper = $this->newspaperRepository->create($data);
-
-        if ($price !== null) {
-            try {
-                $this->priceHistoryService->addPrice(
-                    newspaperId: $newspaper->id,
-                    effectiveFrom: now()->format('Y-m-d'),
-                    price: $price,
-                    costPrice: $costPrice,
-                );
-            } catch (Exception $e) {
-            }
-        }
-
-        return $newspaper;
+        return $this->newspaperRepository->create($data);
     }
 
     public function updateNewspaper(Newspaper $newspaper, array $data): Newspaper

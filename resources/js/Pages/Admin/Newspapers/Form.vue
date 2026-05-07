@@ -22,8 +22,8 @@ const form = useForm({
     language: props.newspaper?.language ?? '',
     frequency: props.newspaper?.frequency ?? '',
     status: props.newspaper?.status ?? 'active',
-    price: props.newspaper?.current_price ?? '',
-    cost_price: props.newspaper?.current_cost_price ?? '',
+    price: props.newspaper?.price ?? '',
+    cost_price: props.newspaper?.cost_price ?? '',
 })
 
 const { enabled: sinhalaEnabled, toggle: toggleSinhala } = useSinhalaInput()
