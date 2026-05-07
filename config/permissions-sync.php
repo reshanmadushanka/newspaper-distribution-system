@@ -18,6 +18,12 @@ return [
         'view reports',
         'export data',
         'send sms notifications',
+        'manage pricing',
+        'manage newspapers',
+        'view newspapers',
+        'create newspapers',
+        'edit newspapers',
+        'delete newspapers'
     ],
 
 ];
