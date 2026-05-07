@@ -62,7 +62,7 @@ class SyncAdminPermissions extends Command
         $this->info("\nResult: $createdCount created, $existingCount already existed.");
 
         // Get the admin role
-        $adminRole = Role::where('name', 'admin')->where('guard_name', 'web')->first();
+        $adminRole = Role::where('name', 'Admin')->where('guard_name', 'web')->first();
 
         if (!$adminRole) {
             $this->error('Admin role not found. Please run the seeder first.');
