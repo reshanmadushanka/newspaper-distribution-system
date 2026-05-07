@@ -16,8 +16,7 @@ import {
     X,
     Lock,
     ChevronDown,
-    Store,
-    BadgeDollarSign
+    Store
 } from 'lucide-vue-next'
 
 import { computed, ref, onMounted } from 'vue'
@@ -57,12 +56,11 @@ const menuGroups = computed(() => [
     },
     {
         title: 'News Papers',
-        type: 'group',
+        type: 'item',
+        label: 'News Papers',
+        href: '/admin/newspapers',
         icon: Newspaper,
-        items: [
-            { label: 'News Papers', href: '/admin/newspapers', icon: Newspaper, permission: 'manage newspapers' },
-            { label: 'News Papers Price', href: '/admin/newspaper-prices', icon: BadgeDollarSign, permission: 'manage pricing' },
-        ]
+        permission: 'manage newspapers'
     },
     {
         title: 'Access Management',
