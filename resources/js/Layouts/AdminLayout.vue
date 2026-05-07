@@ -15,8 +15,10 @@ import {
     Menu,
     X,
     Lock,
-    ChevronDown
+    ChevronDown,
+    Store
 } from 'lucide-vue-next'
+
 import { computed, ref, onMounted } from 'vue'
 import Toast from '@/Components/Toast.vue'
 
@@ -45,6 +47,22 @@ const menuGroups = computed(() => [
         permission: 'view dashboard'
     },
     {
+        title: 'Shops',
+        type: 'item',
+        label: 'Shops',
+        href: '/admin/shops',
+        icon: Store,
+        permission: 'manage shops'
+    },
+    {
+        title: 'News Papers',
+        type: 'item',
+        label: 'News Papers',
+        href: '/admin/newspapers',
+        icon: Newspaper,
+        permission: 'manage newspapers'
+    },
+    {
         title: 'Access Management',
         type: 'group',
         icon: Lock,
@@ -53,6 +71,7 @@ const menuGroups = computed(() => [
             { label: 'Roles', href: '/admin/roles', icon: Shield, permission: 'manage roles' },
             { label: 'Permissions', href: '/admin/permissions', icon: KeyRound, permission: 'manage permissions' },
         ]
+
     }
 ].map(group => {
     if (group.type === 'group') {

@@ -20,14 +20,22 @@ class AuthSeeder extends Seeder
             'delete users',
             'manage roles',
             'manage permissions',
+            'manage shops',
+            'view shops',
+            'create shops',
+            'edit shops',
+            'delete shops',
+            'view dashboard',
         ];
 
         foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission, 'web');
+            Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web']
+            );
         }
 
-        $superAdmin = Role::findOrCreate('super-admin', 'web');
-        $admin = Role::findOrCreate('admin', 'web');
+        $superAdmin = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
+        $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
 
         $superAdmin->syncPermissions($permissions);
         $admin->syncPermissions(['manage users', 'manage roles', 'manage permissions']);
