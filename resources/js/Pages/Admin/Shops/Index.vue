@@ -58,8 +58,6 @@ const handleDelete = (shopId) => {
                         <tr>
                             <th class="px-6 py-4">Shop Info</th>
                             <th class="px-6 py-4">Contact</th>
-                            <th class="px-6 py-4">Route</th>
-                            <th class="px-6 py-4">Balance</th>
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
@@ -82,19 +80,6 @@ const handleDelete = (shopId) => {
                                         <Mail class="h-3 w-3" /> {{ shop.email }}
                                     </div>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div v-if="shop.route" class="flex items-center gap-1.5">
-                                    <MapPin class="h-3.5 w-3.5 text-muted-foreground" />
-                                    <span class="text-xs">{{ shop.route.name }}</span>
-                                </div>
-                                <span v-else class="text-xs text-muted-foreground italic">No route</span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-xs font-semibold" :class="shop.opening_balance > 0 ? 'text-destructive' : 'text-emerald-600'">
-                                    {{ shop.opening_balance }}
-                                </div>
-                                <div class="text-[10px] text-muted-foreground leading-none">Limit: {{ shop.credit_limit }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <Badge :variant="shop.status === 'active' ? 'success' : 'secondary'" class="rounded-full px-2 py-0 text-[10px]">
