@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -22,5 +23,6 @@ Route::middleware('auth')->group(function (): void {
         Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:manage permissions');
         Route::resource('shops', ShopController::class)->except(['show'])->middleware('permission:manage shops');
         Route::resource('newspapers', NewspaperController::class)->except(['show'])->middleware('permission:manage newspapers');
+        Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show'])->middleware('permission:manage invoices');
     });
 });

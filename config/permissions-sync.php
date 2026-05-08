@@ -23,7 +23,11 @@ return [
         'view newspapers',
         'create newspapers',
         'edit newspapers',
-        'delete newspapers'
+        'delete newspapers',
+        'manage invoices',
+        'view invoices',
+        'create invoices',
+        'view dashboard'
     ],
 
 ];
