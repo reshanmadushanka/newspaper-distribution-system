@@ -48,4 +48,13 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             return $invoice->fresh(['shop', 'items.newspaper', 'creator']);
         });
     }
+
+    public function findByDateAndShop(string $date, int $shopId): ?Invoice
+    {
+        return Invoice::query()
+            ->with(['items.newspaper'])
+            ->where('invoice_date', $date)
+            ->where('shop_id', $shopId)
+            ->first();
+    }
 }

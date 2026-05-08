@@ -25,12 +25,21 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $previousWeekSummary = null;
+        if ($request->has(['date', 'shop_id'])) {
+            $previousWeekSummary = $this->invoiceService->getPreviousWeekSummary(
+                $request->date,
+                (int) $request->shop_id
+            );
+        }
+
         return Inertia::render('Admin/Invoices/Form', [
             'invoice' => null,
             'shops' => Shop::query()->where('status', 'active')->orderBy('name')->get(),
             'newspapers' => $this->invoiceService->getActiveNewspapers(),
+            'previousWeekSummary' => $previousWeekSummary,
         ]);
     }
 
@@ -60,4 +69,5 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
         ]);
     }
+
 }

@@ -14,4 +14,6 @@ interface InvoiceRepositoryInterface
     public function findOrFail(int $id): Invoice;
 
     public function createWithItems(array $invoiceData, array $items): Invoice;
+
+    public function findByDateAndShop(string $date, int $shopId): ?Invoice;
 }

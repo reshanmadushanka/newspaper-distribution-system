@@ -1,17 +1,19 @@
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm, router } from '@inertiajs/vue3'
 import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Datepicker } from '@/Components/ui/datepicker'
 import { Label } from '@/Components/ui/label'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { History, AlertCircle, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps({
     invoice: Object,
     shops: Array,
     newspapers: Array,
+    previousWeekSummary: Object,
 })
 
 const tomorrow = new Date()
@@ -56,6 +58,30 @@ const rowTotal = (index) => {
     const price = parseFloat(form.items[index].unit_price) || 0
     return qty * price
 }
+
+const isLoadingSummary = ref(false)
+
+const fetchPreviousWeekSummary = () => {
+    if (!form.invoice_date || !form.shop_id) {
+        return
+    }
+
+    isLoadingSummary.value = true
+    router.reload({
+        data: {
+            date: form.invoice_date,
+            shop_id: form.shop_id
+        },
+        only: ['previousWeekSummary'],
+        onFinish: () => {
+            isLoadingSummary.value = false
+        }
+    })
+}
+
+watch(() => [form.invoice_date, form.shop_id], () => {
+    fetchPreviousWeekSummary()
+})
 
 const addRow = () => {
     form.items.push({ newspaper_id: '', quantity: 1, unit_price: 0 })
@@ -115,18 +141,55 @@ const submit = () => {
                         <p v-if="form.errors.shop_id" class="text-xs text-destructive">{{ form.errors.shop_id }}</p>
                     </div>
                 </div>
+
+                <!-- Previous Week Summary -->
+                <div v-if="form.invoice_date && form.shop_id" class="mt-6 border-t pt-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <History class="h-4 w-4 text-muted-foreground" />
+                        <h4 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Last Week Comparison (Same Day)</h4>
+                    </div>
+
+                    <div v-if="isLoadingSummary" class="flex items-center justify-center py-8">
+                        <Loader2 class="h-6 w-6 animate-spin text-primary" />
+                        <span class="ml-2 text-sm text-muted-foreground">Fetching historical data...</span>
+                    </div>
+
+                    <div v-else-if="props.previousWeekSummary" class="bg-muted/30 rounded-xl p-4 border border-dashed">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div v-for="item in props.previousWeekSummary.items" :key="item.id" class="flex items-center justify-between p-2 bg-background rounded-lg border shadow-sm">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-medium text-muted-foreground truncate max-w-[150px]">{{ item.newspaper.name }}</span>
+                                    <span class="text-lg font-bold">{{ item.quantity }}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[10px] text-muted-foreground block uppercase">Distributed</span>
+                                    <span class="text-xs font-semibold text-primary">Rs. {{ (item.quantity * item.unit_price).toFixed(2) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center px-2 pt-3 border-t">
+                            <span class="text-sm text-muted-foreground">Total Last Week:</span>
+                            <span class="font-bold text-lg">Rs. {{ parseFloat(props.previousWeekSummary.total_amount).toFixed(2) }}</span>
+                        </div>
+                    </div>
+
+                    <div v-else class="flex flex-col items-center justify-center py-6 bg-muted/20 rounded-xl border border-dashed">
+                        <AlertCircle class="h-8 w-8 text-muted-foreground/40 mb-2" />
+                        <p class="text-sm text-muted-foreground">No invoice found for the same day last week.</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Newspaper Items -->
             <div class="rounded-2xl border bg-card p-6 shadow-sm">
                 <div class="mb-6 flex items-center justify-between border-b pb-4">
-                                    <div class="flex items-center gap-2">
-                                        <Newspaper class="h-5 w-5 text-primary" />
-                                        <h3 class="font-bold">Newspaper Items</h3>
-                                    </div>
-                                    <Button type="button" variant="outline" size="sm" @click="addRow" class="rounded-xl">
-                                        <Plus class="mr-1 h-4 w-4" /> Add Newspaper
-                                    </Button>
+                    <div class="flex items-center gap-2">
+                        <Newspaper class="h-5 w-5 text-primary" />
+                        <h3 class="font-bold">Newspaper Items</h3>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" @click="addRow" class="rounded-xl">
+                        <Plus class="mr-1 h-4 w-4" /> Add Newspaper
+                    </Button>
                 </div>
 
                 <div v-if="form.errors.items" class="mb-4 text-xs text-destructive">{{ form.errors.items }}</div>
@@ -163,7 +226,8 @@ const submit = () => {
                                 </td>
                                 <td class="px-2 py-2">
                                     <div class="relative">
-                                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Rs.</span>
+                                        <span
+                                            class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Rs.</span>
                                         <Input v-model="item.unit_price" type="number" min="0" step="0.01"
                                             class="h-9 pl-8" readonly />
                                     </div>

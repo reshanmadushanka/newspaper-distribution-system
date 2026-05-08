@@ -53,4 +53,10 @@ class InvoiceService
             ->orderBy('name')
             ->get(['id', 'name', 'price']);
     }
+
+    public function getPreviousWeekSummary(string $date, int $shopId): ?Invoice
+    {
+        $previousWeekDate = date('Y-m-d', strtotime($date . ' - 7 days'));
+        return $this->invoiceRepository->findByDateAndShop($previousWeekDate, $shopId);
+    }
 }
