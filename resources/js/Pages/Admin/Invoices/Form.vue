@@ -1,11 +1,12 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3'
-import { ChevronLeft, Save, Plus, Trash2, CalendarDays, Store, Newspaper, Hash, DollarSign } from 'lucide-vue-next'
+import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, DollarSign } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
+import { Datepicker } from '@/Components/ui/datepicker'
 import { Label } from '@/Components/ui/label'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
     invoice: Object,
@@ -13,8 +14,14 @@ const props = defineProps({
     newspapers: Array,
 })
 
+const tomorrow = new Date()
+tomorrow.setDate(tomorrow.getDate() + 1)
+const defaultDate = tomorrow.toISOString().split('T')[0]
+
+const minDate = defaultDate
+
 const form = useForm({
-    invoice_date: '',
+    invoice_date: defaultDate,
     shop_id: '',
     items: [
         { newspaper_id: '', quantity: 1, unit_price: 0 },
@@ -66,6 +73,7 @@ const submit = () => {
 </script>
 
 <template>
+
     <Head title="Create Invoice" />
     <AdminLayout>
         <div class="mb-8 flex items-center justify-between">
@@ -91,15 +99,14 @@ const submit = () => {
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
-                        <Label for="invoice_date">Invoice Date</Label>
-                        <div class="relative">
-                            <CalendarDays class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input id="invoice_date" v-model="form.invoice_date" type="date" class="pl-9" :error="form.errors.invoice_date" />
-                        </div>
-                        <p v-if="form.errors.invoice_date" class="text-xs text-destructive">{{ form.errors.invoice_date }}</p>
+                        <Label for="invoice_date" class="block text-sm font-medium text-gray-700">Invoice Date</Label>
+                        <Datepicker id="invoice_date" v-model="form.invoice_date" :min="minDate"
+                            class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer" />
+                        <p v-if="form.errors.invoice_date" class="text-xs text-destructive">{{ form.errors.invoice_date
+                        }}</p>
                     </div>
                     <div class="space-y-2">
-                        <Label for="shop_id">Shop</Label>
+                        <Label for="shop_id" class="block text-sm font-medium text-gray-700">Shop</Label>
                         <select id="shop_id" v-model="form.shop_id"
                             class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                             <option value="" disabled>Select a shop</option>
@@ -118,7 +125,7 @@ const submit = () => {
                         <h3 class="font-bold">Newspaper Items</h3>
                     </div>
                     <Button type="button" variant="outline" size="sm" @click="addRow" class="rounded-xl">
-                        <Plus class="mr-1 h-4 w-4" /> Add Row
+                        <Plus class="mr-1 h-4 w-4" /> Add News paper
                     </Button>
                 </div>
 
@@ -141,18 +148,25 @@ const submit = () => {
                                     <select v-model="item.newspaper_id" @change="handleNewspaperChange(index)"
                                         class="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                                         <option value="" disabled>Select newspaper</option>
-                                        <option v-for="np in newspaperOptions" :key="np.value" :value="np.value">{{ np.label }}</option>
+                                        <option v-for="np in newspaperOptions" :key="np.value" :value="np.value">{{
+                                            np.label }}</option>
                                     </select>
-                                    <p v-if="form.errors[`items.${index}.newspaper_id`]" class="text-xs text-destructive">{{ form.errors[`items.${index}.newspaper_id`] }}</p>
+                                    <p v-if="form.errors[`items.${index}.newspaper_id`]"
+                                        class="text-xs text-destructive">{{ form.errors[`items.${index}.newspaper_id`]
+                                        }}</p>
                                 </td>
                                 <td class="px-2 py-2">
-                                    <Input v-model.number="item.quantity" type="number" min="1" step="1" class="h-9 text-center" />
-                                    <p v-if="form.errors[`items.${index}.quantity`]" class="text-xs text-destructive">{{ form.errors[`items.${index}.quantity`] }}</p>
+                                    <Input v-model.number="item.quantity" type="number" min="1" step="1"
+                                        class="h-9 text-center" />
+                                    <p v-if="form.errors[`items.${index}.quantity`]" class="text-xs text-destructive">{{
+                                        form.errors[`items.${index}.quantity`] }}</p>
                                 </td>
                                 <td class="px-2 py-2">
                                     <div class="relative">
-                                        <DollarSign class="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input v-model="item.unit_price" type="number" min="0" step="0.01" class="h-9 pl-7" readonly />
+                                        <DollarSign
+                                            class="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input v-model="item.unit_price" type="number" min="0" step="0.01"
+                                            class="h-9 pl-7" readonly />
                                     </div>
                                 </td>
                                 <td class="px-2 py-2 text-right font-semibold">
