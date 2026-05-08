@@ -45,7 +45,26 @@ const newspaperOptions = computed(() => {
 })
 
 const handleNewspaperChange = (index) => {
-    const selected = props.newspapers.find(n => n.id === parseInt(form.items[index].newspaper_id))
+    const selectedId = parseInt(form.items[index].newspaper_id)
+    
+    // Check if this newspaper is already selected in another row
+    const isDuplicate = form.items.some((item, idx) => {
+        return idx !== index && parseInt(item.newspaper_id) === selectedId
+    })
+
+    if (isDuplicate) {
+        form.items[index].newspaper_id = ''
+        form.items[index].unit_price = 0
+        form.errors[`items.${index}.newspaper_id`] = 'This newspaper is already added.'
+        return
+    }
+
+    // Clear error if not duplicate
+    if (form.errors[`items.${index}.newspaper_id`]) {
+        delete form.errors[`items.${index}.newspaper_id`]
+    }
+
+    const selected = props.newspapers.find(n => n.id === selectedId)
     if (selected) {
         form.items[index].unit_price = parseFloat(selected.price)
     } else {
@@ -95,6 +114,14 @@ const removeRow = (index) => {
 
 const submit = () => {
     form.post('/admin/invoices')
+}
+const filteredNewspaperOptions = (currentIndex) => {
+    const selectedIds = form.items
+        .filter((_, idx) => idx !== currentIndex)
+        .map(item => parseInt(item.newspaper_id))
+        .filter(id => !isNaN(id))
+
+    return newspaperOptions.value.filter(option => !selectedIds.includes(option.value))
 }
 </script>
 
@@ -211,7 +238,7 @@ const submit = () => {
                                     <select v-model="item.newspaper_id" @change="handleNewspaperChange(index)"
                                         class="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                                         <option value="" disabled>Select newspaper</option>
-                                        <option v-for="np in newspaperOptions" :key="np.value" :value="np.value">{{
+                                        <option v-for="np in filteredNewspaperOptions(index)" :key="np.value" :value="np.value">{{
                                             np.label }}</option>
                                     </select>
                                     <p v-if="form.errors[`items.${index}.newspaper_id`]"
