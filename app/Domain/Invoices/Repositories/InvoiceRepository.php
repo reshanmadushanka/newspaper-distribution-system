@@ -57,4 +57,11 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             ->where('shop_id', $shopId)
             ->first();
     }
+
+    public function updateStatus(int $id, string $status): Invoice
+    {
+        $invoice = $this->findOrFail($id);
+        $invoice->update(['status' => $status]);
+        return $invoice->fresh(['shop', 'items.newspaper', 'creator']);
+    }
 }

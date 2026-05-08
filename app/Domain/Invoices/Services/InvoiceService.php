@@ -59,4 +59,9 @@ class InvoiceService
         $previousWeekDate = date('Y-m-d', strtotime($date . ' - 7 days'));
         return $this->invoiceRepository->findByDateAndShop($previousWeekDate, $shopId);
     }
+
+    public function markAsPaid(int $id): Invoice
+    {
+        return $this->invoiceRepository->updateStatus($id, 'paid');
+    }
 }

@@ -83,6 +83,14 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function markAsPaid(int $id): RedirectResponse
+    {
+        $this->invoiceService->markAsPaid($id);
+
+        return redirect()->route('admin.invoices.index')
+            ->with('success', 'Invoice marked as paid.');
+    }
+
     public function downloadPdf(int $id): \Illuminate\Http\Response
     {
         $invoice = $this->invoiceService->getInvoiceForView($id);
