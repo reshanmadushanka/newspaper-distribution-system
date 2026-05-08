@@ -1,10 +1,13 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
-import { ChevronLeft, Printer, FileText, Store, CalendarDays, User, Hash } from 'lucide-vue-next'
+import { ChevronLeft, Store, CalendarDays, Download, MessageCircle, Mail, Printer } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
 import { computed } from 'vue'
+import print from 'vue3-print-nb'
+
+const vPrint = print
 
 const props = defineProps({
     invoice: Object,
@@ -14,8 +17,30 @@ const totalQty = computed(() => {
     return props.invoice.items.reduce((sum, item) => sum + item.quantity, 0)
 })
 
-const printInvoice = () => {
-    window.print()
+const hasWhatsApp = computed(() => !!props.invoice.shop?.whatsapp_phone)
+const hasEmail = computed(() => !!props.invoice.shop?.email)
+
+const pdfUrl = computed(() => `/admin/invoices/${props.invoice.id}/pdf`)
+const invoiceUrl = computed(() => window.location.origin + `/admin/invoices/${props.invoice.id}`)
+
+const downloadPdf = () => {
+    window.open(pdfUrl.value, '_blank')
+}
+
+const sendWhatsApp = () => {
+    const phone = props.invoice.shop.whatsapp_phone.replace(/[^0-9]/g, '')
+    const text = encodeURIComponent(
+        `Invoice #${props.invoice.id}\nShop: ${props.invoice.shop?.name}\nDate: ${props.invoice.invoice_date}\nTotal: Rs. ${parseFloat(props.invoice.total_amount).toFixed(2)}\n\nView invoice: ${invoiceUrl.value}`
+    )
+    window.open(`https://wa.me/${phone}?text=${text}`, '_blank')
+}
+
+const sendEmail = () => {
+    const subject = encodeURIComponent(`Invoice #${props.invoice.id} - ${props.invoice.shop?.name}`)
+    const body = encodeURIComponent(
+        `Dear ${props.invoice.shop?.name},\n\nPlease find the invoice details below:\n\nInvoice #: ${props.invoice.id}\nDate: ${props.invoice.invoice_date}\nTotal Amount: Rs. ${parseFloat(props.invoice.total_amount).toFixed(2)}\n\nYou can view and download the PDF invoice here:\n${invoiceUrl.value}\n\nThank you.`
+    )
+    window.location.href = `mailto:${props.invoice.shop.email}?subject=${subject}&body=${body}`
 }
 
 const statusVariant = (status) => {
@@ -43,14 +68,28 @@ const statusVariant = (status) => {
                     <p class="text-sm text-muted-foreground">View and print invoice details.</p>
                 </div>
             </div>
-            <Button @click="printInvoice" class="rounded-xl shadow-lg shadow-primary/20">
-                <Printer class="mr-2 h-4 w-4" />
-                Print Invoice
-            </Button>
+            <div class="flex items-center gap-2">
+                <Button v-if="hasEmail" @click="sendEmail" variant="outline" class="rounded-xl">
+                    <Mail class="mr-2 h-4 w-4" />
+                    Email
+                </Button>
+                <Button v-if="hasWhatsApp" @click="sendWhatsApp" variant="outline" class="rounded-xl">
+                    <MessageCircle class="mr-2 h-4 w-4" />
+                    WhatsApp
+                </Button>
+                <Button @click="downloadPdf" variant="outline" class="rounded-xl">
+                    <Download class="mr-2 h-4 w-4" />
+                    PDF
+                </Button>
+                <Button v-print="'#printableInvoice'" class="rounded-xl shadow-lg shadow-primary/20">
+                    <Printer class="mr-2 h-4 w-4" />
+                    Print
+                </Button>
+            </div>
         </div>
 
         <!-- Invoice Content -->
-        <div class="max-w-4xl mx-auto bg-card rounded-2xl border shadow-sm p-8 print:p-0 print:border-0 print:shadow-none">
+        <div id="printableInvoice" class="max-w-4xl mx-auto bg-card rounded-2xl border shadow-sm p-8 print:p-0 print:border-0 print:shadow-none">
             <!-- Header -->
             <div class="flex items-start justify-between mb-8 print:mb-6">
                 <div>
@@ -134,11 +173,23 @@ const statusVariant = (status) => {
 
 <style scoped>
 @media print {
-    .no-print {
-        display: none !important;
+    @page {
+        size: A5;
+        margin: 5mm;
     }
     body {
+        -webkit-print-color-adjust: exact;
         background: white !important;
+    }
+    #printableInvoice {
+        width: 100%;
+        padding: 10mm !important;
+        margin: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+    .no-print {
+        display: none !important;
     }
 }
 </style>
