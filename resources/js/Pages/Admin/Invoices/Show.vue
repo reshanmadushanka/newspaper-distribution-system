@@ -99,8 +99,8 @@ const statusVariant = (status) => {
                             <td class="py-3 text-muted-foreground">{{ index + 1 }}</td>
                             <td class="py-3 font-medium">{{ item.newspaper?.name }}</td>
                             <td class="py-3 text-center">{{ item.quantity }}</td>
-                            <td class="py-3 text-right">${{ parseFloat(item.unit_price).toFixed(2) }}</td>
-                            <td class="py-3 text-right font-semibold">${{ parseFloat(item.total_price).toFixed(2) }}</td>
+                            <td class="py-3 text-right">Rs. {{ parseFloat(item.unit_price).toFixed(2) }}</td>
+                            <td class="py-3 text-right font-semibold">Rs. {{ parseFloat(item.total_price).toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -119,7 +119,7 @@ const statusVariant = (status) => {
                     </div>
                     <div class="flex justify-between text-lg font-bold border-t pt-2">
                         <span>Total Amount</span>
-                        <span class="text-primary">${{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
+                        <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
                     </div>
                 </div>
             </div>

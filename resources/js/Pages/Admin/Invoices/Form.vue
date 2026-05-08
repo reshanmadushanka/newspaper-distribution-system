@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3'
-import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, DollarSign } from 'lucide-vue-next'
+import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -37,7 +37,7 @@ const totalAmount = computed(() => {
 const newspaperOptions = computed(() => {
     return props.newspapers.map(np => ({
         value: np.id,
-        label: `${np.name} ($${parseFloat(np.price).toFixed(2)})`,
+        label: `${np.name} (Rs. ${parseFloat(np.price).toFixed(2)})`,
         price: parseFloat(np.price),
     }))
 })
@@ -120,13 +120,13 @@ const submit = () => {
             <!-- Newspaper Items -->
             <div class="rounded-2xl border bg-card p-6 shadow-sm">
                 <div class="mb-6 flex items-center justify-between border-b pb-4">
-                    <div class="flex items-center gap-2">
-                        <Newspaper class="h-5 w-5 text-primary" />
-                        <h3 class="font-bold">Newspaper Items</h3>
-                    </div>
-                    <Button type="button" variant="outline" size="sm" @click="addRow" class="rounded-xl">
-                        <Plus class="mr-1 h-4 w-4" /> Add News paper
-                    </Button>
+                                    <div class="flex items-center gap-2">
+                                        <Newspaper class="h-5 w-5 text-primary" />
+                                        <h3 class="font-bold">Newspaper Items</h3>
+                                    </div>
+                                    <Button type="button" variant="outline" size="sm" @click="addRow" class="rounded-xl">
+                                        <Plus class="mr-1 h-4 w-4" /> Add Newspaper
+                                    </Button>
                 </div>
 
                 <div v-if="form.errors.items" class="mb-4 text-xs text-destructive">{{ form.errors.items }}</div>
@@ -163,14 +163,13 @@ const submit = () => {
                                 </td>
                                 <td class="px-2 py-2">
                                     <div class="relative">
-                                        <DollarSign
-                                            class="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Rs.</span>
                                         <Input v-model="item.unit_price" type="number" min="0" step="0.01"
-                                            class="h-9 pl-7" readonly />
+                                            class="h-9 pl-8" readonly />
                                     </div>
                                 </td>
                                 <td class="px-2 py-2 text-right font-semibold">
-                                    ${{ rowTotal(index).toFixed(2) }}
+                                    Rs. {{ rowTotal(index).toFixed(2) }}
                                 </td>
                                 <td class="px-2 py-2">
                                     <button type="button" @click="removeRow(index)"
@@ -187,7 +186,7 @@ const submit = () => {
                 <div class="mt-4 flex justify-end border-t border-border/50 pt-4">
                     <div class="text-right">
                         <span class="text-xs text-muted-foreground">Invoice Total</span>
-                        <div class="text-2xl font-bold text-primary">${{ totalAmount.toFixed(2) }}</div>
+                        <div class="text-2xl font-bold text-primary">Rs. {{ totalAmount.toFixed(2) }}</div>
                     </div>
                 </div>
             </div>

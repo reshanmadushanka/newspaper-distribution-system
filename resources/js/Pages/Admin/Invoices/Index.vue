@@ -75,7 +75,7 @@ const statusVariant = (status) => {
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-right font-semibold">
-                                ${{ parseFloat(inv.total_amount).toFixed(2) }}
+                                    Rs. {{ parseFloat(inv.total_amount).toFixed(2) }}
                             </td>
                             <td class="px-6 py-4">
                                 <Badge :variant="statusVariant(inv.status)" class="rounded-full px-2 py-0 text-[10px] capitalize">
