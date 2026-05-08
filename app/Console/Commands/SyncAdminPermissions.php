@@ -29,7 +29,7 @@ class SyncAdminPermissions extends Command
      */
     public function handle(): int
     {
-        $permissions = Config::get('permissions-sync.admin_permissions', []);
+        $permissions = Config::get('permissions-sync:admin_permissions', []);
 
         if (empty($permissions)) {
             $this->warn('No permissions found in config/permissions-sync.php admin_permissions array.');

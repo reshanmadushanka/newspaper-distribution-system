@@ -25,6 +25,9 @@ class AuthSeeder extends Seeder
             'create shops',
             'edit shops',
             'delete shops',
+            'manage invoices',
+            'view invoices',
+            'create invoices',
             'view dashboard',
         ];
 

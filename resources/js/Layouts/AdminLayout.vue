@@ -16,7 +16,8 @@ import {
     X,
     Lock,
     ChevronDown,
-    Store
+    Store,
+    FileText
 } from 'lucide-vue-next'
 
 import { computed, ref, onMounted } from 'vue'
@@ -61,6 +62,14 @@ const menuGroups = computed(() => [
         href: '/admin/newspapers',
         icon: Newspaper,
         permission: 'manage newspapers'
+    },
+    {
+        title: 'Invoices',
+        type: 'item',
+        label: 'Invoices',
+        href: '/admin/invoices',
+        icon: FileText,
+        permission: 'manage invoices'
     },
     {
         title: 'Access Management',
