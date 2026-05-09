@@ -1,11 +1,12 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3'
-import { ChevronLeft, Store, CalendarDays, Download, MessageCircle, Mail, Printer } from 'lucide-vue-next'
+import { Head, Link, router } from '@inertiajs/vue3'
+import { ChevronLeft, Store, CalendarDays, Download, MessageCircle, Mail, Printer, Pencil, Trash2 } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
 import { computed } from 'vue'
 import print from 'vue3-print-nb'
+import Swal from 'sweetalert2'
 
 const vPrint = print
 
@@ -19,6 +20,7 @@ const totalQty = computed(() => {
 
 const hasWhatsApp = computed(() => !!props.invoice.shop?.whatsapp_phone)
 const hasEmail = computed(() => !!props.invoice.shop?.email)
+const isDraft = computed(() => props.invoice.status === 'draft')
 
 const pdfUrl = computed(() => `/admin/invoices/${props.invoice.id}/pdf`)
 const invoiceUrl = computed(() => window.location.origin + `/admin/invoices/${props.invoice.id}`)
@@ -41,6 +43,25 @@ const sendEmail = () => {
         `Dear ${props.invoice.shop?.name},\n\nPlease find the invoice details below:\n\nInvoice #: ${props.invoice.id}\nDate: ${props.invoice.invoice_date}\nTotal Amount: Rs. ${parseFloat(props.invoice.total_amount).toFixed(2)}\n\nYou can view and download the PDF invoice here:\n${invoiceUrl.value}\n\nThank you.`
     )
     window.location.href = `mailto:${props.invoice.shop.email}?subject=${subject}&body=${body}`
+}
+
+const handleDelete = () => {
+    Swal.fire({
+        title: 'Delete Invoice?',
+        text: 'This will permanently delete the invoice and all its items.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--color-destructive)',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(`/admin/invoices/${props.invoice.id}`, {
+                onError: (errors) => Swal.fire('Error!', Object.values(errors)[0], 'error'),
+            })
+        }
+    })
 }
 
 const statusVariant = (status) => {
@@ -84,6 +105,17 @@ const statusVariant = (status) => {
                 <Button v-print="'#printableInvoice'" class="rounded-xl shadow-lg shadow-primary/20">
                     <Printer class="mr-2 h-4 w-4" />
                     Print
+                </Button>
+                <div class="mx-2 h-6 w-px bg-border"></div>
+                <Link v-if="isDraft" :href="`/admin/invoices/${invoice.id}/edit`">
+                    <Button variant="outline" class="rounded-xl">
+                        <Pencil class="mr-2 h-4 w-4" />
+                        Edit
+                    </Button>
+                </Link>
+                <Button @click="handleDelete" variant="outline" class="rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10">
+                    <Trash2 class="mr-2 h-4 w-4" />
+                    Delete
                 </Button>
             </div>
         </div>
@@ -161,6 +193,14 @@ const statusVariant = (status) => {
                         <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Notes -->
+            <div v-if="invoice.notes" class="mt-8 border-t pt-6 print:mt-6">
+                <div class="flex items-center gap-2 mb-3 text-muted-foreground">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Notes</span>
+                </div>
+                <p class="text-sm whitespace-pre-wrap text-muted-foreground bg-muted/30 rounded-lg p-4">{{ invoice.notes }}</p>
             </div>
 
             <!-- Footer -->

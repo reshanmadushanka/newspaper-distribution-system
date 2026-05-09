@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'shop_id',
     'created_by',
     'total_amount',
-    'status'
+    'status',
+    'notes',
 ])]
 class Invoice extends Model
 {

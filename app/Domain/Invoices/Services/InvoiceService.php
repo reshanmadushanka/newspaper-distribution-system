@@ -27,6 +27,7 @@ class InvoiceService
             'created_by' => $userId,
             'total_amount' => 0,
             'status' => 'draft',
+            'notes' => $data['notes'] ?? null,
         ];
 
         $items = [];
@@ -63,5 +64,34 @@ class InvoiceService
     public function markAsPaid(int $id): Invoice
     {
         return $this->invoiceRepository->updateStatus($id, 'paid');
+    }
+
+    public function getInvoiceForEdit(int $id): Invoice
+    {
+        return $this->invoiceRepository->findOrFail($id);
+    }
+
+    public function updateInvoice(int $id, array $data): Invoice
+    {
+        $invoiceData = [
+            'total_amount' => 0,
+            'notes' => $data['notes'] ?? null,
+        ];
+
+        $items = [];
+        foreach ($data['items'] as $item) {
+            $items[] = [
+                'newspaper_id' => $item['newspaper_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+            ];
+        }
+
+        return $this->invoiceRepository->updateWithItems($id, $invoiceData, $items);
+    }
+
+    public function deleteInvoice(int $id): bool
+    {
+        return $this->invoiceRepository->delete($id);
     }
 }

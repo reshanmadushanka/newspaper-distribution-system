@@ -64,4 +64,34 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         $invoice->update(['status' => $status]);
         return $invoice->fresh(['shop', 'items.newspaper', 'creator']);
     }
+
+    public function updateWithItems(int $id, array $invoiceData, array $items): Invoice
+    {
+        return DB::transaction(function () use ($id, $invoiceData, $items) {
+            $invoice = $this->findOrFail($id);
+            $invoice->update($invoiceData);
+
+            $invoice->items()->delete();
+
+            $invoiceItems = array_map(fn($item) => [
+                'invoice_id'   => $invoice->id,
+                'newspaper_id' => $item['newspaper_id'],
+                'quantity'     => $item['quantity'],
+                'unit_price'   => $item['unit_price'],
+                'total_price'  => $item['quantity'] * $item['unit_price'],
+            ], $items);
+
+            $invoice->items()->insert($invoiceItems);
+
+            $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
+            $invoice->update(['total_amount' => $totalAmount]);
+
+            return $invoice->fresh(['shop', 'items.newspaper', 'creator']);
+        });
+    }
+
+    public function delete(int $id): bool
+    {
+        return Invoice::findOrFail($id)->delete();
+    }
 }

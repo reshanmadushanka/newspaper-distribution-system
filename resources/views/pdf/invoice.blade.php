@@ -204,6 +204,13 @@
             </div>
         </div>
 
+        @if($invoice->notes)
+        <div style="margin-top: 16px; padding-top: 10px; border-top: 2px solid #e2e8f0;">
+            <div style="font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px;">Notes</div>
+            <div style="font-size: 8pt; color: #475569; background: #f8fafc; padding: 8px 12px; border-radius: 6px;">{{ $invoice->notes }}</div>
+        </div>
+        @endif
+
         <div class="footer">
             Generated on {{ now()->format('M d, Y') }} by {{ $invoice->creator->name ?? 'System' }}
         </div>
