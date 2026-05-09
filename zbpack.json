@@ -1,0 +1,4 @@
+{
+    "php_version": "8.4",
+    "use_dockerfile": true
+}
