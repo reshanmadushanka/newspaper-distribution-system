@@ -83,6 +83,58 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function edit(int $id): Response
+    {
+        $invoice = $this->invoiceService->getInvoiceForEdit($id);
+
+        return Inertia::render('Admin/Invoices/Form', [
+            'invoice' => $invoice,
+            'shops' => Shop::query()->where('status', 'active')->orderBy('name')->get(),
+            'newspapers' => $this->invoiceService->getActiveNewspapers(),
+            'previousWeekSummary' => null,
+        ]);
+    }
+
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string|max:500',
+            'items' => 'required|array|min:1',
+            'items.*.newspaper_id' => 'required|exists:newspapers,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+        ]);
+
+        $validated['items'] = collect($validated['items'])->map(function ($item) {
+            return [
+                'newspaper_id' => (int) $item['newspaper_id'],
+                'quantity' => (int) $item['quantity'],
+                'unit_price' => (float) $item['unit_price'],
+            ];
+        })->toArray();
+
+        $this->invoiceService->updateInvoice($id, $validated);
+
+        return redirect()->route('admin.invoices.show', $id)
+            ->with('success', 'Invoice updated successfully.');
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $this->invoiceService->deleteInvoice($id);
+
+        return redirect()->route('admin.invoices.index')
+            ->with('success', 'Invoice deleted successfully.');
+    }
+
+    public function markAsPaid(int $id): RedirectResponse
+    {
+        $this->invoiceService->markAsPaid($id);
+
+        return redirect()->route('admin.invoices.index')
+            ->with('success', 'Invoice marked as paid.');
+    }
+
     public function downloadPdf(int $id): \Illuminate\Http\Response
     {
         $invoice = $this->invoiceService->getInvoiceForView($id);

@@ -1,10 +1,12 @@
 <script setup>
-import { Head, Link, usePage } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Store, CalendarDays } from 'lucide-vue-next'
+import { Head, Link, usePage, router } from '@inertiajs/vue3'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2 } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { computed } from 'vue'
+import Swal from 'sweetalert2'
+import { useDeleteConfirm } from '@/Composables/useDeleteConfirm.js'
 
 defineProps({
     invoices: Object,
@@ -14,6 +16,42 @@ const { props } = usePage()
 const permissions = computed(() => props.auth.user?.permissions ?? [])
 
 const canCreate = computed(() => permissions.value.includes('create invoices') || permissions.value.includes('manage invoices'))
+const canUpdate = computed(() => permissions.value.includes('manage invoices'))
+
+const { confirmDelete } = useDeleteConfirm('This will permanently delete the invoice and all its items.')
+
+const handleDelete = (id) => {
+    confirmDelete(() => router.delete(`/admin/invoices/${id}`, {
+        onError: (errors) => Swal.fire('Error!', Object.values(errors)[0], 'error'),
+    }))
+}
+
+const markAsPaid = (id) => {
+    Swal.fire({
+        title: 'Mark as Paid?',
+        text: 'This will mark the invoice as paid.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        confirmButtonText: 'Yes, mark as paid',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.patch(`/admin/invoices/${id}/mark-paid`, {}, {
+                onSuccess: () => {
+                    Swal.fire({
+                        title: 'Paid!',
+                        text: 'Invoice has been marked as paid.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                    })
+                },
+            })
+        }
+    })
+}
 
 const statusVariant = (status) => {
     const map = {
@@ -84,6 +122,17 @@ const statusVariant = (status) => {
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                    <Button v-if="canUpdate && inv.status === 'draft'" @click="markAsPaid(inv.id)" variant="ghost" size="icon" class="h-8 w-8 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" title="Mark as Paid">
+                                        <CheckCircle2 class="h-4 w-4" />
+                                    </Button>
+                                    <Link v-if="canUpdate && inv.status === 'draft'" :href="`/admin/invoices/${inv.id}/edit`">
+                                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-50" title="Edit Items">
+                                            <Pencil class="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                    <Button v-if="canUpdate" @click="handleDelete(inv.id)" variant="ghost" size="icon" class="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete">
+                                        <Trash2 class="h-4 w-4" />
+                                    </Button>
                                     <Link :href="`/admin/invoices/${inv.id}`">
                                         <Button variant="ghost" size="icon" class="h-8 w-8 rounded-lg">
                                             <Eye class="h-4 w-4" />

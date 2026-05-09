@@ -23,8 +23,9 @@ Route::middleware('auth')->group(function (): void {
         Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:manage permissions');
         Route::resource('shops', ShopController::class)->except(['show'])->middleware('permission:manage shops');
         Route::resource('newspapers', NewspaperController::class)->except(['show'])->middleware('permission:manage newspapers');
-        Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show'])->middleware('permission:manage invoices');
+        Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])->middleware('permission:manage invoices');
         Route::get('invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf')->middleware('permission:manage invoices');
         Route::get('invoices/{id}/pdf-view', [InvoiceController::class, 'streamPdf'])->name('invoices.pdf-view')->middleware('permission:manage invoices');
+        Route::patch('invoices/{id}/mark-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.mark-paid')->middleware('permission:manage invoices');
     });
 });

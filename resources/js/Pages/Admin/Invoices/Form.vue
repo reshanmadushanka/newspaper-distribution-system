@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
-import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper } from 'lucide-vue-next'
+import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, StickyNote } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -16,6 +16,8 @@ const props = defineProps({
     previousWeekSummary: Object,
 })
 
+const isEditing = computed(() => !!props.invoice)
+
 const tomorrow = new Date()
 tomorrow.setDate(tomorrow.getDate() + 1)
 const defaultDate = tomorrow.toISOString().split('T')[0]
@@ -23,11 +25,16 @@ const defaultDate = tomorrow.toISOString().split('T')[0]
 const minDate = defaultDate
 
 const form = useForm({
-    invoice_date: defaultDate,
-    shop_id: '',
-    items: [
-        { newspaper_id: '', quantity: 1, unit_price: 0 },
-    ],
+    invoice_date: isEditing.value ? props.invoice.invoice_date : defaultDate,
+    shop_id: isEditing.value ? props.invoice.shop_id : '',
+    notes: isEditing.value ? (props.invoice.notes || '') : '',
+    items: isEditing.value
+        ? props.invoice.items.map(item => ({
+            newspaper_id: item.newspaper_id,
+            quantity: item.quantity,
+            unit_price: parseFloat(item.unit_price),
+        }))
+        : [{ newspaper_id: '', quantity: 1, unit_price: 0 }],
 })
 
 const totalAmount = computed(() => {
@@ -47,7 +54,6 @@ const newspaperOptions = computed(() => {
 const handleNewspaperChange = (index) => {
     const selectedId = parseInt(form.items[index].newspaper_id)
     
-    // Check if this newspaper is already selected in another row
     const isDuplicate = form.items.some((item, idx) => {
         return idx !== index && parseInt(item.newspaper_id) === selectedId
     })
@@ -59,7 +65,6 @@ const handleNewspaperChange = (index) => {
         return
     }
 
-    // Clear error if not duplicate
     if (form.errors[`items.${index}.newspaper_id`]) {
         delete form.errors[`items.${index}.newspaper_id`]
     }
@@ -99,7 +104,9 @@ const fetchPreviousWeekSummary = () => {
 }
 
 watch(() => [form.invoice_date, form.shop_id], () => {
-    fetchPreviousWeekSummary()
+    if (!isEditing.value) {
+        fetchPreviousWeekSummary()
+    }
 })
 
 const addRow = () => {
@@ -113,8 +120,13 @@ const removeRow = (index) => {
 }
 
 const submit = () => {
-    form.post('/admin/invoices')
+    if (isEditing.value) {
+        form.put(`/admin/invoices/${props.invoice.id}`)
+    } else {
+        form.post('/admin/invoices')
+    }
 }
+
 const filteredNewspaperOptions = (currentIndex) => {
     const selectedIds = form.items
         .filter((_, idx) => idx !== currentIndex)
@@ -127,18 +139,18 @@ const filteredNewspaperOptions = (currentIndex) => {
 
 <template>
 
-    <Head title="Create Invoice" />
+    <Head :title="isEditing ? `Edit Invoice #${invoice.id}` : 'Create Invoice'" />
     <AdminLayout>
         <div class="mb-8 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <Link href="/admin/invoices">
+                <Link :href="isEditing ? `/admin/invoices/${invoice.id}` : '/admin/invoices'">
                     <Button variant="ghost" size="icon" class="rounded-full">
                         <ChevronLeft class="h-5 w-5" />
                     </Button>
                 </Link>
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight">Create New Invoice</h2>
-                    <p class="text-sm text-muted-foreground">Select date and shop, then add newspaper items.</p>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ isEditing ? `Edit Invoice #${invoice.id}` : 'Create New Invoice' }}</h2>
+                    <p class="text-sm text-muted-foreground">{{ isEditing ? 'Modify newspaper items for this invoice.' : 'Select date and shop, then add newspaper items.' }}</p>
                 </div>
             </div>
         </div>
@@ -153,14 +165,20 @@ const filteredNewspaperOptions = (currentIndex) => {
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="invoice_date" class="block text-sm font-medium text-gray-700">Invoice Date</Label>
-                        <Datepicker id="invoice_date" v-model="form.invoice_date" :min="minDate"
+                        <div v-if="isEditing" class="flex h-10 items-center rounded-lg border bg-muted/50 px-3 text-sm text-muted-foreground">
+                            {{ form.invoice_date }}
+                        </div>
+                        <Datepicker v-else id="invoice_date" v-model="form.invoice_date" :min="minDate"
                             class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer" />
                         <p v-if="form.errors.invoice_date" class="text-xs text-destructive">{{ form.errors.invoice_date
                         }}</p>
                     </div>
                     <div class="space-y-2">
                         <Label for="shop_id" class="block text-sm font-medium text-gray-700">Shop</Label>
-                        <select id="shop_id" v-model="form.shop_id"
+                        <div v-if="isEditing" class="flex h-10 items-center rounded-lg border bg-muted/50 px-3 text-sm text-muted-foreground">
+                            {{ invoice.shop?.name }}
+                        </div>
+                        <select v-else id="shop_id" v-model="form.shop_id"
                             class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                             <option value="" disabled>Select a shop</option>
                             <option v-for="shop in shops" :key="shop.id" :value="shop.id">{{ shop.name }}</option>
@@ -282,6 +300,17 @@ const filteredNewspaperOptions = (currentIndex) => {
                 </div>
             </div>
 
+            <!-- Notes -->
+            <div class="rounded-2xl border bg-card p-6 shadow-sm">
+                <div class="mb-4 flex items-center gap-2 border-b pb-4">
+                    <StickyNote class="h-5 w-5 text-primary" />
+                    <h3 class="font-bold">Notes</h3>
+                </div>
+                <textarea v-model="form.notes" placeholder="Add any notes or remarks about this invoice..."
+                    class="flex w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[100px] resize-y" />
+                <p v-if="form.errors.notes" class="mt-2 text-xs text-destructive">{{ form.errors.notes }}</p>
+            </div>
+
             <!-- Actions -->
             <div class="flex justify-end gap-3">
                 <Link href="/admin/invoices">
@@ -289,7 +318,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                 </Link>
                 <Button type="submit" class="rounded-xl shadow-lg shadow-primary/20" :disabled="form.processing">
                     <Save class="mr-2 h-4 w-4" />
-                    Create Invoice
+                    {{ isEditing ? 'Update Invoice' : 'Create Invoice' }}
                 </Button>
             </div>
         </form>
