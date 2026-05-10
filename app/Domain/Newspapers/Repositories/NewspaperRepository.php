@@ -5,6 +5,7 @@ namespace App\Domain\Newspapers\Repositories;
 use App\Domain\Newspapers\Enums\NewspaperStatus;
 use App\Domain\Newspapers\Models\Newspaper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class NewspaperRepository implements NewspaperRepositoryInterface
@@ -45,12 +46,11 @@ class NewspaperRepository implements NewspaperRepositoryInterface
         return $newspaper->delete();
     }
 
-    public function getActiveNewspapers(): array
+    public function getActiveNewspapers(array $columns = ['*']): Collection
     {
         return Newspaper::query()
             ->where('status', NewspaperStatus::ACTIVE)
             ->orderBy('name')
-            ->get()
-            ->all();
+            ->get($columns);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Domain\Invoices\Repositories;
 
 use App\Domain\Invoices\Models\Invoice;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface InvoiceRepositoryInterface
 {
@@ -22,4 +23,6 @@ interface InvoiceRepositoryInterface
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice;
 
     public function delete(int $id): bool;
+
+    public function getDailyReportInvoices(string $date): Collection;
 }
