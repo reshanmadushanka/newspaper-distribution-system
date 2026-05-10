@@ -9,12 +9,15 @@ use Spatie\Permission\Models\Role;
 
 class UserRepository
 {
-    public function getPaginatedUsers(int $perPage = 10): LengthAwarePaginator
+    public function getPaginatedUsers(?User $authUser = null, int $perPage = 10): LengthAwarePaginator
     {
-        return User::query()
-            ->with('roles:id,name')
-            ->latest()
-            ->paginate($perPage)
+        $query = User::with('roles:id,name')->latest();
+
+        if ($authUser && !$authUser->hasRole('super-admin')) {
+            $query->whereDoesntHave('roles', fn ($q) => $q->where('name', 'super-admin'));
+        }
+
+        return $query->paginate($perPage)
             ->through(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,

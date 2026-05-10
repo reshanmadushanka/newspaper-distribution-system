@@ -5,6 +5,7 @@ namespace App\Domain\Invoices\Repositories;
 use App\Domain\Invoices\Models\Invoice;
 use App\Domain\Invoices\Models\InvoiceItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class InvoiceRepository implements InvoiceRepositoryInterface
@@ -93,5 +94,13 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     public function delete(int $id): bool
     {
         return Invoice::findOrFail($id)->delete();
+    }
+
+    public function getDailyReportInvoices(string $date): Collection
+    {
+        return Invoice::with(['shop', 'items.newspaper'])
+            ->where('invoice_date', $date)
+            ->orderBy('shop_id')
+            ->get();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Domain\Shops\Repositories;
 
 use App\Domain\Shops\Models\Shop;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface ShopRepositoryInterface
 {
@@ -18,4 +19,6 @@ interface ShopRepositoryInterface
     public function update(Shop $shop, array $data): bool;
 
     public function delete(Shop $shop): bool;
+
+    public function getActiveShops(): Collection;
 }

@@ -1,23 +1,9 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3'
 import {
-    LogOut,
-    Shield,
-    Users,
-    KeyRound,
-    LayoutDashboard,
-    Newspaper,
-    Settings,
-    ChevronRight,
-    Bell,
-    Search,
-    User,
-    Menu,
-    X,
-    Lock,
-    ChevronDown,
-    Store,
-    FileText
+    LogOut, Shield, Users, KeyRound, LayoutDashboard, Newspaper,
+    Settings, ChevronRight, Bell, Search, User, Menu, X, Lock,
+    ChevronDown, Store, FileText, BarChart3
 } from 'lucide-vue-next'
 
 import { computed, ref, onMounted } from 'vue'
@@ -70,6 +56,14 @@ const menuGroups = computed(() => [
         href: '/admin/invoices',
         icon: FileText,
         permission: 'manage invoices'
+    },
+    {
+        title: 'Reports',
+        type: 'item',
+        label: 'Sales Report',
+        href: '/admin/reports/daily-sales',
+        icon: BarChart3,
+        permission: 'view daily sales'
     },
     {
         title: 'Access Management',

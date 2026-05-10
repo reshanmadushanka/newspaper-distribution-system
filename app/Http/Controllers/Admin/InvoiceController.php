@@ -135,6 +135,25 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice marked as paid.');
     }
 
+    public function dailySales(Request $request): Response
+    {
+        $date = $request->get('date', today()->toDateString());
+        $report = $this->invoiceService->getDailyReport($date);
+
+        return Inertia::render('Admin/Reports/DailySales', [
+            'report' => $report,
+        ]);
+    }
+
+    public function dailySalesPdf(Request $request): \Illuminate\Http\Response
+    {
+        $date = $request->get('date', today()->toDateString());
+        $report = $this->invoiceService->getDailyReport($date);
+
+        $pdf = Pdf::loadView('pdf.daily-sales', ['report' => $report]);
+        return $pdf->download("daily-sales-{$date}.pdf");
+    }
+
     public function downloadPdf(int $id): \Illuminate\Http\Response
     {
         $invoice = $this->invoiceService->getInvoiceForView($id);

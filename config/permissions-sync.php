@@ -27,7 +27,8 @@ return [
         'manage invoices',
         'view invoices',
         'create invoices',
-        'view dashboard'
+        'view dashboard',
+        'view daily sales'
     ],
 
 ];

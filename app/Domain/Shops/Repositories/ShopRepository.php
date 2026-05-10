@@ -4,6 +4,7 @@ namespace App\Domain\Shops\Repositories;
 
 use App\Domain\Shops\Models\Shop;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ShopRepository implements ShopRepositoryInterface
@@ -42,5 +43,13 @@ class ShopRepository implements ShopRepositoryInterface
     public function delete(Shop $shop): bool
     {
         return $shop->delete();
+    }
+
+    public function getActiveShops(): Collection
+    {
+        return Shop::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

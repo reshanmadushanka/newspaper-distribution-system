@@ -5,6 +5,7 @@ namespace App\Domain\Newspapers\Services;
 use App\Domain\Newspapers\Models\Newspaper;
 use App\Domain\Newspapers\Repositories\NewspaperRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class NewspaperService
 {
@@ -38,7 +39,7 @@ class NewspaperService
         return $this->newspaperRepository->findOrFail($id);
     }
 
-    public function getActiveNewspapers(): array
+    public function getActiveNewspapers(): Collection
     {
         return $this->newspaperRepository->getActiveNewspapers();
     }

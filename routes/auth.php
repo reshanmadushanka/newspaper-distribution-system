@@ -27,5 +27,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf')->middleware('permission:manage invoices');
         Route::get('invoices/{id}/pdf-view', [InvoiceController::class, 'streamPdf'])->name('invoices.pdf-view')->middleware('permission:manage invoices');
         Route::patch('invoices/{id}/mark-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.mark-paid')->middleware('permission:manage invoices');
+        Route::get('reports/daily-sales', [InvoiceController::class, 'dailySales'])->name('reports.daily-sales')->middleware('permission:view daily sales');
+        Route::get('reports/daily-sales/pdf', [InvoiceController::class, 'dailySalesPdf'])->name('reports.daily-sales.pdf')->middleware('permission:view daily sales');
     });
 });
