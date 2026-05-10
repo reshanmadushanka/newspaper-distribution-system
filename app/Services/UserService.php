@@ -12,9 +12,9 @@ class UserService
         private UserRepository $userRepository
     ) {}
 
-    public function getPaginatedUsers(int $perPage = 10)
+    public function getPaginatedUsers(?User $authUser = null, int $perPage = 10)
     {
-        return $this->userRepository->getPaginatedUsers($perPage);
+        return $this->userRepository->getPaginatedUsers($authUser, $perPage);
     }
 
     public function getAllRoles()

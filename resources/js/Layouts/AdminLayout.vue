@@ -63,7 +63,7 @@ const menuGroups = computed(() => [
         label: 'Sales Report',
         href: '/admin/reports/daily-sales',
         icon: BarChart3,
-        permission: 'manage invoices'
+        permission: 'view daily sales'
     },
     {
         title: 'Access Management',

@@ -19,7 +19,7 @@ class UserController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Users/Index', [
-            'users' => $this->userService->getPaginatedUsers(),
+            'users' => $this->userService->getPaginatedUsers(auth()->user()),
             'roles' => $this->userService->getAllRoles(),
         ]);
     }
