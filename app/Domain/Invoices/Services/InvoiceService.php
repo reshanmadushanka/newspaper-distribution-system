@@ -214,14 +214,12 @@ class InvoiceService
                 ];
             });
 
-            $shops = $this->shopRepository->getActiveShops();
-
             return [
                 'date' => $date,
                 'summary' => $summary,
-                'by_shop' => $byShop,
-                'invoices' => $invoicesWithProfit,
-                'all_shops' => $shops,
+                'by_shop' => $byShop->toArray(),
+                'invoices' => $invoicesWithProfit->toArray(),
+                'all_shops' => $this->shopRepository->getActiveShops()->toArray(),
             ];
         });
     }
