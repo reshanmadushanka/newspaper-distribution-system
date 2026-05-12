@@ -22,8 +22,6 @@ const tomorrow = new Date()
 tomorrow.setDate(tomorrow.getDate() + 1)
 const defaultDate = tomorrow.toISOString().split('T')[0]
 
-const minDate = defaultDate
-
 const form = useForm({
     invoice_date: isEditing.value ? props.invoice.invoice_date : defaultDate,
     shop_id: isEditing.value ? props.invoice.shop_id : '',
@@ -150,7 +148,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                 </Link>
                 <div>
                     <h2 class="text-2xl font-bold tracking-tight">{{ isEditing ? `Edit Invoice #${invoice.id}` : 'Create New Invoice' }}</h2>
-                    <p class="text-sm text-muted-foreground">{{ isEditing ? 'Modify newspaper items for this invoice.' : 'Select date and shop, then add newspaper items.' }}</p>
+                    <p class="text-sm text-muted-foreground">{{ isEditing ? 'Modify invoice date and newspaper items.' : 'Select date and shop, then add newspaper items.' }}</p>
                 </div>
             </div>
         </div>
@@ -165,10 +163,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="invoice_date" class="block text-sm font-medium text-gray-700">Invoice Date</Label>
-                        <div v-if="isEditing" class="flex h-10 items-center rounded-lg border bg-muted/50 px-3 text-sm text-muted-foreground">
-                            {{ form.invoice_date }}
-                        </div>
-                        <Datepicker v-else id="invoice_date" v-model="form.invoice_date" :min="minDate"
+                        <Datepicker id="invoice_date" v-model="form.invoice_date"
                             class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer" />
                         <p v-if="form.errors.invoice_date" class="text-xs text-destructive">{{ form.errors.invoice_date
                         }}</p>

@@ -25,4 +25,6 @@ interface InvoiceRepositoryInterface
     public function delete(int $id): bool;
 
     public function getDailyReportInvoices(string $date): Collection;
+
+    public function existsByDateAndShop(string $date, int $shopId, ?int $excludeId = null): bool;
 }

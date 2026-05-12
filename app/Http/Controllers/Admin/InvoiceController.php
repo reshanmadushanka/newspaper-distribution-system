@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Domain\Invoices\Models\Invoice;
 use App\Domain\Invoices\Services\InvoiceService;
 use App\Domain\Invoices\Data\InvoiceData;
 use App\Domain\Shops\Models\Shop;
@@ -21,7 +20,7 @@ class InvoiceController extends Controller
         private InvoiceService $invoiceService
     ) {}
 
-    public function index(): Response
+    public function index()
     {
         return Inertia::render('Admin/Invoices/Index', [
             'invoices' => $this->invoiceService->getPaginatedInvoices(),
@@ -50,9 +49,7 @@ class InvoiceController extends Controller
     {
         $validated = $request->validate(InvoiceData::rules());
 
-        $existing = Invoice::where('invoice_date', $validated['invoice_date'])
-            ->where('shop_id', $validated['shop_id'])
-            ->exists();
+        $existing = $this->invoiceService->checkInvoiceExistsForDateAndShop($validated['invoice_date'], $validated['shop_id']);
 
         if ($existing) {
             throw ValidationException::withMessages([
@@ -74,7 +71,7 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice created successfully.');
     }
 
-    public function show(int $id): Response
+    public function show(int $id)
     {
         $invoice = $this->invoiceService->getInvoiceForView($id);
 
@@ -83,7 +80,7 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function edit(int $id): Response
+    public function edit(int $id)
     {
         $invoice = $this->invoiceService->getInvoiceForEdit($id);
 
@@ -98,12 +95,26 @@ class InvoiceController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $validated = $request->validate([
+            'invoice_date' => 'required|date',
             'notes' => 'nullable|string|max:500',
             'items' => 'required|array|min:1',
             'items.*.newspaper_id' => 'required|exists:newspapers,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
+
+        $invoice = $this->invoiceService->getInvoiceForEdit($id);
+        $existing = $this->invoiceService->checkInvoiceExistsForDateAndShop(
+            $validated['invoice_date'],
+            $invoice->shop_id,
+            $id
+        );
+
+        if ($existing) {
+            throw ValidationException::withMessages([
+                'invoice_date' => 'An invoice already exists for this shop on this date.',
+            ]);
+        }
 
         $validated['items'] = collect($validated['items'])->map(function ($item) {
             return [
@@ -135,7 +146,7 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice marked as paid.');
     }
 
-    public function dailySales(Request $request): Response
+    public function dailySales(Request $request)
     {
         $date = $request->get('date', today()->toDateString());
         $report = $this->invoiceService->getDailyReport($date);

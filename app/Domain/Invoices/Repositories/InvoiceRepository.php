@@ -103,4 +103,12 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             ->orderBy('shop_id')
             ->get();
     }
+
+    public function existsByDateAndShop(string $date, int $shopId, ?int $excludeId = null): bool
+    {
+        return Invoice::where('invoice_date', $date)
+            ->where('shop_id', $shopId)
+            ->when($excludeId, fn($query) => $query->whereKeyNot($excludeId))
+            ->exists();
+    }
 }

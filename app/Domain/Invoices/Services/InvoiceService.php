@@ -89,6 +89,7 @@ class InvoiceService
         $invoice = $this->invoiceRepository->findOrFail($id);
 
         $invoiceData = [
+            'invoice_date' => $data['invoice_date'],
             'total_amount' => 0,
             'notes' => $data['notes'] ?? null,
         ];
@@ -105,6 +106,7 @@ class InvoiceService
         $updated = $this->invoiceRepository->updateWithItems($id, $invoiceData, $items);
 
         $this->clearDailyReportCache($invoice->invoice_date);
+        $this->clearDailyReportCache($updated->invoice_date);
 
         return $updated;
     }
@@ -135,7 +137,8 @@ class InvoiceService
             };
 
             $calculateInvoiceProfit = function ($inv) use ($calculateItemProfit) {
-                $revenue = 0; $cost = 0;
+                $revenue = 0;
+                $cost = 0;
                 foreach ($inv->items as $item) {
                     $p = $calculateItemProfit($item);
                     $revenue += $p['revenue'];
@@ -144,7 +147,8 @@ class InvoiceService
                 return ['revenue' => $revenue, 'cost' => $cost, 'profit' => $revenue - $cost];
             };
 
-            $totalRevenue = 0; $totalCost = 0;
+            $totalRevenue = 0;
+            $totalCost = 0;
             foreach ($invoices as $inv) {
                 $p = $calculateInvoiceProfit($inv);
                 $totalRevenue += $p['revenue'];
@@ -178,7 +182,8 @@ class InvoiceService
 
             $byShop = $invoices->groupBy('shop_id')->map(function ($shopInvoices, $shopId) use ($calculateInvoiceProfit) {
                 $shop = $shopInvoices->first()->shop;
-                $revenue = 0; $cost = 0;
+                $revenue = 0;
+                $cost = 0;
                 foreach ($shopInvoices as $inv) {
                     $p = $calculateInvoiceProfit($inv);
                     $revenue += $p['revenue'];
@@ -227,5 +232,10 @@ class InvoiceService
     private function clearDailyReportCache(string $date): void
     {
         Cache::forget(self::CACHE_KEY_PREFIX . $date);
+    }
+
+    public function checkInvoiceExistsForDateAndShop(string $date, int $shopId, ?int $excludeId = null): bool
+    {
+        return $this->invoiceRepository->existsByDateAndShop($date, $shopId, $excludeId);
     }
 }

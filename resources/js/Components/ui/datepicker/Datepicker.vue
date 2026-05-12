@@ -22,9 +22,7 @@ const parseDate = (str) => {
 
 const getMinDate = () => {
     if (props.min) return parseDate(props.min)
-    const date = new Date()
-    date.setDate(date.getDate() + 1)
-    return date
+    return null
 }
 
 onMounted(() => {
