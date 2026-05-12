@@ -130,16 +130,17 @@ function submit() {
                 </form>
             </Card>
 
-            <div class="mt-10 flex flex-col items-center gap-4 animate-fade-in">
-                <p class="text-gray-500 text-sm font-medium">
-                    New to the network? <span class="text-primary hover:underline cursor-pointer font-bold">Request
-                        Access</span>
-                </p>
-                <div class="flex items-center gap-6 opacity-40 hover:opacity-100 transition-opacity">
-                    <span class="text-[10px] text-white tracking-[0.2em] font-black uppercase italic">Daily News</span>
-                    <span class="text-[10px] text-white tracking-[0.2em] font-black uppercase italic">Ceylon
-                        Today</span>
-                    <span class="text-[10px] text-white tracking-[0.2em] font-black uppercase italic">Lankadeepa</span>
+            <div class="mt-2 flex flex-col items-center gap-6 animate-fade-in">
+                <div class="pt-6 border-t border-white/5 w-full flex flex-col items-center gap-3">
+                    <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+                        Developed by <span class="text-white">Reshan Wijerathna</span>
+                    </p>
+                    <div class="flex items-center gap-4 text-[10px] font-black tracking-tighter">
+                        <a href="https://reshan.dev" target="_blank"
+                            class="text-primary hover:text-white transition-colors">RESHAN.DEV</a>
+                        <span class="h-1 w-1 rounded-full bg-gray-700"></span>
+                        <a href="tel:0711380025" class="text-gray-400 hover:text-white transition-colors">0711380025</a>
+                    </div>
                 </div>
             </div>
         </div>
