@@ -57,8 +57,9 @@ const shopOptions = computed(() => {
     }))
 })
 
-const handleNewspaperChange = (index) => {
-    const selectedId = parseInt(form.items[index].newspaper_id)
+const handleNewspaperChange = (index, value) => {
+    const selectedId = parseInt(value)
+    form.items[index].newspaper_id = value
     
     const isDuplicate = form.items.some((item, idx) => {
         return idx !== index && parseInt(item.newspaper_id) === selectedId
@@ -258,10 +259,10 @@ const filteredNewspaperOptions = (currentIndex) => {
                             <tr v-for="(item, index) in form.items" :key="index" class="border-t border-border/50">
                                 <td class="px-2 py-2">
                                     <Select2
-                                        v-model="item.newspaper_id"
+                                        :model-value="item.newspaper_id"
                                         :options="filteredNewspaperOptions(index)"
                                         placeholder="Select newspaper"
-                                        @change="handleNewspaperChange(index)"
+                                        @update:modelValue="value => handleNewspaperChange(index, value)"
                                     />
                                     <p v-if="form.errors[`items.${index}.newspaper_id`]"
                                         class="text-xs text-destructive">{{ form.errors[`items.${index}.newspaper_id`]
