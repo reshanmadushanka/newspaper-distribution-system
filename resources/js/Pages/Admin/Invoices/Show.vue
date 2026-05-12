@@ -121,14 +121,14 @@ const statusVariant = (status) => {
         </div>
 
         <!-- Invoice Content -->
-        <div id="printableInvoice" class="max-w-4xl mx-auto bg-card rounded-2xl border shadow-sm p-8 print:p-0 print:border-0 print:shadow-none">
+        <div id="printableInvoice" class="max-w-4xl mx-auto bg-card rounded-2xl border shadow-sm p-7 print:p-0 print:border-0 print:shadow-none">
             <!-- Header -->
-            <div class="flex items-start justify-between mb-8 print:mb-6">
+            <div class="relative mb-2 text-center print:mb-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-primary">INVOICE</h1>
-                    <p class="text-sm text-muted-foreground mt-1">#{{ invoice.id }}</p>
+                    <h1 class="text-xl font-bold uppercase tracking-normal text-foreground print:text-lg">Invoice</h1>
+                    <p class="mt-1 text-xs font-medium text-muted-foreground">#{{ invoice.id }}</p>
                 </div>
-                <div class="text-right">
+                <div class="absolute right-0 top-0">
                     <Badge :variant="statusVariant(invoice.status)" class="rounded-full px-3 py-1 text-xs capitalize print:border-0">
                         {{ invoice.status }}
                     </Badge>
@@ -136,16 +136,18 @@ const statusVariant = (status) => {
             </div>
 
             <!-- Details -->
-            <div class="grid grid-cols-2 gap-8 mb-8 print:mb-6">
+            <div class="grid grid-cols-2 gap-5 rounded-lg border bg-muted/20 p-4 print:mb-4 print:p-3">
                 <div>
-                    <div class="flex items-center gap-2 mb-2 text-muted-foreground">
+                    <div class="flex items-center gap-2 mb-1.5 text-muted-foreground">
                         <Store class="h-4 w-4" />
                         <span class="text-xs font-semibold uppercase tracking-wider">Shop</span>
                     </div>
-                    <p class="font-semibold text-lg">{{ invoice.shop?.name }}</p>
+                    <p class="inline-flex rounded-md bg-primary/10 px-2.5 py-1 text-lg font-bold text-primary print:text-base">
+                        {{ invoice.shop?.name }}
+                    </p>
                 </div>
                 <div class="text-right">
-                    <div class="flex items-center justify-end gap-2 mb-2 text-muted-foreground">
+                    <div class="flex items-center justify-end gap-2 mb-1.5 text-muted-foreground">
                         <CalendarDays class="h-4 w-4" />
                         <span class="text-xs font-semibold uppercase tracking-wider">Date</span>
                     </div>
@@ -154,31 +156,31 @@ const statusVariant = (status) => {
             </div>
 
             <!-- Items Table -->
-            <div class="overflow-x-auto mb-8 print:mb-6">
+            <div class="overflow-x-auto mb-6 print:mb-4">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-y-2 border-primary/20">
-                            <th class="py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">#</th>
-                            <th class="py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Newspaper</th>
-                            <th class="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">Qty</th>
-                            <th class="py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Unit Price</th>
-                            <th class="py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</th>
+                        <tr class="border-y-2 border-primary/20 bg-muted/30">
+                            <th class="py-2 pl-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">#</th>
+                            <th class="py-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Newspaper</th>
+                            <th class="py-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">Qty</th>
+                            <th class="py-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Unit Price</th>
+                            <th class="py-2 pr-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="(item, index) in invoice.items" :key="item.id" class="border-b border-border/50">
-                            <td class="py-3 text-muted-foreground">{{ index + 1 }}</td>
-                            <td class="py-3 font-medium">{{ item.newspaper?.name }}</td>
-                            <td class="py-3 text-center">{{ item.quantity }}</td>
-                            <td class="py-3 text-right">Rs. {{ parseFloat(item.unit_price).toFixed(2) }}</td>
-                            <td class="py-3 text-right font-semibold">Rs. {{ parseFloat(item.total_price).toFixed(2) }}</td>
+                            <td class="py-1.5 pl-2 text-muted-foreground">{{ index + 1 }}</td>
+                            <td class="py-1.5 font-medium">{{ item.newspaper?.name }}</td>
+                            <td class="py-1.5 text-center">{{ item.quantity }}</td>
+                            <td class="py-1.5 text-right">Rs. {{ parseFloat(item.unit_price).toFixed(2) }}</td>
+                            <td class="py-1.5 pr-2 text-right font-semibold">Rs. {{ parseFloat(item.total_price).toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- Summary -->
-            <div class="flex justify-end border-t-2 border-primary/20 pt-4 print:pt-4">
+            <div class="flex justify-end border-t-2 border-primary/20 pt-3 print:pt-3">
                 <div class="w-64 space-y-2">
                     <div class="flex justify-between text-sm">
                         <span class="text-muted-foreground">Total Items</span>
@@ -196,16 +198,23 @@ const statusVariant = (status) => {
             </div>
 
             <!-- Notes -->
-            <div v-if="invoice.notes" class="mt-8 border-t pt-6 print:mt-6">
-                <div class="flex items-center gap-2 mb-3 text-muted-foreground">
+            <div v-if="invoice.notes" class="mt-6 border-t pt-4 print:mt-4">
+                <div class="flex items-center gap-2 mb-2 text-muted-foreground">
                     <span class="text-xs font-semibold uppercase tracking-wider">Notes</span>
                 </div>
-                <p class="text-sm whitespace-pre-wrap text-muted-foreground bg-muted/30 rounded-lg p-4">{{ invoice.notes }}</p>
+                <p class="text-sm whitespace-pre-wrap text-muted-foreground bg-muted/30 rounded-lg p-3">{{ invoice.notes }}</p>
             </div>
 
             <!-- Footer -->
-            <div class="mt-12 pt-6 border-t text-center text-xs text-muted-foreground print:mt-8">
+            <div class="mt-8 border-t pt-4 text-center text-xs text-muted-foreground print:mt-5 print:pt-3">
                 <p>Generated on {{ new Date().toLocaleDateString() }} by {{ invoice.creator?.name || 'System' }}</p>
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[8px] print:mt-2">
+                    <span class="font-semibold text-foreground">Developed by Reshan Wijerathna</span>
+                    <span class="text-border">|</span>
+                    <span>+94711380025</span>
+                    <span class="text-border">|</span>
+                    <span>reshanmadushanka@gmail.com</span>
+                </div>
             </div>
         </div>
     </AdminLayout>
@@ -223,10 +232,15 @@ const statusVariant = (status) => {
     }
     #printableInvoice {
         width: 100%;
-        padding: 10mm !important;
+        min-height: calc(210mm - 10mm);
+        padding: 7mm !important;
         margin: 0 !important;
         border: 0 !important;
         box-shadow: none !important;
+        font-size: 11px;
+    }
+    #printableInvoice table {
+        font-size: 11px;
     }
     .no-print {
         display: none !important;
