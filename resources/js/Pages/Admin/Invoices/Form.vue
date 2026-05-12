@@ -6,6 +6,7 @@ import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Datepicker } from '@/Components/ui/datepicker'
 import { Label } from '@/Components/ui/label'
+import { Select2 } from '@/Components/ui/select2'
 import { computed, ref, watch } from 'vue'
 import { History, AlertCircle, Loader2 } from 'lucide-vue-next'
 
@@ -46,6 +47,13 @@ const newspaperOptions = computed(() => {
         value: np.id,
         label: `${np.name} (Rs. ${parseFloat(np.price).toFixed(2)})`,
         price: parseFloat(np.price),
+    }))
+})
+
+const shopOptions = computed(() => {
+    return props.shops.map(shop => ({
+        value: shop.id,
+        label: shop.name,
     }))
 })
 
@@ -173,11 +181,12 @@ const filteredNewspaperOptions = (currentIndex) => {
                         <div v-if="isEditing" class="flex h-10 items-center rounded-lg border bg-muted/50 px-3 text-sm text-muted-foreground">
                             {{ invoice.shop?.name }}
                         </div>
-                        <select v-else id="shop_id" v-model="form.shop_id"
-                            class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                            <option value="" disabled>Select a shop</option>
-                            <option v-for="shop in shops" :key="shop.id" :value="shop.id">{{ shop.name }}</option>
-                        </select>
+                        <Select2
+                            v-else
+                            v-model="form.shop_id"
+                            :options="shopOptions"
+                            placeholder="Select a shop"
+                        />
                         <p v-if="form.errors.shop_id" class="text-xs text-destructive">{{ form.errors.shop_id }}</p>
                     </div>
                 </div>
@@ -248,12 +257,12 @@ const filteredNewspaperOptions = (currentIndex) => {
                         <tbody>
                             <tr v-for="(item, index) in form.items" :key="index" class="border-t border-border/50">
                                 <td class="px-2 py-2">
-                                    <select v-model="item.newspaper_id" @change="handleNewspaperChange(index)"
-                                        class="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                                        <option value="" disabled>Select newspaper</option>
-                                        <option v-for="np in filteredNewspaperOptions(index)" :key="np.value" :value="np.value">{{
-                                            np.label }}</option>
-                                    </select>
+                                    <Select2
+                                        v-model="item.newspaper_id"
+                                        :options="filteredNewspaperOptions(index)"
+                                        placeholder="Select newspaper"
+                                        @change="handleNewspaperChange(index)"
+                                    />
                                     <p v-if="form.errors[`items.${index}.newspaper_id`]"
                                         class="text-xs text-destructive">{{ form.errors[`items.${index}.newspaper_id`]
                                         }}</p>

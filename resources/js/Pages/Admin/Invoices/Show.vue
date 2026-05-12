@@ -125,7 +125,7 @@ const statusVariant = (status) => {
             <!-- Header -->
             <div class="relative mb-2 text-center print:mb-4">
                 <div>
-                    <h1 class="text-xl font-bold uppercase tracking-normal text-foreground print:text-lg">Invoice</h1>
+                    <h1 class="text-base font-bold uppercase tracking-normal text-foreground">Invoice</h1>
                     <p class="mt-1 text-xs font-medium text-muted-foreground">#{{ invoice.id }}</p>
                 </div>
                 <div class="absolute right-0 top-0">
@@ -142,7 +142,7 @@ const statusVariant = (status) => {
                         <Store class="h-4 w-4" />
                         <span class="text-xs font-semibold uppercase tracking-wider">Shop</span>
                     </div>
-                    <p class="inline-flex rounded-md bg-primary/10 px-2.5 py-1 text-lg font-bold text-primary print:text-base">
+                    <p class="inline-block max-w-full rounded-md uppercase px-2.5 py-1 text-xl font-bold leading-tight text-primary break-words print:text-2xl">
                         {{ invoice.shop?.name }}
                     </p>
                 </div>
@@ -151,13 +151,13 @@ const statusVariant = (status) => {
                         <CalendarDays class="h-4 w-4" />
                         <span class="text-xs font-semibold uppercase tracking-wider">Date</span>
                     </div>
-                    <p class="font-semibold">{{ invoice.invoice_date }}</p>
+                    <p class="font-semibold text-xl">{{ invoice.invoice_date }}</p>
                 </div>
             </div>
 
             <!-- Items Table -->
             <div class="overflow-x-auto mb-6 print:mb-4">
-                <table class="w-full text-sm">
+                <table class="w-full text-[16px]">
                     <thead>
                         <tr class="border-y-2 border-primary/20 bg-muted/30">
                             <th class="py-2 pl-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">#</th>
@@ -206,9 +206,9 @@ const statusVariant = (status) => {
             </div>
 
             <!-- Footer -->
-            <div class="mt-8 border-t pt-4 text-center text-xs text-muted-foreground print:mt-5 print:pt-3">
+            <div class="mt-8 border-t pt-4 text-center text-[6px] text-muted-foreground print:mt-5 print:pt-3">
                 <p>Generated on {{ new Date().toLocaleDateString() }} by {{ invoice.creator?.name || 'System' }}</p>
-                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[8px] print:mt-2">
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[6px] print:mt-2">
                     <span class="font-semibold text-foreground">Developed by Reshan Wijerathna</span>
                     <span class="text-border">|</span>
                     <span>+94711380025</span>
@@ -237,10 +237,6 @@ const statusVariant = (status) => {
         margin: 0 !important;
         border: 0 !important;
         box-shadow: none !important;
-        font-size: 11px;
-    }
-    #printableInvoice table {
-        font-size: 11px;
     }
     .no-print {
         display: none !important;

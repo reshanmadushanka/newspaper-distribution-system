@@ -9,6 +9,7 @@ const props = defineProps({
   searchable: { type: Boolean, default: true },
   canClear: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
+  appendToBody: { type: Boolean, default: true },
   class: { type: null, default: '' },
 })
 
@@ -26,6 +27,8 @@ const emit = defineEmits(['update:modelValue', 'change'])
       :searchable="searchable"
       :can-clear="canClear"
       :disabled="disabled"
+      :append-to-body="appendToBody"
+      :close-on-scroll="true"
       class="custom-select2"
     />
   </div>
@@ -53,6 +56,10 @@ const emit = defineEmits(['update:modelValue', 'change'])
   
   font-size: 0.875rem;
   min-height: 2.5rem;
+}
+
+.multiselect-dropdown {
+  z-index: 60;
 }
 
 .multiselect-placeholder {
