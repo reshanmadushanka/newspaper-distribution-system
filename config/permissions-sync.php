@@ -28,6 +28,10 @@ return [
         'view invoices',
         'create invoices',
         'view dashboard',
+        'view daily sales',
+        'manage system invoices',
+        'view system invoices',
+        'create system invoices',
         'view daily sales'
     ],
 

@@ -3,17 +3,26 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Domain\Admin\Models\SystemInvoice;
+use App\Domain\Admin\Services\SystemInvoiceService;
 use App\Domain\Invoices\Models\Invoice;
 use App\Domain\Newspapers\Models\Newspaper;
 use App\Domain\Shops\Models\Shop;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private SystemInvoiceService $systemInvoiceService
+    ) {}
+
     public function index(): Response
     {
+        $user = Auth::user();
+        
         $stats = [
             [
                 'label' => 'Total Shops',
@@ -59,9 +68,19 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Get pending system invoices for this admin
+        $pendingSystemInvoices = SystemInvoice::forAdmin($user)
+            ->pending()
+            ->with(['creator'])
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
         return Inertia::render('Dashboard', [
             'stats' => $stats,
             'recentInvoices' => $recentInvoices,
+            'pendingSystemInvoices' => $pendingSystemInvoices,
+            'systemInvoiceStats' => $this->systemInvoiceService->getDashboardStats($user),
         ]);
     }
 }

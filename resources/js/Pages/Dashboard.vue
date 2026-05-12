@@ -12,12 +12,16 @@ import {
     Newspaper,
     Store,
     FileText,
-    DollarSign
+    DollarSign,
+    AlertCircle,
+    Check
 } from 'lucide-vue-next'
 
 const props = defineProps({
     stats: Array,
     recentInvoices: Array,
+    pendingSystemInvoices: Array,
+    systemInvoiceStats: Object,
 })
 
 const iconMap = {
@@ -38,6 +42,27 @@ const iconMap = {
         <div class="mb-8">
             <h2 class="text-3xl font-bold tracking-tight">Welcome back, Admin!</h2>
             <p class="text-muted-foreground mt-1">Here's what's happening with your distribution system today.</p>
+        </div>
+
+        <!-- Pending Payments Alert -->
+        <div v-if="systemInvoiceStats.pending_count > 0" class="mb-8 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-500 rounded-lg p-6 shadow">
+            <div class="flex items-start gap-4">
+                <AlertCircle class="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-yellow-900 mb-1">
+                        ⚠️ Payment Due: {{ systemInvoiceStats.pending_count }} invoice{{ systemInvoiceStats.pending_count !== 1 ? 's' : '' }}
+                    </h3>
+                    <p class="text-yellow-800 mb-4">
+                        You have pending invoices totaling <span class="font-bold">Rs. {{ Number(systemInvoiceStats.pending_amount).toFixed(2) }}</span> that need your attention.
+                    </p>
+                    <Link href="/admin/payments/pending">
+                        <button class="px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium hover:bg-yellow-700 transition-colors inline-flex items-center gap-2">
+                            <Check class="h-4 w-4" />
+                            View & Pay Now
+                        </button>
+                    </Link>
+                </div>
+            </div>
         </div>
 
         <!-- Stats Grid -->

@@ -66,6 +66,22 @@ const menuGroups = computed(() => [
         permission: 'view daily sales'
     },
     {
+        title: 'System Invoices',
+        type: 'item',
+        label: 'System Invoices',
+        href: '/admin/system-invoices',
+        icon: FileText,
+        permission: 'manage system invoices'
+    },
+    {
+        title: 'My Payments',
+        type: 'item',
+        label: 'My Payments',
+        href: '/admin/payments/pending',
+        icon: Bell,
+        permission: null // All logged-in users can see their payments
+    },
+    {
         title: 'Access Management',
         type: 'group',
         icon: Lock,
