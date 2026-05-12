@@ -35,7 +35,12 @@ interface InvoiceRepositoryInterface
 
     public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null): Collection;
 
-    public function getInvoiceList(string $dateFrom, string $dateTo): Collection;
+    public function getInvoiceList(
+        string $dateFrom,
+        string $dateTo,
+        ?int $shopId = null,
+        ?int $newspaperId = null
+    ): Collection;
 
     public function existsByDateAndShop(string $date, int $shopId, ?int $excludeId = null): bool;
 }

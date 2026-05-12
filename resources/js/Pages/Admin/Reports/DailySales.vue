@@ -44,9 +44,27 @@ const fetchReport = () => {
 }
 
 const downloadPdf = () => {
-    const [dateFrom] = dateRange.value
+    const [dateFrom, dateTo] = dateRange.value
 
-    window.open(`/admin/reports/daily-sales/pdf?date=${dateFrom}`, '_blank')
+    if (!dateFrom || !dateTo) {
+        return
+    }
+
+    const params = new URLSearchParams({
+        report_type: activeTab.value,
+        date_from: dateFrom,
+        date_to: dateTo,
+    })
+
+    if (shopId.value !== 'all') {
+        params.set('shop_id', shopId.value)
+    }
+
+    if (newspaperId.value !== 'all') {
+        params.set('newspaper_id', newspaperId.value)
+    }
+
+    window.open(`/admin/reports/daily-sales/pdf?${params.toString()}`, '_blank')
 }
 
 const statusVariant = (status) => {

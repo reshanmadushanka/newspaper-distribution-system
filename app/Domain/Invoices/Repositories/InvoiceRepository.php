@@ -151,10 +151,17 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             ->get();
     }
 
-    public function getInvoiceList(string $dateFrom, string $dateTo): Collection
+    public function getInvoiceList(
+        string $dateFrom,
+        string $dateTo,
+        ?int $shopId = null,
+        ?int $newspaperId = null
+    ): Collection
     {
         return Invoice::with(['shop', 'items'])
             ->whereBetween('invoice_date', [$dateFrom, $dateTo])
+            ->when($shopId, fn($q) => $q->where('shop_id', $shopId))
+            ->when($newspaperId, fn($q) => $q->whereHas('items', fn($itemQuery) => $itemQuery->where('newspaper_id', $newspaperId)))
             ->orderBy('invoice_date')
             ->orderBy('shop_id')
             ->get();

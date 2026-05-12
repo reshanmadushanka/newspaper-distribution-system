@@ -192,7 +192,7 @@ class InvoiceController extends Controller
         return Inertia::render('Admin/Reports/DailySales', [
             'shopReport' => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId),
             'newspaperReport' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId),
-            'invoiceReport' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo),
+            'invoiceReport' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId),
             'shops' => Shop::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'newspapers' => Newspaper::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'filters' => [
@@ -206,11 +206,41 @@ class InvoiceController extends Controller
 
     public function dailySalesPdf(Request $request): \Illuminate\Http\Response
     {
-        $date = $request->get('date', today()->toDateString());
-        $report = $this->invoiceService->getDailyReport($date);
+        $defaultDateFrom = today()->subDays(6)->toDateString();
+        $defaultDateTo = today()->toDateString();
 
-        $pdf = Pdf::loadView('pdf.daily-sales', ['report' => $report]);
-        return $pdf->download("daily-sales-{$date}.pdf");
+        $validated = $request->validate([
+            'report_type' => 'nullable|in:by-shop,by-newspaper,by-invoice',
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+            'shop_id' => 'nullable|integer|exists:shops,id',
+            'newspaper_id' => 'nullable|integer|exists:newspapers,id',
+        ]);
+
+        $reportType = $validated['report_type'] ?? 'by-shop';
+        $dateFrom = $validated['date_from'] ?? $defaultDateFrom;
+        $dateTo = $validated['date_to'] ?? $defaultDateTo;
+        $shopId = $validated['shop_id'] ?? null;
+        $newspaperId = $validated['newspaper_id'] ?? null;
+
+        $report = match ($reportType) {
+            'by-newspaper' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId),
+            'by-invoice' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId),
+            default => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId),
+        };
+
+        $filters = [
+            'shop' => $shopId ? Shop::query()->find($shopId, ['name'])?->name : 'All Shops',
+            'newspaper' => $newspaperId ? Newspaper::query()->find($newspaperId, ['name'])?->name : 'All Newspapers',
+        ];
+
+        $pdf = Pdf::loadView('pdf.daily-sales', [
+            'report' => $report,
+            'reportType' => $reportType,
+            'filters' => $filters,
+        ]);
+
+        return $pdf->download("daily-sales-{$reportType}-{$dateFrom}-to-{$dateTo}.pdf");
     }
 
     public function downloadPdf(int $id): \Illuminate\Http\Response

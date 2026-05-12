@@ -372,12 +372,17 @@ class InvoiceService
         });
     }
 
-    public function getInvoiceListReport(string $dateFrom, string $dateTo): array
+    public function getInvoiceListReport(
+        string $dateFrom,
+        string $dateTo,
+        ?int $shopId = null,
+        ?int $newspaperId = null
+    ): array
     {
-        $cacheKey = self::CACHE_KEY_INVOICE_LIST . "{$dateFrom}_{$dateTo}";
+        $cacheKey = self::CACHE_KEY_INVOICE_LIST . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all') . '_' . ($newspaperId ?? 'all');
 
-        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo) {
-            $invoices = $this->invoiceRepository->getInvoiceList($dateFrom, $dateTo);
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId, $newspaperId) {
+            $invoices = $this->invoiceRepository->getInvoiceList($dateFrom, $dateTo, $shopId, $newspaperId);
 
             $totalAmount = 0;
 
