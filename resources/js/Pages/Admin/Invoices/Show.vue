@@ -136,7 +136,7 @@ const statusVariant = (status) => {
             </div>
 
             <!-- Details -->
-            <div class="grid grid-cols-2 gap-5 rounded-lg border bg-muted/20 p-4 print:mb-4 print:p-3">
+            <div class="grid grid-cols-2 gap-5 mb-2 rounded-lg border bg-muted/20 p-4 print:mb-4 print:p-3">
                 <div>
                     <div class="flex items-center gap-2 mb-1.5 text-muted-foreground">
                         <Store class="h-4 w-4" />
