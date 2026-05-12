@@ -271,8 +271,8 @@ const filteredNewspaperOptions = (currentIndex) => {
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="text-left text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
-                                <th class="px-2 py-2">Newspaper</th>
-                                <th class="px-2 py-2 w-28">Price Variant</th>
+                                <th class="px-2 py-2 w-80">Newspaper</th>
+                                <th class="px-2 py-2 w-40">Price Variant</th>
                                 <th class="px-2 py-2 w-24">Quantity</th>
                                 <th class="px-2 py-2 w-28">Unit Price</th>
                                 <th class="px-2 py-2 w-28 text-right">Row Total</th>

@@ -13,7 +13,11 @@ use Illuminate\Support\Facades\Cache;
 class InvoiceService
 {
     private const CACHE_TTL = 3600;
+    private const RANGE_CACHE_TTL = 600;
     private const CACHE_KEY_PREFIX = 'daily_report_';
+    private const CACHE_KEY_BY_SHOP = 'report_by_shop_';
+    private const CACHE_KEY_BY_NEWSPAPER = 'report_by_newspaper_';
+    private const CACHE_KEY_INVOICE_LIST = 'report_invoice_list_';
 
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
@@ -232,6 +236,178 @@ class InvoiceService
                 'by_shop' => $byShop->toArray(),
                 'invoices' => $invoicesWithProfit->toArray(),
                 'all_shops' => $this->shopRepository->getActiveShops()->toArray(),
+            ];
+        });
+    }
+
+    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null): array
+    {
+        $cacheKey = self::CACHE_KEY_BY_SHOP . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all');
+
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId) {
+            $invoices = $this->invoiceRepository->getByShopReport($dateFrom, $dateTo, $shopId);
+
+            $totalRevenue = 0;
+            $totalCost = 0;
+            $totalQuantity = 0;
+
+            $grouped = $invoices->groupBy('shop_id')->map(function ($shopInvoices) use (&$totalRevenue, &$totalCost, &$totalQuantity) {
+                $shop = $shopInvoices->first()->shop;
+                $sid = $shopInvoices->first()->shop_id;
+                $revenue = 0;
+                $cost = 0;
+                $quantity = 0;
+
+                foreach ($shopInvoices as $inv) {
+                    $revenue += (float) $inv->total_amount;
+                    $quantity += $inv->items->sum('quantity');
+                    foreach ($inv->items as $item) {
+                        $cost += $item->newspaper && $item->newspaper->cost_price
+                            ? (float) $item->quantity * (float) $item->newspaper->cost_price
+                            : 0;
+                    }
+                }
+
+                $profit = $revenue - $cost;
+                $margin = $revenue > 0 ? round(($profit / $revenue) * 100, 1) : 0;
+
+                $totalRevenue += $revenue;
+                $totalCost += $cost;
+                $totalQuantity += $quantity;
+
+                return [
+                    'shop_id' => $sid,
+                    'shop_name' => $shop->name,
+                    'invoice_count' => $shopInvoices->count(),
+                    'quantity' => $quantity,
+                    'total_revenue' => $revenue,
+                    'total_cost' => $cost,
+                    'total_profit' => $profit,
+                    'profit_margin' => $margin,
+                ];
+            })->values();
+
+            $totalProfit = $totalRevenue - $totalCost;
+            $profitMargin = $totalRevenue > 0 ? round(($totalProfit / $totalRevenue) * 100, 1) : 0;
+
+            return [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'summary' => [
+                    'total_invoices' => $invoices->count(),
+                    'total_revenue' => $totalRevenue,
+                    'total_cost' => $totalCost,
+                    'total_profit' => $totalProfit,
+                    'profit_margin' => $profitMargin,
+                    'total_quantity' => $totalQuantity,
+                ],
+                'by_shop' => $grouped->toArray(),
+            ];
+        });
+    }
+
+    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null): array
+    {
+        $cacheKey = self::CACHE_KEY_BY_NEWSPAPER . "{$dateFrom}_{$dateTo}_" . ($newspaperId ?? 'all');
+
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $newspaperId) {
+            $items = $this->invoiceRepository->getByNewspaperReport($dateFrom, $dateTo, $newspaperId);
+
+            $totalRevenue = 0;
+            $totalCost = 0;
+            $totalQuantity = 0;
+
+            $grouped = $items->groupBy('newspaper_id')->map(function ($newspaperItems) use (&$totalRevenue, &$totalCost, &$totalQuantity) {
+                $newspaper = $newspaperItems->first()->newspaper;
+                $revenue = 0;
+                $cost = 0;
+                $quantity = 0;
+                $invoiceIds = [];
+
+                foreach ($newspaperItems as $item) {
+                    $qty = (int) $item->quantity;
+                    $revenue += (float) $item->total_price;
+                    $cost += $item->newspaper && $item->newspaper->cost_price
+                        ? (float) $qty * (float) $item->newspaper->cost_price
+                        : 0;
+                    $quantity += $qty;
+                    $invoiceIds[$item->invoice_id] = true;
+                }
+
+                $profit = $revenue - $cost;
+                $margin = $revenue > 0 ? round(($profit / $revenue) * 100, 1) : 0;
+
+                $totalRevenue += $revenue;
+                $totalCost += $cost;
+                $totalQuantity += $quantity;
+
+                return [
+                    'newspaper_id' => $newspaper->id,
+                    'newspaper_name' => $newspaper->name,
+                    'quantity' => $quantity,
+                    'total_revenue' => $revenue,
+                    'total_cost' => $cost,
+                    'total_profit' => $profit,
+                    'profit_margin' => $margin,
+                    'invoice_count' => count($invoiceIds),
+                ];
+            })->values();
+
+            $totalProfit = $totalRevenue - $totalCost;
+            $profitMargin = $totalRevenue > 0 ? round(($totalProfit / $totalRevenue) * 100, 1) : 0;
+
+            return [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'summary' => [
+                    'total_quantity' => $totalQuantity,
+                    'total_revenue' => $totalRevenue,
+                    'total_cost' => $totalCost,
+                    'total_profit' => $totalProfit,
+                    'profit_margin' => $profitMargin,
+                    'total_newspapers' => $grouped->count(),
+                ],
+                'by_newspaper' => $grouped->toArray(),
+            ];
+        });
+    }
+
+    public function getInvoiceListReport(string $dateFrom, string $dateTo): array
+    {
+        $cacheKey = self::CACHE_KEY_INVOICE_LIST . "{$dateFrom}_{$dateTo}";
+
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo) {
+            $invoices = $this->invoiceRepository->getInvoiceList($dateFrom, $dateTo);
+
+            $totalAmount = 0;
+
+            $invoiceList = $invoices->map(function ($inv) use (&$totalAmount) {
+                $amount = (float) $inv->total_amount;
+                $profit = round($amount * 0.12, 2);
+                $totalAmount += $amount;
+
+                return [
+                    'id' => $inv->id,
+                    'invoice_date' => $inv->invoice_date,
+                    'shop_name' => $inv->shop->name,
+                    'status' => $inv->status,
+                    'items_count' => $inv->items->count(),
+                    'total_amount' => $amount,
+                    'profit' => $profit,
+                ];
+            });
+
+            $totalProfit = round($totalAmount * 0.12, 2);
+
+            return [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'summary' => [
+                    'total_invoices' => $invoices->count(),
+                    'total_revenue' => $totalAmount,
+                    'total_profit' => $totalProfit,
+                ],
+                'invoices' => $invoiceList->toArray(),
             ];
         });
     }

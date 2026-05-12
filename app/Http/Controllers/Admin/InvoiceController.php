@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Domain\Invoices\Services\InvoiceService;
 use App\Domain\Invoices\Data\InvoiceData;
+use App\Domain\Newspapers\Models\Newspaper;
 use App\Domain\Shops\Models\Shop;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -173,11 +174,33 @@ class InvoiceController extends Controller
 
     public function dailySales(Request $request)
     {
-        $date = $request->get('date', today()->toDateString());
-        $report = $this->invoiceService->getDailyReport($date);
+        $defaultDateFrom = today()->subDays(6)->toDateString();
+        $defaultDateTo = today()->toDateString();
+
+        $validated = $request->validate([
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+            'shop_id' => 'nullable|integer|exists:shops,id',
+            'newspaper_id' => 'nullable|integer|exists:newspapers,id',
+        ]);
+
+        $dateFrom = $validated['date_from'] ?? $defaultDateFrom;
+        $dateTo = $validated['date_to'] ?? $defaultDateTo;
+        $shopId = $validated['shop_id'] ?? null;
+        $newspaperId = $validated['newspaper_id'] ?? null;
 
         return Inertia::render('Admin/Reports/DailySales', [
-            'report' => $report,
+            'shopReport' => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId),
+            'newspaperReport' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId),
+            'invoiceReport' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo),
+            'shops' => Shop::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'newspapers' => Newspaper::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'shop_id' => $shopId,
+                'newspaper_id' => $newspaperId,
+            ],
         ]);
     }
 
