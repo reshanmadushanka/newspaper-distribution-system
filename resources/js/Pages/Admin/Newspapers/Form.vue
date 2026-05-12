@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3'
-import { ChevronLeft, Save, Newspaper, Languages, Calendar, DollarSign, ShieldAlert, Type } from 'lucide-vue-next'
+import { ChevronLeft, Save, Newspaper, Languages, Calendar, DollarSign, ShieldAlert, Type, Plus, Trash2, Tags } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -22,11 +22,29 @@ const form = useForm({
     language: props.newspaper?.language ?? '',
     frequency: props.newspaper?.frequency ?? '',
     status: props.newspaper?.status ?? 'active',
-    price: props.newspaper?.price ?? '',
-    cost_price: props.newspaper?.cost_price ?? '',
+    prices: props.newspaper?.prices?.length
+        ? props.newspaper.prices.map(p => ({
+            id: p.id,
+            label: p.label ?? '',
+            price: p.price ?? '',
+            cost_price: p.cost_price ?? '',
+        }))
+        : props.newspaper?.price
+            ? [{ label: '', price: props.newspaper.price, cost_price: props.newspaper.cost_price ?? '' }]
+            : [{ label: '', price: '', cost_price: '' }],
 })
 
 const { enabled: sinhalaEnabled, toggle: toggleSinhala } = useSinhalaInput()
+
+const addPriceRow = () => {
+    form.prices.push({ label: '', price: '', cost_price: '' })
+}
+
+const removePriceRow = (index) => {
+    if (form.prices.length > 1) {
+        form.prices.splice(index, 1)
+    }
+}
 
 const submit = () => {
     if (props.newspaper) {
@@ -127,26 +145,51 @@ const submit = () => {
             <div class="space-y-6">
                 <!-- Pricing -->
                 <div class="rounded-2xl border bg-card p-6 shadow-sm">
-                    <div class="mb-6 flex items-center gap-2 border-b pb-4">
-                        <span class="flex h-5 w-5 items-center justify-center text-primary text-sm font-bold">Rs.</span>
-                        <h3 class="font-bold">Pricing</h3>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="space-y-2">
-                            <Label for="price">Selling Price</Label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 flex items-center justify-center text-muted-foreground text-[10px] font-bold">Rs.</span>
-                                <Input id="price" v-model="form.price" class="pl-9" placeholder="0.00" :error="form.errors.price" />
-                            </div>
-                            <p v-if="form.errors.price" class="text-xs text-destructive">{{ form.errors.price }}</p>
+                    <div class="mb-6 flex items-center justify-between border-b pb-4">
+                        <div class="flex items-center gap-2">
+                            <DollarSign class="h-5 w-5 text-primary" />
+                            <h3 class="font-bold">Pricing</h3>
                         </div>
-                        <div class="space-y-2">
-                            <Label for="cost_price">Cost Price</Label>
-                            <div class="relative">
-                                <ShieldAlert class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input id="cost_price" v-model="form.cost_price" class="pl-9" placeholder="0.00" :error="form.errors.cost_price" />
+                        <Button type="button" variant="outline" size="sm" @click="addPriceRow" class="rounded-xl">
+                            <Plus class="mr-1 h-4 w-4" /> Add Price
+                        </Button>
+                    </div>
+
+                    <p v-if="form.errors.prices" class="mb-4 text-xs text-destructive">{{ form.errors.prices }}</p>
+
+                    <div class="space-y-4">
+                        <div v-for="(priceRow, index) in form.prices" :key="index"
+                            class="rounded-xl border bg-muted/20 p-4 relative">
+                            <button type="button" @click="removePriceRow(index)"
+                                class="absolute -top-2 -right-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 transition-colors"
+                                :disabled="form.prices.length === 1"
+                                v-if="form.prices.length > 1">
+                                <Trash2 class="h-3 w-3" />
+                            </button>
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="space-y-2">
+                                    <Label :for="'price_label_' + index">Label <span class="text-xs text-muted-foreground">(optional)</span></Label>
+                                    <div class="relative">
+                                        <Tags class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input :id="'price_label_' + index" v-model="priceRow.label" class="pl-9" placeholder="e.g. Retail, Wholesale" />
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <Label :for="'price_' + index">Selling Price</Label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 flex items-center justify-center text-muted-foreground text-[10px] font-bold">Rs.</span>
+                                        <Input :id="'price_' + index" v-model="priceRow.price" class="pl-9" placeholder="0.00" />
+                                    </div>
+                                    <p v-if="form.errors[`prices.${index}.price`]" class="text-xs text-destructive">{{ form.errors[`prices.${index}.price`] }}</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <Label :for="'cost_price_' + index">Cost Price <span class="text-xs text-muted-foreground">(optional)</span></Label>
+                                    <div class="relative">
+                                        <ShieldAlert class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input :id="'cost_price_' + index" v-model="priceRow.cost_price" class="pl-9" placeholder="0.00" />
+                                    </div>
+                                </div>
                             </div>
-                            <p v-if="form.errors.cost_price" class="text-xs text-destructive">{{ form.errors.cost_price }}</p>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
-import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, StickyNote } from 'lucide-vue-next'
+import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, StickyNote, Tags } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -30,10 +30,11 @@ const form = useForm({
     items: isEditing.value
         ? props.invoice.items.map(item => ({
             newspaper_id: item.newspaper_id,
+            price_id: item.price_id,
             quantity: item.quantity,
             unit_price: parseFloat(item.unit_price),
         }))
-        : [{ newspaper_id: '', quantity: 1, unit_price: 0 }],
+        : [{ newspaper_id: '', price_id: '', quantity: 1, unit_price: 0 }],
 })
 
 const totalAmount = computed(() => {
@@ -45,8 +46,7 @@ const totalAmount = computed(() => {
 const newspaperOptions = computed(() => {
     return props.newspapers.map(np => ({
         value: np.id,
-        label: `${np.name} (Rs. ${parseFloat(np.price).toFixed(2)})`,
-        price: parseFloat(np.price),
+        label: `${np.name}`,
     }))
 })
 
@@ -57,17 +57,34 @@ const shopOptions = computed(() => {
     }))
 })
 
+const getPricesForNewspaper = (newspaperId) => {
+    const np = props.newspapers.find(n => n.id === parseInt(newspaperId))
+    if (!np || !np.prices) return []
+    return np.prices.map(p => ({
+        value: p.id,
+        label: p.label ? `${p.label} (Rs. ${parseFloat(p.price).toFixed(2)})` : `Rs. ${parseFloat(p.price).toFixed(2)}`,
+        price: parseFloat(p.price),
+    }))
+}
+
+const priceOptions = (index) => {
+    const newspaperId = form.items[index].newspaper_id
+    if (!newspaperId) return []
+    return getPricesForNewspaper(newspaperId)
+}
+
 const handleNewspaperChange = (index, value) => {
     const selectedId = parseInt(value)
     form.items[index].newspaper_id = value
-    
+    form.items[index].price_id = ''
+    form.items[index].unit_price = 0
+
     const isDuplicate = form.items.some((item, idx) => {
         return idx !== index && parseInt(item.newspaper_id) === selectedId
     })
 
     if (isDuplicate) {
         form.items[index].newspaper_id = ''
-        form.items[index].unit_price = 0
         form.errors[`items.${index}.newspaper_id`] = 'This newspaper is already added.'
         return
     }
@@ -76,12 +93,18 @@ const handleNewspaperChange = (index, value) => {
         delete form.errors[`items.${index}.newspaper_id`]
     }
 
-    const selected = props.newspapers.find(n => n.id === selectedId)
-    if (selected) {
-        form.items[index].unit_price = parseFloat(selected.price)
-    } else {
-        form.items[index].unit_price = 0
+    const prices = getPricesForNewspaper(value)
+    if (prices.length === 1) {
+        form.items[index].price_id = prices[0].value
+        form.items[index].unit_price = prices[0].price
     }
+}
+
+const handlePriceChange = (index, value) => {
+    form.items[index].price_id = value
+    const prices = priceOptions(index)
+    const selected = prices.find(p => p.value === parseInt(value))
+    form.items[index].unit_price = selected ? selected.price : 0
 }
 
 const rowTotal = (index) => {
@@ -117,7 +140,7 @@ watch(() => [form.invoice_date, form.shop_id], () => {
 })
 
 const addRow = () => {
-    form.items.push({ newspaper_id: '', quantity: 1, unit_price: 0 })
+    form.items.push({ newspaper_id: '', price_id: '', quantity: 1, unit_price: 0 })
 }
 
 const removeRow = (index) => {
@@ -249,6 +272,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                         <thead>
                             <tr class="text-left text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
                                 <th class="px-2 py-2">Newspaper</th>
+                                <th class="px-2 py-2 w-28">Price Variant</th>
                                 <th class="px-2 py-2 w-24">Quantity</th>
                                 <th class="px-2 py-2 w-28">Unit Price</th>
                                 <th class="px-2 py-2 w-28 text-right">Row Total</th>
@@ -266,6 +290,18 @@ const filteredNewspaperOptions = (currentIndex) => {
                                     />
                                     <p v-if="form.errors[`items.${index}.newspaper_id`]"
                                         class="text-xs text-destructive">{{ form.errors[`items.${index}.newspaper_id`]
+                                        }}</p>
+                                </td>
+                                <td class="px-2 py-2">
+                                    <Select2
+                                        :model-value="item.price_id"
+                                        :options="priceOptions(index)"
+                                        placeholder="Select price"
+                                        @update:modelValue="value => handlePriceChange(index, value)"
+                                        :disabled="!item.newspaper_id"
+                                    />
+                                    <p v-if="form.errors[`items.${index}.price_id`]"
+                                        class="text-xs text-destructive">{{ form.errors[`items.${index}.price_id`]
                                         }}</p>
                                 </td>
                                 <td class="px-2 py-2">

@@ -46,6 +46,7 @@ class InvoiceService
         foreach ($data['items'] as $item) {
             $items[] = [
                 'newspaper_id' => $item['newspaper_id'],
+                'price_id' => $item['price_id'] ?? null,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
             ];
@@ -65,7 +66,7 @@ class InvoiceService
 
     public function getActiveNewspapers(): Collection
     {
-        return $this->newspaperRepository->getActiveNewspapers(['id', 'name', 'price']);
+        return $this->newspaperRepository->getActiveNewspapers(['id', 'name']);
     }
 
     public function getPreviousWeekSummary(string $date, int $shopId): ?Invoice
@@ -103,6 +104,7 @@ class InvoiceService
         foreach ($data['items'] as $item) {
             $items[] = [
                 'newspaper_id' => $item['newspaper_id'],
+                'price_id' => $item['price_id'] ?? null,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
             ];

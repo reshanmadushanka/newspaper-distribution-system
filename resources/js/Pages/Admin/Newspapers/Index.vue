@@ -64,6 +64,7 @@ const languageVariant = (lang) => {
                             <th class="px-6 py-4">Publication</th>
                             <th class="px-6 py-4">Price</th>
                             <th class="px-6 py-4">Cost</th>
+                            <th class="px-6 py-4">Price Variants</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -87,6 +88,17 @@ const languageVariant = (lang) => {
                                 <div class="text-xs text-muted-foreground">Rs. {{ newspaper.cost_price || '—' }}</div>
                             </td>
                             <td class="px-6 py-4">
+                                <div class="text-xs text-muted-foreground">
+                                    <template v-if="newspaper.prices?.length">
+                                        <span class="font-medium">{{ newspaper.prices.length }}</span> variant{{ newspaper.prices.length > 1 ? 's' : '' }}
+                                        <span class="block text-[10px] text-muted-foreground/60">
+                                            From Rs. {{ Math.min(...newspaper.prices.map(p => parseFloat(p.price))).toFixed(2) }}
+                                        </span>
+                                    </template>
+                                    <span v-else class="text-muted-foreground/50">—</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
                                 <div class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                                     <Link v-if="canEdit" :href="`/admin/newspapers/${newspaper.id}/edit`">
                                         <Button variant="ghost" size="icon" class="h-8 w-8 rounded-lg">
@@ -102,7 +114,7 @@ const languageVariant = (lang) => {
                             </td>
                         </tr>
                         <tr v-if="newspapers.data.length === 0">
-                            <td colspan="6" class="px-6 py-12 text-center text-muted-foreground italic">
+                            <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">
                                 No newspapers found. Click "Add newspaper" to get started.
                             </td>
                         </tr>

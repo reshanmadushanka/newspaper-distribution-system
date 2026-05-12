@@ -19,6 +19,10 @@ class NewspaperData
             'status' => ['required', new Enum(NewspaperStatus::class)],
             'price' => 'nullable|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
+            'prices' => 'nullable|array',
+            'prices.*.label' => 'nullable|string|max:255',
+            'prices.*.price' => 'required|numeric|min:0',
+            'prices.*.cost_price' => 'nullable|numeric|min:0',
         ];
     }
 }

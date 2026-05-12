@@ -47,12 +47,12 @@ class InvoiceRepository implements InvoiceRepositoryInterface
 
     public function find(int $id): ?Invoice
     {
-        return Invoice::with(['shop', 'items.newspaper', 'creator'])->find($id);
+        return Invoice::with(['shop', 'items.newspaper', 'items.price', 'creator'])->find($id);
     }
 
     public function findOrFail(int $id): Invoice
     {
-        return Invoice::with(['shop', 'items.newspaper', 'creator'])->findOrFail($id);
+        return Invoice::with(['shop', 'items.newspaper', 'items.price', 'creator'])->findOrFail($id);
     }
 
     public function createWithItems(array $invoiceData, array $items): Invoice
@@ -63,6 +63,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             $invoiceItems = array_map(fn($item) => [
                 'invoice_id'   => $invoice->id,
                 'newspaper_id' => $item['newspaper_id'],
+                'price_id'     => $item['price_id'] ?? null,
                 'quantity'     => $item['quantity'],
                 'unit_price'   => $item['unit_price'],
                 'total_price'  => $item['quantity'] * $item['unit_price'],
@@ -73,7 +74,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
             $invoice->update(['total_amount' => $totalAmount]);
 
-            return $invoice->fresh(['shop', 'items.newspaper', 'creator']);
+            return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
         });
     }
 
@@ -90,7 +91,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     {
         $invoice = $this->findOrFail($id);
         $invoice->update(['status' => $status]);
-        return $invoice->fresh(['shop', 'items.newspaper', 'creator']);
+        return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
     }
 
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice
@@ -104,6 +105,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             $invoiceItems = array_map(fn($item) => [
                 'invoice_id'   => $invoice->id,
                 'newspaper_id' => $item['newspaper_id'],
+                'price_id'     => $item['price_id'] ?? null,
                 'quantity'     => $item['quantity'],
                 'unit_price'   => $item['unit_price'],
                 'total_price'  => $item['quantity'] * $item['unit_price'],
@@ -114,7 +116,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
             $invoice->update(['total_amount' => $totalAmount]);
 
-            return $invoice->fresh(['shop', 'items.newspaper', 'creator']);
+            return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
         });
     }
 

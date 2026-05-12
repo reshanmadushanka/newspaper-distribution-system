@@ -8,6 +8,7 @@ use App\Domain\Newspapers\Enums\PublicationFrequency;
 use Database\Factories\NewspaperFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Newspaper extends Model
@@ -40,5 +41,10 @@ class Newspaper extends Model
     public function scopeActive($query)
     {
         return $query->where('status', NewspaperStatus::ACTIVE);
+    }
+
+    public function prices(): HasMany
+    {
+        return $this->hasMany(NewspaperPrice::class);
     }
 }
