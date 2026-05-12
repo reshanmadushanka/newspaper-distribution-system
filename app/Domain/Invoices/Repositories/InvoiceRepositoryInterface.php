@@ -8,7 +8,12 @@ use Illuminate\Support\Collection;
 
 interface InvoiceRepositoryInterface
 {
-    public function paginate(int $perPage = 10): LengthAwarePaginator;
+    public function paginate(
+        int $perPage = 10,
+        ?string $search = null,
+        ?string $dateFrom = null,
+        ?string $dateTo = null
+    ): LengthAwarePaginator;
 
     public function find(int $id): ?Invoice;
 

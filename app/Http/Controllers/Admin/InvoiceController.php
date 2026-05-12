@@ -20,10 +20,32 @@ class InvoiceController extends Controller
         private InvoiceService $invoiceService
     ) {}
 
-    public function index()
+    public function index(Request $request): Response
     {
+        $defaultDateFrom = today()->subDays(6)->toDateString();
+        $defaultDateTo = today()->toDateString();
+
+        $validated = $request->validate([
+            'search' => 'nullable|string|max:100',
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+        $dateFrom = $validated['date_from'] ?? $defaultDateFrom;
+        $dateTo = $validated['date_to'] ?? $defaultDateTo;
+
         return Inertia::render('Admin/Invoices/Index', [
-            'invoices' => $this->invoiceService->getPaginatedInvoices(),
+            'invoices' => $this->invoiceService->getPaginatedInvoices(
+                search: $search,
+                dateFrom: $dateFrom,
+                dateTo: $dateTo
+            ),
+            'filters' => [
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ],
         ]);
     }
 

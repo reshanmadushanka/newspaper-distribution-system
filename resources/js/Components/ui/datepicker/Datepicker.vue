@@ -4,8 +4,10 @@ import 'flatpickr/dist/flatpickr.min.css'
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
-    modelValue: { type: String, default: '' },
+    modelValue: { type: [String, Array], default: '' },
     min: { type: String, default: '' },
+    mode: { type: String, default: 'single' },
+    placeholder: { type: String, default: 'DD-MM-YYYY' },
     class: { type: null, default: '' },
 })
 
@@ -25,20 +27,37 @@ const getMinDate = () => {
     return null
 }
 
+const formatDate = (date) => {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+}
+
+const getDefaultDate = () => {
+    if (props.mode === 'range' && Array.isArray(props.modelValue)) {
+        return props.modelValue.map(parseDate).filter(Boolean)
+    }
+
+    return parseDate(props.modelValue)
+}
+
 onMounted(() => {
     fp = flatpickr(inputRef.value, {
         dateFormat: 'd-m-Y',
+        mode: props.mode,
         minDate: getMinDate(),
         allowInput: true,
         disableMobile: true,
-        defaultDate: parseDate(props.modelValue),
+        defaultDate: getDefaultDate(),
         onChange: (selectedDates) => {
+            if (props.mode === 'range') {
+                emit('update:modelValue', selectedDates.map(formatDate))
+                return
+            }
+
             if (selectedDates.length > 0) {
-                const d = selectedDates[0]
-                const y = d.getFullYear()
-                const m = String(d.getMonth() + 1).padStart(2, '0')
-                const day = String(d.getDate()).padStart(2, '0')
-                emit('update:modelValue', `${y}-${m}-${day}`)
+                emit('update:modelValue', formatDate(selectedDates[0]))
             }
         },
     })
@@ -53,7 +72,7 @@ onUnmounted(() => {
     <input
         ref="inputRef"
         type="text"
-        placeholder="DD-MM-YYYY"
+        :placeholder="props.placeholder"
         :class="props.class"
         readonly
     />

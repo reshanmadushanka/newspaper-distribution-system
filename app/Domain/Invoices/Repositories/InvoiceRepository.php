@@ -10,12 +10,39 @@ use Illuminate\Support\Facades\DB;
 
 class InvoiceRepository implements InvoiceRepositoryInterface
 {
-    public function paginate(int $perPage = 10): LengthAwarePaginator
+    public function paginate(
+        int $perPage = 10,
+        ?string $search = null,
+        ?string $dateFrom = null,
+        ?string $dateTo = null
+    ): LengthAwarePaginator
     {
+        $search = trim((string) $search);
+        $invoiceId = ltrim($search, '#');
+
         return Invoice::query()
-            ->with(['shop', 'items.newspaper'])
+            ->with('shop')
+            ->when($dateFrom && $dateTo, function ($query) use ($dateFrom, $dateTo) {
+                $query->whereBetween('invoice_date', [$dateFrom, $dateTo]);
+            })
+            ->when($search !== '', function ($query) use ($search, $invoiceId) {
+                $query->where(function ($query) use ($search, $invoiceId) {
+                    if (ctype_digit($invoiceId)) {
+                        $query->whereKey((int) $invoiceId);
+                    }
+
+                    $query->orWhereHas('shop', function ($query) use ($search) {
+                        $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%']);
+                    });
+                });
+            })
             ->orderByDesc('created_at')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends([
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ]);
     }
 
     public function find(int $id): ?Invoice

@@ -21,9 +21,14 @@ class InvoiceService
         private ShopRepositoryInterface $shopRepository,
     ) {}
 
-    public function getPaginatedInvoices(int $perPage = 10): LengthAwarePaginator
+    public function getPaginatedInvoices(
+        int $perPage = 10,
+        ?string $search = null,
+        ?string $dateFrom = null,
+        ?string $dateTo = null
+    ): LengthAwarePaginator
     {
-        return $this->invoiceRepository->paginate($perPage);
+        return $this->invoiceRepository->paginate($perPage, $search, $dateFrom, $dateTo);
     }
 
     public function createInvoice(array $data, int $userId): Invoice

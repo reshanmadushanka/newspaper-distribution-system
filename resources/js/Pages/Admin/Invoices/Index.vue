@@ -1,19 +1,27 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2 } from 'lucide-vue-next'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
-import { computed } from 'vue'
+import { Datepicker } from '@/Components/ui/datepicker'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import Swal from 'sweetalert2'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm.js'
 
-defineProps({
+const componentProps = defineProps({
     invoices: Object,
+    filters: Object,
 })
 
 const { props } = usePage()
 const permissions = computed(() => props.auth.user?.permissions ?? [])
+const search = ref(componentProps.filters?.search ?? '')
+const dateRange = ref([
+    componentProps.filters?.date_from ?? '',
+    componentProps.filters?.date_to ?? '',
+])
+let searchTimeout = null
 
 const canCreate = computed(() => permissions.value.includes('create invoices') || permissions.value.includes('manage invoices'))
 const canUpdate = computed(() => permissions.value.includes('manage invoices'))
@@ -25,6 +33,37 @@ const handleDelete = (id) => {
         onError: (errors) => Swal.fire('Error!', Object.values(errors)[0], 'error'),
     }))
 }
+
+const reloadInvoices = () => {
+    const [dateFrom, dateTo] = dateRange.value
+
+    if (!dateFrom || !dateTo) {
+        return
+    }
+
+    router.get('/admin/invoices', {
+        search: search.value || undefined,
+        date_from: dateFrom,
+        date_to: dateTo,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        only: ['invoices', 'filters'],
+    })
+}
+
+watch([search, dateRange], () => {
+    clearTimeout(searchTimeout)
+
+    searchTimeout = setTimeout(() => {
+        reloadInvoices()
+    }, 350)
+}, { deep: true })
+
+onUnmounted(() => {
+    clearTimeout(searchTimeout)
+})
 
 const markAsPaid = (id) => {
     Swal.fire({
@@ -64,6 +103,7 @@ const statusVariant = (status) => {
 </script>
 
 <template>
+
     <Head title="Invoices" />
     <AdminLayout>
         <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -84,6 +124,23 @@ const statusVariant = (status) => {
 
         <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
+                <div class="border-b bg-card px-6 py-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <div class="relative w-full sm:w-64">
+                            <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <input v-model="search" type="search" placeholder="Search invoice or shop..."
+                                class="w-full h-9 pl-9 pr-4 rounded-lg border bg-secondary/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                        </div>
+                        <div class="relative w-full sm:w-72">
+                            <CalendarDays class="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Datepicker v-model="dateRange" mode="range" placeholder="Select invoice date range"
+                                class="w-full h-9 pl-9 pr-4 rounded-lg border bg-secondary/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" />
+                        </div>
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        Showing {{ invoices.data.length }} invoices
+                    </div>
+                </div>
                 <table class="w-full text-sm text-left">
                     <thead class="bg-secondary/30 text-muted-foreground uppercase text-[10px] font-bold tracking-wider">
                         <tr>
@@ -96,7 +153,8 @@ const statusVariant = (status) => {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/50">
-                        <tr v-for="inv in invoices.data" :key="inv.id" class="group transition-colors hover:bg-secondary/20">
+                        <tr v-for="inv in invoices.data" :key="inv.id"
+                            class="group transition-colors hover:bg-secondary/20">
                             <td class="px-6 py-4">
                                 <div class="font-semibold text-foreground">#{{ inv.id }}</div>
                             </td>
@@ -113,24 +171,34 @@ const statusVariant = (status) => {
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-right font-semibold">
-                                    Rs. {{ parseFloat(inv.total_amount).toFixed(2) }}
+                                Rs. {{ parseFloat(inv.total_amount).toFixed(2) }}
                             </td>
                             <td class="px-6 py-4">
-                                <Badge :variant="statusVariant(inv.status)" class="rounded-full px-2 py-0 text-[10px] capitalize">
+                                <Badge :variant="statusVariant(inv.status)"
+                                    class="rounded-full px-2 py-0 text-[10px] capitalize">
                                     {{ inv.status }}
                                 </Badge>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                    <Button v-if="canUpdate && inv.status === 'draft'" @click="markAsPaid(inv.id)" variant="ghost" size="icon" class="h-8 w-8 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" title="Mark as Paid">
+                                <div
+                                    class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                    <Button v-if="canUpdate && inv.status === 'draft'" @click="markAsPaid(inv.id)"
+                                        variant="ghost" size="icon"
+                                        class="h-8 w-8 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                        title="Mark as Paid">
                                         <CheckCircle2 class="h-4 w-4" />
                                     </Button>
-                                    <Link v-if="canUpdate && inv.status === 'draft'" :href="`/admin/invoices/${inv.id}/edit`">
-                                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-50" title="Edit Items">
+                                    <Link v-if="canUpdate && inv.status === 'draft'"
+                                        :href="`/admin/invoices/${inv.id}/edit`">
+                                        <Button variant="ghost" size="icon"
+                                            class="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                            title="Edit Items">
                                             <Pencil class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Button v-if="canUpdate" @click="handleDelete(inv.id)" variant="ghost" size="icon" class="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete">
+                                    <Button v-if="canUpdate" @click="handleDelete(inv.id)" variant="ghost" size="icon"
+                                        class="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        title="Delete">
                                         <Trash2 class="h-4 w-4" />
                                     </Button>
                                     <Link :href="`/admin/invoices/${inv.id}`">
@@ -143,15 +211,16 @@ const statusVariant = (status) => {
                         </tr>
                         <tr v-if="invoices.data.length === 0">
                             <td colspan="6" class="px-6 py-12 text-center text-muted-foreground italic">
-                                No invoices found. Click "Create Invoice" to get started.
+                                {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div v-if="invoices.links && invoices.links.length > 3" class="px-6 py-4 border-t bg-secondary/10 flex items-center justify-center gap-2">
-                <Link v-for="link in invoices.links" :key="link.label" :href="link.url || ''" preserve-scroll>
+            <div v-if="invoices.links && invoices.links.length > 3"
+                class="px-6 py-4 border-t bg-secondary/10 flex items-center justify-center gap-2">
+                <Link v-for="link in invoices.links" :key="link.label" :href="link.url || ''" preserve-scroll preserve-state>
                     <Button :variant="link.active ? 'default' : 'ghost'" size="sm" :disabled="!link.url"
                         class="h-8 min-w-[2rem] rounded-lg" v-html="link.label" />
                 </Link>
