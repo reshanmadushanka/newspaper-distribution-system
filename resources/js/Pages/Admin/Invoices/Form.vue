@@ -111,6 +111,23 @@ const handleNewspaperChange = (index, value) => {
     }
 }
 
+const handleReturnQuantityChange = (index) => {
+    const returnQty = parseInt(form.items[index].return_quantity) || 0
+    const currentQty = parseInt(form.items[index].quantity) || 0
+
+    if (returnQty > currentQty) {
+        form.errors[`items.${index}.return_quantity`] = `Return quantity cannot exceed current quantity (${currentQty}).`
+        form.items[index].return_quantity = currentQty
+    } else if (returnQty < 0) {
+        form.errors[`items.${index}.return_quantity`] = 'Return quantity cannot be negative.'
+        form.items[index].return_quantity = 0
+    } else {
+        if (form.errors[`items.${index}.return_quantity`]) {
+            delete form.errors[`items.${index}.return_quantity`]
+        }
+    }
+}
+
 const handlePriceChange = (index, value) => {
     form.items[index].price_id = value
     const prices = priceOptions(index)
@@ -165,6 +182,27 @@ const removeRow = (index) => {
 }
 
 const submit = () => {
+    // Validate return quantities before submission
+    if (isEditing.value) {
+        let hasError = false
+        form.items.forEach((item, index) => {
+            const returnQty = parseInt(item.return_quantity) || 0
+            const currentQty = parseInt(item.quantity) || 0
+
+            if (returnQty > currentQty) {
+                form.errors[`items.${index}.return_quantity`] = `Return quantity cannot exceed current quantity (${currentQty}).`
+                hasError = true
+            } else if (returnQty < 0) {
+                form.errors[`items.${index}.return_quantity`] = 'Return quantity cannot be negative.'
+                hasError = true
+            }
+        })
+
+        if (hasError) {
+            return
+        }
+    }
+
     if (isEditing.value) {
         form.put(`/admin/invoices/${props.invoice.id}`)
     } else {
@@ -327,8 +365,15 @@ const filteredNewspaperOptions = (currentIndex) => {
                                         form.errors[`items.${index}.quantity`] }}</p>
                                 </td>
                                 <td v-if="isEditing" class="px-2 py-2">
-                                    <Input v-model.number="item.return_quantity" type="number" min="0" step="1"
-                                        class="h-9 text-center" />
+                                    <Input
+                                        v-model.number="item.return_quantity"
+                                        type="number"
+                                        min="0"
+                                        :max="item.quantity"
+                                        step="1"
+                                        class="h-9 text-center"
+                                        @input="handleReturnQuantityChange(index)"
+                                    />
                                     <p v-if="form.errors[`items.${index}.return_quantity`]" class="text-xs text-destructive">{{
                                         form.errors[`items.${index}.return_quantity`] }}</p>
                                 </td>
