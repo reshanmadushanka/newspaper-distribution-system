@@ -5,7 +5,8 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Datepicker } from '@/Components/ui/datepicker'
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { useSessionStorage } from '@vueuse/core'
 import Swal from 'sweetalert2'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm.js'
 
@@ -14,13 +15,42 @@ const componentProps = defineProps({
     filters: Object,
 })
 
-const { props } = usePage()
+const page = usePage()
+const { props } = page
 const permissions = computed(() => props.auth.user?.permissions ?? [])
-const search = ref(componentProps.filters?.search ?? '')
-const dateRange = ref([
-    componentProps.filters?.date_from ?? '',
-    componentProps.filters?.date_to ?? '',
-])
+const currentQuery = new URLSearchParams(page.url.split('?')[1] ?? '')
+const hasFilterQuery = ['search', 'date_from', 'date_to'].some((key) => currentQuery.has(key))
+const rememberedFilters = useSessionStorage('admin.invoices.index.filters', {
+    search: componentProps.filters?.search ?? '',
+    dateRange: [
+        componentProps.filters?.date_from ?? '',
+        componentProps.filters?.date_to ?? '',
+    ],
+}, { mergeDefaults: true })
+
+if (hasFilterQuery) {
+    rememberedFilters.value = {
+        search: componentProps.filters?.search ?? '',
+        dateRange: [
+            componentProps.filters?.date_from ?? '',
+            componentProps.filters?.date_to ?? '',
+        ],
+    }
+}
+
+const search = computed({
+    get: () => rememberedFilters.value.search ?? '',
+    set: (value) => {
+        rememberedFilters.value.search = value
+    },
+})
+
+const dateRange = computed({
+    get: () => Array.isArray(rememberedFilters.value.dateRange) ? rememberedFilters.value.dateRange : ['', ''],
+    set: (value) => {
+        rememberedFilters.value.dateRange = Array.isArray(value) ? value : ['', '']
+    },
+})
 let searchTimeout = null
 
 const canCreate = computed(() => permissions.value.includes('create invoices') || permissions.value.includes('manage invoices'))
@@ -67,6 +97,21 @@ const reloadInvoices = () => {
         only: ['invoices', 'filters'],
     })
 }
+
+onMounted(() => {
+    const [dateFrom, dateTo] = dateRange.value
+    const propDateFrom = componentProps.filters?.date_from ?? ''
+    const propDateTo = componentProps.filters?.date_to ?? ''
+    const propSearch = componentProps.filters?.search ?? ''
+
+    if (!dateFrom || !dateTo) {
+        return
+    }
+
+    if (dateFrom !== propDateFrom || dateTo !== propDateTo || search.value !== propSearch) {
+        reloadInvoices()
+    }
+})
 
 watch([search, dateRange], () => {
     clearTimeout(searchTimeout)
