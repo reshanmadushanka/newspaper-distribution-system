@@ -4,11 +4,12 @@ import { ChevronLeft, Store, CalendarDays, Download, MessageCircle, Mail, Printe
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import print from 'vue3-print-nb'
 import Swal from 'sweetalert2'
 
 const vPrint = print
+const printButton = ref(null)
 
 const props = defineProps({
     invoice: Object,
@@ -28,6 +29,18 @@ const invoiceUrl = computed(() => window.location.origin + `/admin/invoices/${pr
 const downloadPdf = () => {
     window.open(pdfUrl.value, '_blank')
 }
+
+onMounted(() => {
+    if (!new URLSearchParams(window.location.search).has('print')) {
+        return
+    }
+
+    setTimeout(() => {
+        const button = printButton.value?.$el ?? printButton.value
+        button?.click()
+        window.history.replaceState({}, '', window.location.pathname)
+    }, 300)
+})
 
 const sendWhatsApp = () => {
     const phone = props.invoice.shop.whatsapp_phone.replace(/[^0-9]/g, '')
@@ -102,7 +115,7 @@ const statusVariant = (status) => {
                     <Download class="mr-2 h-4 w-4" />
                     PDF
                 </Button>
-                <Button v-print="'#printableInvoice'" class="rounded-xl shadow-lg shadow-primary/20">
+                <Button ref="printButton" v-print="'#printableInvoice'" class="rounded-xl shadow-lg shadow-primary/20">
                     <Printer class="mr-2 h-4 w-4" />
                     Print
                 </Button>

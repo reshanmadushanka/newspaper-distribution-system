@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search } from 'lucide-vue-next'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
@@ -32,6 +32,10 @@ const handleDelete = (id) => {
     confirmDelete(() => router.delete(`/admin/invoices/${id}`, {
         onError: (errors) => Swal.fire('Error!', Object.values(errors)[0], 'error'),
     }))
+}
+
+const printInvoice = (id) => {
+    window.open(`/admin/invoices/${id}?print=1`, '_blank')
 }
 
 const reloadInvoices = () => {
@@ -206,6 +210,10 @@ const statusVariant = (status) => {
                                             <Eye class="h-4 w-4" />
                                         </Button>
                                     </Link>
+                                    <Button @click="printInvoice(inv.id)" variant="ghost" size="icon"
+                                        class="h-8 w-8 rounded-lg" title="Print">
+                                        <Printer class="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </td>
                         </tr>
