@@ -29,7 +29,7 @@ class InvoiceItem extends Model
 
     public function newspaper(): BelongsTo
     {
-        return $this->belongsTo(Newspaper::class);
+        return $this->belongsTo(Newspaper::class)->withTrashed();
     }
 
     public function price(): BelongsTo

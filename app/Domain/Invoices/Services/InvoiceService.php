@@ -342,8 +342,8 @@ class InvoiceService
                 $totalQuantity += $quantity;
 
                 return [
-                    'newspaper_id' => $newspaper->id,
-                    'newspaper_name' => $newspaper->name,
+                    'newspaper_id' => $newspaper?->id ?? $newspaperItems->first()->newspaper_id,
+                    'newspaper_name' => $newspaper?->name ?? 'Deleted newspaper',
                     'quantity' => $quantity,
                     'total_revenue' => $revenue,
                     'total_cost' => $cost,
