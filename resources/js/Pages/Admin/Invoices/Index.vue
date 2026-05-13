@@ -35,7 +35,18 @@ const handleDelete = (id) => {
 }
 
 const printInvoice = (id) => {
-    window.open(`/admin/invoices/${id}?print=1`, '_blank')
+    const width = 900
+    const height = 700
+    const left = window.screenX + (window.outerWidth - width) / 2
+    const top = window.screenY + (window.outerHeight - height) / 2
+
+    const popup = window.open(
+        `/admin/invoices/${id}?print=1`,
+        `invoice-print-${id}`,
+        `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    )
+
+    popup?.focus()
 }
 
 const reloadInvoices = () => {
