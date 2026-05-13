@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 interface NewspaperRepositoryInterface
 {
-    public function paginate(int $perPage = 10): LengthAwarePaginator;
+    public function paginate(int $perPage = 10, string $search = ''): LengthAwarePaginator;
 
     public function find(int $id): ?Newspaper;
 

@@ -13,9 +13,9 @@ class NewspaperService
         private NewspaperRepositoryInterface $newspaperRepository
     ) {}
 
-    public function getPaginatedNewspapers(int $perPage = 10): LengthAwarePaginator
+    public function getPaginatedNewspapers(int $perPage = 10, string $search = ''): LengthAwarePaginator
     {
-        return $this->newspaperRepository->paginate($perPage);
+        return $this->newspaperRepository->paginate($perPage, $search);
     }
 
     public function createNewspaper(array $data): Newspaper

@@ -10,12 +10,16 @@ use Illuminate\Support\Facades\DB;
 
 class NewspaperRepository implements NewspaperRepositoryInterface
 {
-    public function paginate(int $perPage = 10): LengthAwarePaginator
+    public function paginate(int $perPage = 10, string $search = ''): LengthAwarePaginator
     {
         return Newspaper::query()
             ->with('prices')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . mb_strtolower($search) . '%']);
+            })
             ->orderBy('name')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function find(int $id): ?Newspaper

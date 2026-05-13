@@ -20,10 +20,15 @@ class NewspaperController extends Controller
         private NewspaperService $newspaperService
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = trim((string) $request->query('search', ''));
+
         return Inertia::render('Admin/Newspapers/Index', [
-            'newspapers' => $this->newspaperService->getPaginatedNewspapers(),
+            'newspapers' => $this->newspaperService->getPaginatedNewspapers(search: $search),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
