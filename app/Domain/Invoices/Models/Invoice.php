@@ -16,21 +16,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'total_amount',
     'status',
     'notes',
+    'return_total_amount',
+    'total_net_amount'
 ])]
 class Invoice extends Model
 {
     use HasFactory, SoftDeletes;
-    
+
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
     }
-    
+
     public function shop()
     {
         return $this->belongsTo(Shop::class);
     }
-    
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

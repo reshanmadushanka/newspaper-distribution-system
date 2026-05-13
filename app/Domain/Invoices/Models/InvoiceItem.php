@@ -16,7 +16,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'price_id',
     'quantity',
     'unit_price',
-    'total_price'
+    'total_price',
+    'return_quantity',
+    'return_total_price'
 ])]
 class InvoiceItem extends Model
 {

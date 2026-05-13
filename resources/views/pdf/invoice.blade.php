@@ -8,286 +8,397 @@
             size: A5 landscape;
             margin: 0;
         }
-        
-        :root {
-            --primary: #0f172a;
-            --accent: #2563eb;
-            --success: #059669;
-            --danger: #dc2626;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-400: #94a3b8;
-            --gray-600: #475569;
-            --gray-800: #1e293b;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', 'DejaVu Sans', sans-serif;
-            font-size: 8.5pt;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 9px;
             line-height: 1.4;
-            color: var(--gray-800);
-            margin: 0;
-            padding: 0;
+            color: #1a1a1a;
             background: #fff;
+            padding: 12px 15px;
         }
 
+        /* Modern Header */
         .header {
-            background: var(--primary);
-            color: white;
-            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #2563eb;
+            margin-bottom: 12px;
         }
 
-        .header-table {
-            display: table;
-            width: 100%;
-        }
-
-        .header-cell {
-            display: table-cell;
-            vertical-align: middle;
+        .brand {
+            flex: 1;
         }
 
         .brand-name {
-            font-size: 14pt;
-            font-weight: 800;
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
             letter-spacing: -0.5px;
-            margin: 0;
+        }
+
+        .brand-tagline {
+            font-size: 7px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .invoice-badge {
+            text-align: right;
         }
 
         .invoice-label {
-            font-size: 18pt;
-            font-weight: 800;
-            text-align: right;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .container {
-            padding: 20px 30px;
-        }
-
-        .info-section {
-            display: table;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .info-block {
-            display: table-cell;
-            width: 50%;
-            vertical-align: top;
-        }
-
-        .label {
-            font-size: 6.5pt;
+            font-size: 20px;
             font-weight: 700;
-            color: var(--gray-400);
+            color: #2563eb;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            letter-spacing: 1px;
         }
 
-        .value {
-            font-size: 10pt;
-            font-weight: 700;
-            color: var(--primary);
+        .invoice-number {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
         }
 
-        /* Table Style */
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-bottom: 15px;
+        /* Info Cards */
+        .info-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
-        th {
-            background: var(--gray-100);
-            color: var(--gray-600);
-            font-size: 7pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .info-card {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
             padding: 8px 10px;
-            text-align: left;
-            border-bottom: 2px solid var(--gray-200);
         }
 
-        td {
-            padding: 6px 10px;
-            border-bottom: 1px solid var(--gray-100);
-            vertical-align: middle;
+        .info-label {
+            font-size: 7px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
         }
 
-        .tr-even {
-            background: var(--gray-50);
+        .info-value {
+            font-size: 10px;
+            font-weight: 600;
+            color: #0f172a;
         }
 
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: 700; }
-
-        /* Summary */
-        .summary-wrapper {
-            display: table;
-            width: 100%;
+        .info-value.small {
+            font-size: 9px;
         }
 
-        .notes-cell {
-            display: table-cell;
-            width: 60%;
-            vertical-align: top;
-            padding-right: 20px;
-        }
-
-        .summary-cell {
-            display: table-cell;
-            width: 40%;
-            vertical-align: top;
-        }
-
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .summary-table td {
-            padding: 4px 0;
-            border: none;
-        }
-
-        .total-row td {
-            border-top: 2px solid var(--primary);
-            padding-top: 8px;
-            font-size: 11pt;
-            font-weight: 800;
-            color: var(--accent);
-        }
-
-        .badge {
+        .status-badge {
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 6.5pt;
-            font-weight: 700;
+            border-radius: 12px;
+            font-size: 7px;
+            font-weight: 600;
             text-transform: uppercase;
             margin-top: 4px;
         }
 
-        .badge-paid { background: #dcfce7; color: #166534; }
-        .badge-draft { background: #fef9c3; color: #854d0e; }
-        .badge-cancelled { background: #fee2e2; color: #991b1b; }
-
-        .footer {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            padding: 15px 30px;
-            border-top: 1px solid var(--gray-100);
-            text-align: center;
-            font-size: 7pt;
-            color: var(--gray-400);
+        .status-draft {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fbbf24;
         }
 
-        .notes-box {
-            background: var(--gray-50);
-            border-left: 3px solid var(--gray-200);
-            padding: 8px 12px;
-            font-size: 7.5pt;
-            color: var(--gray-600);
-            border-radius: 0 4px 4px 0;
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        /* Modern Table */
+        .table-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f1f5f9;
+        }
+
+        th {
+            padding: 6px 8px;
+            font-size: 7px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 6px 8px;
+            font-size: 9px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: 600; }
+
+        /* Summary Section */
+        .summary-section {
+            display: flex;
+            gap: 10px;
+        }
+
+        .notes-area {
+            flex: 1;
+        }
+
+        .notes-label {
+            font-size: 7px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .notes-content {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 8px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .totals-area {
+            width: 200px;
+        }
+
+        .totals-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            font-size: 8px;
+        }
+
+        .total-row.label {
+            color: #64748b;
+        }
+
+        .total-row.value {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .total-row.return {
+            color: #dc2626;
+        }
+
+        .total-row.grand {
+            border-top: 2px solid #2563eb;
+            margin-top: 6px;
+            padding-top: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .total-row.grand .value {
+            color: #2563eb;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 7px;
+            color: #94a3b8;
+        }
+
+        /* Print Optimization */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            thead {
+                background: #f1f5f9 !important;
+            }
+
+            tbody tr:nth-child(even) {
+                background: #fafafa !important;
+            }
+
+            .info-card,
+            .notes-content,
+            .totals-box {
+                background: #f8fafc !important;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
-        <div class="header-table">
-            <div class="header-cell">
-                <div class="brand-name">NEWSPAPER DISTRIBUTION</div>
-                <div style="font-size: 8pt; color: var(--gray-400);">Reliable Daily Supply Service</div>
-            </div>
-            <div class="header-cell">
-                <div class="invoice-label">Invoice</div>
+        <div class="brand">
+            <div class="brand-name">NEWSPAPER DISTRIBUTION</div>
+            <div class="brand-tagline">Reliable Daily Supply Service</div>
+        </div>
+        <div class="invoice-badge">
+            <div class="invoice-label">INVOICE</div>
+            <div class="invoice-number">#{{ $invoice->id }}</div>
+        </div>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-label">Billed To</div>
+            <div class="info-value">{{ $invoice->shop->name }}</div>
+            @if($invoice->shop->address)
+            <div class="info-value small" style="color: #64748b; margin-top: 2px;">{{ $invoice->shop->address }}</div>
+            @endif
+        </div>
+        <div class="info-card">
+            <div class="info-label">Invoice Date</div>
+            <div class="info-value">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</div>
+        </div>
+        <div class="info-card">
+            <div class="info-label">Status</div>
+            <div class="info-value">
+                <span class="status-badge status-{{ $invoice->status }}">{{ $invoice->status }}</span>
             </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="info-section">
-            <div class="info-block">
-                <div class="label">Billed To</div>
-                <div class="value">{{ $invoice->shop->name }}</div>
-                <div style="font-size: 7.5pt; color: var(--gray-600); margin-top: 2px;">
-                    {{ $invoice->shop->address ?? 'Customer' }}
-                </div>
-            </div>
-            <div class="info-block text-right">
-                <div style="display: inline-block; text-align: left; margin-left: 30px;">
-                    <div class="label">Invoice Number</div>
-                    <div class="value" style="color: var(--accent);">#{{ $invoice->id }}</div>
-                </div>
-                <div style="display: inline-block; text-align: left; margin-left: 30px;">
-                    <div class="label">Issue Date</div>
-                    <div class="value">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</div>
-                </div>
-                <div>
-                    <span class="badge badge-{{ $invoice->status }}">{{ $invoice->status }}</span>
-                </div>
-            </div>
-        </div>
-
+    <!-- Items Table -->
+    <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th width="40">#</th>
-                    <th>Description / Newspaper</th>
-                    <th class="text-center" width="60">Qty</th>
-                    <th class="text-right" width="100">Unit Price</th>
-                    <th class="text-right" width="100">Amount</th>
+                    <th width="20">#</th>
+                    <th>Newspaper</th>
+                    <th class="text-center" width="35">Qty</th>
+                    @if($invoice->items->sum('return_quantity') > 0)
+                    <th class="text-center" width="35">Return</th>
+                    @endif
+                    <th class="text-right" width="60">Unit Price</th>
+                    <th class="text-right" width="65">Amount</th>
+                    @if($invoice->items->sum('return_quantity') > 0)
+                    <th class="text-right" width="60">Return</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
                 @foreach($invoice->items as $index => $item)
-                <tr class="{{ $index % 2 == 0 ? '' : 'tr-even' }}">
-                    <td class="text-center" style="color: var(--gray-400);">{{ $index + 1 }}</td>
+                <tr>
+                    <td style="color: #94a3b8;">{{ $index + 1 }}</td>
                     <td class="font-bold">{{ $item->newspaper->name }}</td>
                     <td class="text-center">{{ $item->quantity }}</td>
+                    @if($invoice->items->sum('return_quantity') > 0)
+                    <td class="text-center">{{ $item->return_quantity ?? 0 }}</td>
+                    @endif
                     <td class="text-right">Rs. {{ number_format((float)$item->unit_price, 2) }}</td>
                     <td class="text-right font-bold">Rs. {{ number_format((float)$item->total_price, 2) }}</td>
+                    @if($invoice->items->sum('return_quantity') > 0)
+                    <td class="text-right font-bold" style="color: #dc2626;">Rs. {{ number_format((float)($item->return_total_price ?? 0), 2) }}</td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
         </table>
+    </div>
 
-        <div class="summary-wrapper">
-            <div class="notes-cell">
-                @if($invoice->notes)
-                <div class="label">Additional Notes</div>
-                <div class="notes-box">{{ $invoice->notes }}</div>
+    <!-- Summary -->
+    <div class="summary-section">
+        <div class="notes-area">
+            @if($invoice->notes)
+            <div class="notes-label">Notes</div>
+            <div class="notes-content">{{ $invoice->notes }}</div>
+            @endif
+        </div>
+        <div class="totals-area">
+            <div class="totals-box">
+                <div class="total-row label">
+                    <span>Items</span>
+                    <span class="value">{{ count($invoice->items) }}</span>
+                </div>
+                <div class="total-row label">
+                    <span>Quantity</span>
+                    <span class="value">{{ $invoice->items->sum('quantity') }}</span>
+                </div>
+                @if($invoice->items->sum('return_quantity') > 0)
+                <div class="total-row label" style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #e2e8f0;">
+                    <span>Total Amount</span>
+                    <span class="value">Rs. {{ number_format((float)$invoice->items->sum('total_price'), 2) }}</span>
+                </div>
+                <div class="total-row return">
+                    <span>Return Total</span>
+                    <span class="value">- Rs. {{ number_format((float)$invoice->items->sum('return_total_price'), 2) }}</span>
+                </div>
+                <div class="total-row grand">
+                    <span>NET AMOUNT</span>
+                    <span class="value">Rs. {{ number_format((float)$invoice->total_net_amount, 2) }}</span>
+                </div>
+                @else
+                <div class="total-row grand" style="margin-top: 4px; padding-top: 4px; border-top: 2px solid #2563eb;">
+                    <span>TOTAL</span>
+                    <span class="value">Rs. {{ number_format((float)$invoice->total_amount, 2) }}</span>
+                </div>
                 @endif
-            </div>
-            <div class="summary-cell">
-                <table class="summary-table">
-                    <tr>
-                        <td class="label">Total Items</td>
-                        <td class="text-right font-bold">{{ count($invoice->items) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Total Quantity</td>
-                        <td class="text-right font-bold">{{ $invoice->items->sum('quantity') }}</td>
-                    </tr>
-                    <tr class="total-row">
-                        <td style="text-transform: uppercase;">Amount Due</td>
-                        <td class="text-right">Rs. {{ number_format((float)$invoice->total_amount, 2) }}</td>
-                    </tr>
-                </table>
             </div>
         </div>
     </div>
 
+    <!-- Footer -->
     <div class="footer">
-        Thank you for your business! • Generated on {{ now()->format('M d, Y h:i A') }} • Powered by Newspaper System
+        Thank you for your business! • Generated on {{ now()->format('M d, Y h:i A') }}
     </div>
 </body>
 </html>

@@ -29,10 +29,11 @@ const form = useForm({
     notes: isEditing.value ? (props.invoice.notes || '') : '',
     items: isEditing.value
         ? props.invoice.items.map(item => ({
-            newspaper_id: item.newspaper_id,
-            price_id: item.price_id,
+            newspaper_id: item.newspaper_id.toString(),
+            price_id: item.price_id ? item.price_id.toString() : '',
             quantity: item.quantity,
             unit_price: parseFloat(item.unit_price),
+            return_quantity: item.return_quantity || 0,
         }))
         : [{ newspaper_id: '', price_id: '', quantity: 1, unit_price: 0 }],
 })
@@ -40,6 +41,13 @@ const form = useForm({
 const totalAmount = computed(() => {
     return form.items.reduce((sum, item) => {
         return sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)
+    }, 0)
+})
+
+const totalReturnAmount = computed(() => {
+    if (!isEditing.value) return 0
+    return form.items.reduce((sum, item) => {
+        return sum + (parseFloat(item.return_quantity) || 0) * (parseFloat(item.unit_price) || 0)
     }, 0)
 })
 
@@ -78,6 +86,9 @@ const handleNewspaperChange = (index, value) => {
     form.items[index].newspaper_id = value
     form.items[index].price_id = ''
     form.items[index].unit_price = 0
+    if (isEditing.value) {
+        form.items[index].return_quantity = 0
+    }
 
     const isDuplicate = form.items.some((item, idx) => {
         return idx !== index && parseInt(item.newspaper_id) === selectedId
@@ -140,7 +151,11 @@ watch(() => [form.invoice_date, form.shop_id], () => {
 })
 
 const addRow = () => {
-    form.items.push({ newspaper_id: '', price_id: '', quantity: 1, unit_price: 0 })
+    const newItem = { newspaper_id: '', price_id: '', quantity: 1, unit_price: 0 }
+    if (isEditing.value) {
+        newItem.return_quantity = 0
+    }
+    form.items.push(newItem)
 }
 
 const removeRow = (index) => {
@@ -274,6 +289,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                                 <th class="px-2 py-2 w-80">Newspaper</th>
                                 <th class="px-2 py-2 w-40">Price Variant</th>
                                 <th class="px-2 py-2 w-24">Quantity</th>
+                                <th v-if="isEditing" class="px-2 py-2 w-24">Return Qty</th>
                                 <th class="px-2 py-2 w-28">Unit Price</th>
                                 <th class="px-2 py-2 w-28 text-right">Row Total</th>
                                 <th class="px-2 py-2 w-10"></th>
@@ -310,6 +326,12 @@ const filteredNewspaperOptions = (currentIndex) => {
                                     <p v-if="form.errors[`items.${index}.quantity`]" class="text-xs text-destructive">{{
                                         form.errors[`items.${index}.quantity`] }}</p>
                                 </td>
+                                <td v-if="isEditing" class="px-2 py-2">
+                                    <Input v-model.number="item.return_quantity" type="number" min="0" step="1"
+                                        class="h-9 text-center" />
+                                    <p v-if="form.errors[`items.${index}.return_quantity`]" class="text-xs text-destructive">{{
+                                        form.errors[`items.${index}.return_quantity`] }}</p>
+                                </td>
                                 <td class="px-2 py-2">
                                     <div class="relative">
                                         <span
@@ -334,9 +356,19 @@ const filteredNewspaperOptions = (currentIndex) => {
                 </div>
 
                 <div class="mt-4 flex justify-end border-t border-border/50 pt-4">
-                    <div class="text-right">
-                        <span class="text-xs text-muted-foreground">Invoice Total</span>
-                        <div class="text-2xl font-bold text-primary">Rs. {{ totalAmount.toFixed(2) }}</div>
+                    <div class="text-right space-y-2">
+                        <div>
+                            <span class="text-xs text-muted-foreground">Invoice Total</span>
+                            <div class="text-2xl font-bold text-primary">Rs. {{ totalAmount.toFixed(2) }}</div>
+                        </div>
+                        <div v-if="isEditing">
+                            <span class="text-xs text-muted-foreground">Return Total</span>
+                            <div class="text-xl font-bold text-destructive">Rs. {{ totalReturnAmount.toFixed(2) }}</div>
+                        </div>
+                        <div v-if="isEditing" class="border-t pt-2">
+                            <span class="text-xs text-muted-foreground">Net Amount</span>
+                            <div class="text-2xl font-bold">Rs. {{ (totalAmount - totalReturnAmount).toFixed(2) }}</div>
+                        </div>
                     </div>
                 </div>
             </div>

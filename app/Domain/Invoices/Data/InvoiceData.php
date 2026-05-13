@@ -15,6 +15,7 @@ class InvoiceData
             'items.*.price_id' => 'required|exists:newspaper_prices,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.return_quantity' => 'nullable|integer|min:0',
         ];
     }
 }

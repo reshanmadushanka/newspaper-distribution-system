@@ -86,6 +86,7 @@ class InvoiceController extends Controller
                 'price_id' => (int) $item['price_id'],
                 'quantity' => (int) $item['quantity'],
                 'unit_price' => (float) $item['unit_price'],
+                'return_quantity' => isset($item['return_quantity']) ? (int) $item['return_quantity'] : 0,
             ];
         })->toArray();
 
@@ -126,6 +127,7 @@ class InvoiceController extends Controller
             'items.*.price_id' => 'required|exists:newspaper_prices,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.return_quantity' => 'nullable|integer|min:0',
         ]);
 
         $invoice = $this->invoiceService->getInvoiceForEdit($id);
@@ -147,6 +149,7 @@ class InvoiceController extends Controller
                 'price_id' => (int) $item['price_id'],
                 'quantity' => (int) $item['quantity'],
                 'unit_price' => (float) $item['unit_price'],
+                'return_quantity' => isset($item['return_quantity']) ? (int) $item['return_quantity'] : 0,
             ];
         })->toArray();
 
