@@ -257,4 +257,63 @@ class InvoiceController extends Controller
         return $pdf->stream("invoice-{$id}.pdf");
     }
 
+    public function autoGeneratePreview(Request $request): \Inertia\Response
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+        ]);
+
+        $targetDate = $validated['date'];
+        $lastWeekDate = date('Y-m-d', strtotime($targetDate . ' - 7 days'));
+
+        $shopsWithLastWeekInvoices = $this->invoiceService->getShopsWithLastWeekInvoicesButNotForDate($targetDate);
+
+        return Inertia::render('Admin/Invoices/Index', [
+            'previewData' => [
+                'target_date' => $targetDate,
+                'last_week_date' => $lastWeekDate,
+                'eligible_shops_count' => $shopsWithLastWeekInvoices->count(),
+                'shops' => $shopsWithLastWeekInvoices,
+            ],
+        ]);
+    }
+
+    public function autoGenerate(Request $request): \Inertia\Response
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+        ]);
+
+        $targetDate = $validated['date'];
+        $userId = Auth::id();
+
+        $result = $this->invoiceService->dispatchInvoiceGeneration($targetDate, $userId);
+
+        return Inertia::render('Admin/Invoices/Index', [
+            'generationResult' => [
+                'message' => $result['message'],
+                'total_shops' => $result['total_shops'],
+                'target_date' => $result['target_date'],
+            ],
+        ]);
+    }
+
+    public function autoGenerateProgress(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $userId = Auth::id();
+        $progress = $this->invoiceService->getGenerationProgress($userId);
+
+        return response()->json($progress);
+    }
+
+    public function autoGenerateClear(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $userId = Auth::id();
+        $this->invoiceService->clearGenerationProgress($userId);
+
+        return response()->json([
+            'message' => 'Progress cleared',
+        ]);
+    }
+
 }

@@ -43,4 +43,8 @@ interface InvoiceRepositoryInterface
     ): Collection;
 
     public function existsByDateAndShop(string $date, int $shopId, ?int $excludeId = null): bool;
+
+    public function getShopsWithoutInvoicesForDate(string $date): Collection;
+
+    public function getShopsWithLastWeekInvoicesButNotForDate(string $targetDate): Collection;
 }
