@@ -1,14 +1,15 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer } from 'lucide-vue-next'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Datepicker } from '@/Components/ui/datepicker'
-import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useSessionStorage } from '@vueuse/core'
 import Swal from 'sweetalert2'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm.js'
+import AutoGenerateInvoiceModal from '@/Components/Admin/AutoGenerateInvoiceModal.vue'
 
 const componentProps = defineProps({
     invoices: Object,
@@ -55,6 +56,16 @@ let searchTimeout = null
 
 const canCreate = computed(() => permissions.value.includes('create invoices') || permissions.value.includes('manage invoices'))
 const canUpdate = computed(() => permissions.value.includes('manage invoices'))
+
+const showAutoGenerateModal = ref(false)
+
+const openAutoGenerateModal = () => {
+    showAutoGenerateModal.value = true
+}
+
+const handleAutoGenerateComplete = () => {
+    reloadInvoices()
+}
 
 const { confirmDelete } = useDeleteConfirm('This will permanently delete the invoice and all its items.')
 
@@ -174,12 +185,22 @@ const statusVariant = (status) => {
                 </div>
                 <p class="text-muted-foreground">Manage distribution invoices.</p>
             </div>
-            <Link v-if="canCreate" href="/admin/invoices/create">
-                <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
-                    <Plus class="mr-2 h-4 w-4" />
-                    Create Invoice
+            <div class="flex flex-col sm:flex-row gap-3">
+                <Button
+                    @click="openAutoGenerateModal"
+                    variant="outline"
+                    class="rounded-xl px-5 shadow-lg shadow-purple-500/10 transition-all hover:-translate-y-0.5 border-purple-300 hover:bg-purple-50"
+                >
+                    <Sparkles class="mr-2 h-4 w-4 text-purple-600" />
+                    Auto-Generate
                 </Button>
-            </Link>
+                <Link v-if="canCreate" href="/admin/invoices/create">
+                    <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
+                        <Plus class="mr-2 h-4 w-4" />
+                        Create Invoice
+                    </Button>
+                </Link>
+            </div>
         </div>
 
         <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
@@ -290,5 +311,12 @@ const statusVariant = (status) => {
                 </Link>
             </div>
         </div>
+
+        <!-- Auto-Generate Modal -->
+        <AutoGenerateInvoiceModal
+            v-if="showAutoGenerateModal"
+            @close="showAutoGenerateModal = false"
+            @completed="handleAutoGenerateComplete"
+        />
     </AdminLayout>
 </template>

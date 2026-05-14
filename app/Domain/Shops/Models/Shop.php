@@ -29,4 +29,9 @@ class Shop extends Model
         'opening_balance' => 'decimal:2',
     ];
 
+    public function invoices()
+    {
+        return $this->hasMany(\App\Domain\Invoices\Models\Invoice::class);
+    }
+
 }
