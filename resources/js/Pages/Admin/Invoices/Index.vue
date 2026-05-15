@@ -219,7 +219,7 @@ const statusVariant = (status) => {
                         </div>
                     </div>
                     <div class="text-sm text-muted-foreground">
-                        Showing {{ invoices.data.length }} invoices
+                        Showing {{ invoices?.data?.length ?? 0 }} invoices
                     </div>
                 </div>
                 <table class="w-full text-sm text-left">
@@ -234,7 +234,7 @@ const statusVariant = (status) => {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/50">
-                        <tr v-for="inv in invoices.data" :key="inv.id"
+                        <tr v-for="inv in invoices?.data ?? []" :key="inv.id"
                             class="group transition-colors hover:bg-secondary/20">
                             <td class="px-6 py-4">
                                 <div class="font-semibold text-foreground">#{{ inv.id }}</div>
@@ -294,7 +294,7 @@ const statusVariant = (status) => {
                                 </div>
                             </td>
                         </tr>
-                        <tr v-if="invoices.data.length === 0">
+                        <tr v-if="!invoices?.data || invoices.data.length === 0">
                             <td colspan="6" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
@@ -303,7 +303,7 @@ const statusVariant = (status) => {
                 </table>
             </div>
 
-            <div v-if="invoices.links && invoices.links.length > 3"
+            <div v-if="invoices?.links && invoices.links.length > 3"
                 class="px-6 py-4 border-t bg-secondary/10 flex items-center justify-center gap-2">
                 <Link v-for="link in invoices.links" :key="link.label" :href="link.url || ''" preserve-scroll preserve-state>
                     <Button :variant="link.active ? 'default' : 'ghost'" size="sm" :disabled="!link.url"

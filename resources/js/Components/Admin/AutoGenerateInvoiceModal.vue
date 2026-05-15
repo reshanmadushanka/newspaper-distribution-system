@@ -156,7 +156,15 @@ const showCompletionSummary = () => {
     }).then(() => {
         emit('completed')
         closeModal()
-        router.reload({ only: ['invoices'] })
+        router.get('/admin/invoices', {
+            date_from: selectedDate.value,
+            date_to: selectedDate.value,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['invoices', 'filters'],
+        })
     })
 }
 
