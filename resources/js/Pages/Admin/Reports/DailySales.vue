@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3'
-import { FileText, Store, CalendarDays, Download, TrendingUp, Receipt, Package, Hash, ArrowUpRight, ShoppingCart, DollarSign, BadgePercent, Banknote, Newspaper, ListOrdered } from 'lucide-vue-next'
+import { FileText, Store, CalendarDays, Download, TrendingUp, Receipt, Hash, ArrowUpRight, DollarSign, BadgePercent, Banknote, Newspaper, ListOrdered, Eye, EyeOff } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
@@ -24,6 +24,7 @@ const dateRange = ref([
 ])
 const shopId = ref(props.filters.shop_id ? String(props.filters.shop_id) : 'all')
 const newspaperId = ref(props.filters.newspaper_id ? String(props.filters.newspaper_id) : 'all')
+const showProfit = ref(props.filters.show_profit ?? true)
 
 const fetchReport = () => {
     const [dateFrom, dateTo] = dateRange.value
@@ -37,6 +38,7 @@ const fetchReport = () => {
         date_to: dateTo,
         shop_id: shopId.value === 'all' ? null : shopId.value,
         newspaper_id: newspaperId.value === 'all' ? null : newspaperId.value,
+        show_profit: showProfit.value ? 1 : 0,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -54,6 +56,7 @@ const downloadPdf = () => {
         report_type: activeTab.value,
         date_from: dateFrom,
         date_to: dateTo,
+        show_profit: showProfit.value ? '1' : '0',
     })
 
     if (shopId.value !== 'all') {
@@ -132,7 +135,7 @@ const newspaperOptions = computed(() => {
                 </div>
             </div>
             <!-- Shop Dropdown - Show for By Shop and Invoices tabs -->
-            <div v-if="activeTab === 'by-shop'">
+            <div v-if="activeTab === 'by-shop' || activeTab === 'by-invoice'">
                 <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Shop</label>
                 <Select2 
                     v-model="shopId"
@@ -158,6 +161,11 @@ const newspaperOptions = computed(() => {
                     <FileText class="mr-2 h-4 w-4" />
                     Load Report
                 </Button>
+                <label class="flex h-9 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-colors hover:bg-secondary/50">
+                    <input v-model="showProfit" type="checkbox" class="sr-only" />
+                    <component :is="showProfit ? Eye : EyeOff" class="h-4 w-4" />
+                    <span>{{ showProfit ? 'Profit On' : 'Profit Off' }}</span>
+                </label>
                 <Button @click="downloadPdf" variant="outline" class="rounded-xl">
                     <Download class="mr-2 h-4 w-4" />
                     PDF
@@ -181,7 +189,7 @@ const newspaperOptions = computed(() => {
         <template v-if="activeTab === 'by-shop'">
 
             <!-- Summary Cards -->
-            <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="mb-8 grid gap-4 sm:grid-cols-2" :class="showProfit ? 'lg:grid-cols-4' : 'lg:grid-cols-3'">
                 <div :class="cardClass">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Invoices</span>
@@ -212,7 +220,7 @@ const newspaperOptions = computed(() => {
                     <p class="text-3xl font-bold">{{ formatCurrency(shopReport.summary.total_cost) }}</p>
                     <p class="text-xs text-muted-foreground mt-1">cost of goods sold</p>
                 </div>
-                <div :class="cardClass">
+                <div v-if="showProfit" :class="cardClass">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Net Profit</span>
                         <div class="flex h-9 w-9 items-center justify-center rounded-xl" :class="shopReport.summary.total_profit >= 0 ? 'bg-blue-500/10 text-blue-600' : 'bg-destructive/10 text-destructive'">
@@ -244,8 +252,8 @@ const newspaperOptions = computed(() => {
                                 <th class="px-4 py-4 text-center">Qty</th>
                                 <th class="px-4 py-4 text-right">Revenue</th>
                                 <th class="px-4 py-4 text-right">Cost</th>
-                                <th class="px-4 py-4 text-right">Profit</th>
-                                <th class="px-4 py-4 text-right">Margin</th>
+                                <th v-if="showProfit" class="px-4 py-4 text-right">Profit</th>
+                                <th v-if="showProfit" class="px-4 py-4 text-right">Margin</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border/50">
@@ -255,15 +263,15 @@ const newspaperOptions = computed(() => {
                                 <td class="px-4 py-4 text-center">{{ shop.quantity }}</td>
                                 <td class="px-4 py-4 text-right">{{ formatCurrency(shop.total_revenue) }}</td>
                                 <td class="px-4 py-4 text-right text-rose-600">{{ formatCurrency(shop.total_cost) }}</td>
-                                <td class="px-4 py-4 text-right font-semibold" :class="shop.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(shop.total_profit) }}</td>
-                                <td class="px-4 py-4 text-right">
+                                <td v-if="showProfit" class="px-4 py-4 text-right font-semibold" :class="shop.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(shop.total_profit) }}</td>
+                                <td v-if="showProfit" class="px-4 py-4 text-right">
                                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold" :class="shop.profit_margin >= 30 ? 'bg-emerald-100 text-emerald-800' : shop.profit_margin >= 15 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'">
                                         {{ shop.profit_margin }}%
                                     </span>
                                 </td>
                             </tr>
                             <tr v-if="shopReport.by_shop.length === 0">
-                                <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">No invoices found for this date range.</td>
+                                <td :colspan="showProfit ? 7 : 5" class="px-6 py-12 text-center text-muted-foreground italic">No invoices found for this date range.</td>
                             </tr>
                         </tbody>
                         <tfoot v-if="shopReport.by_shop.length > 0" class="bg-secondary/20 font-semibold">
@@ -273,8 +281,8 @@ const newspaperOptions = computed(() => {
                                 <td class="px-4 py-4 text-center">{{ shopReport.summary.total_quantity }}</td>
                                 <td class="px-4 py-4 text-right">{{ formatCurrency(shopReport.summary.total_revenue) }}</td>
                                 <td class="px-4 py-4 text-right text-rose-600">{{ formatCurrency(shopReport.summary.total_cost) }}</td>
-                                <td class="px-4 py-4 text-right" :class="shopReport.summary.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(shopReport.summary.total_profit) }}</td>
-                                <td class="px-4 py-4 text-right">
+                                <td v-if="showProfit" class="px-4 py-4 text-right" :class="shopReport.summary.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(shopReport.summary.total_profit) }}</td>
+                                <td v-if="showProfit" class="px-4 py-4 text-right">
                                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold" :class="shopReport.summary.profit_margin >= 30 ? 'bg-emerald-100 text-emerald-800' : shopReport.summary.profit_margin >= 15 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'">
                                         {{ shopReport.summary.profit_margin }}%
                                     </span>
@@ -289,7 +297,7 @@ const newspaperOptions = computed(() => {
         <!-- Tab 2: Breakdown By Newspaper -->
         <template v-if="activeTab === 'by-newspaper'">
             <!-- Summary Cards -->
-            <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="mb-8 grid gap-4 sm:grid-cols-2" :class="showProfit ? 'lg:grid-cols-4' : 'lg:grid-cols-3'">
                 <div :class="cardClass">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Newspapers</span>
@@ -318,7 +326,7 @@ const newspaperOptions = computed(() => {
                     </div>
                     <p class="text-3xl font-bold">{{ formatCurrency(newspaperReport.summary.total_revenue) }}</p>
                 </div>
-                <div :class="cardClass">
+                <div v-if="showProfit" :class="cardClass">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Net Profit</span>
                         <div class="flex h-9 w-9 items-center justify-center rounded-xl" :class="newspaperReport.summary.total_profit >= 0 ? 'bg-blue-500/10 text-blue-600' : 'bg-destructive/10 text-destructive'">
@@ -350,8 +358,8 @@ const newspaperOptions = computed(() => {
                                 <th class="px-4 py-4 text-center">Qty</th>
                                 <th class="px-4 py-4 text-right">Revenue</th>
                                 <th class="px-4 py-4 text-right">Cost</th>
-                                <th class="px-4 py-4 text-right">Profit</th>
-                                <th class="px-4 py-4 text-right">Margin</th>
+                                <th v-if="showProfit" class="px-4 py-4 text-right">Profit</th>
+                                <th v-if="showProfit" class="px-4 py-4 text-right">Margin</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border/50">
@@ -361,15 +369,15 @@ const newspaperOptions = computed(() => {
                                 <td class="px-4 py-4 text-center">{{ np.quantity }}</td>
                                 <td class="px-4 py-4 text-right">{{ formatCurrency(np.total_revenue) }}</td>
                                 <td class="px-4 py-4 text-right text-rose-600">{{ formatCurrency(np.total_cost) }}</td>
-                                <td class="px-4 py-4 text-right font-semibold" :class="np.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(np.total_profit) }}</td>
-                                <td class="px-4 py-4 text-right">
+                                <td v-if="showProfit" class="px-4 py-4 text-right font-semibold" :class="np.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(np.total_profit) }}</td>
+                                <td v-if="showProfit" class="px-4 py-4 text-right">
                                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold" :class="np.profit_margin >= 30 ? 'bg-emerald-100 text-emerald-800' : np.profit_margin >= 15 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'">
                                         {{ np.profit_margin }}%
                                     </span>
                                 </td>
                             </tr>
                             <tr v-if="newspaperReport.by_newspaper.length === 0">
-                                <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">No invoices found for this date range.</td>
+                                <td :colspan="showProfit ? 7 : 5" class="px-6 py-12 text-center text-muted-foreground italic">No invoices found for this date range.</td>
                             </tr>
                         </tbody>
                         <tfoot v-if="newspaperReport.by_newspaper.length > 0" class="bg-secondary/20 font-semibold">
@@ -379,8 +387,8 @@ const newspaperOptions = computed(() => {
                                 <td class="px-4 py-4 text-center">{{ newspaperReport.summary.total_quantity }}</td>
                                 <td class="px-4 py-4 text-right">{{ formatCurrency(newspaperReport.summary.total_revenue) }}</td>
                                 <td class="px-4 py-4 text-right text-rose-600">{{ formatCurrency(newspaperReport.summary.total_cost) }}</td>
-                                <td class="px-4 py-4 text-right" :class="newspaperReport.summary.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(newspaperReport.summary.total_profit) }}</td>
-                                <td class="px-4 py-4 text-right">
+                                <td v-if="showProfit" class="px-4 py-4 text-right" :class="newspaperReport.summary.total_profit >= 0 ? 'text-blue-600' : 'text-destructive'">{{ formatCurrency(newspaperReport.summary.total_profit) }}</td>
+                                <td v-if="showProfit" class="px-4 py-4 text-right">
                                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold" :class="newspaperReport.summary.profit_margin >= 30 ? 'bg-emerald-100 text-emerald-800' : newspaperReport.summary.profit_margin >= 15 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'">
                                         {{ newspaperReport.summary.profit_margin }}%
                                     </span>
@@ -395,7 +403,7 @@ const newspaperOptions = computed(() => {
         <!-- Tab 3: Invoices by Date Range -->
         <template v-if="activeTab === 'by-invoice'">
             <!-- Summary Cards -->
-            <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mb-8 grid gap-4 sm:grid-cols-2" :class="showProfit ? 'lg:grid-cols-3' : 'lg:grid-cols-2'">
                 <div :class="cardClass">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Invoices</span>
@@ -416,7 +424,7 @@ const newspaperOptions = computed(() => {
                     <p class="text-3xl font-bold">{{ formatCurrency(invoiceReport.summary.total_revenue) }}</p>
                     <p class="text-xs text-muted-foreground mt-1">sum of all invoice amounts</p>
                 </div>
-                <div :class="cardClass">
+                <div v-if="showProfit" :class="cardClass">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Profit (12%)</span>
                         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
@@ -449,7 +457,7 @@ const newspaperOptions = computed(() => {
                                 <th class="px-4 py-4">Status</th>
                                 <th class="px-4 py-4 text-center">Items</th>
                                 <th class="px-4 py-4 text-right">Amount</th>
-                                <th class="px-4 py-4 text-right">Profit (12%)</th>
+                                <th v-if="showProfit" class="px-4 py-4 text-right">Profit (12%)</th>
                                 <th class="px-4 py-4 text-right"></th>
                             </tr>
                         </thead>
@@ -465,7 +473,7 @@ const newspaperOptions = computed(() => {
                                 </td>
                                 <td class="px-4 py-4 text-center">{{ inv.items_count }}</td>
                                 <td class="px-4 py-4 text-right">{{ formatCurrency(inv.total_amount) }}</td>
-                                <td class="px-4 py-4 text-right font-semibold text-blue-600">{{ formatCurrency(inv.profit) }}</td>
+                                <td v-if="showProfit" class="px-4 py-4 text-right font-semibold text-blue-600">{{ formatCurrency(inv.profit) }}</td>
                                 <td class="px-4 py-4 text-right">
                                     <Link :href="`/admin/invoices/${inv.id}`">
                                         <Button variant="ghost" size="sm" class="h-8 rounded-lg text-xs">
@@ -476,7 +484,7 @@ const newspaperOptions = computed(() => {
                                 </td>
                             </tr>
                             <tr v-if="invoiceReport.invoices.length === 0">
-                                <td colspan="8" class="px-6 py-12 text-center text-muted-foreground italic">No invoices found for this date range.</td>
+                                <td :colspan="showProfit ? 8 : 7" class="px-6 py-12 text-center text-muted-foreground italic">No invoices found for this date range.</td>
                             </tr>
                         </tbody>
                         <tfoot v-if="invoiceReport.invoices.length > 0" class="bg-secondary/20 font-semibold">
@@ -484,7 +492,7 @@ const newspaperOptions = computed(() => {
                                 <td colspan="4" class="px-4 py-4 text-sm font-bold">Total</td>
                                 <td class="px-4 py-4 text-center">{{ invoiceReport.summary.total_invoices }}</td>
                                 <td class="px-4 py-4 text-right">{{ formatCurrency(invoiceReport.summary.total_revenue) }}</td>
-                                <td class="px-4 py-4 text-right text-blue-600">{{ formatCurrency(invoiceReport.summary.total_profit) }}</td>
+                                <td v-if="showProfit" class="px-4 py-4 text-right text-blue-600">{{ formatCurrency(invoiceReport.summary.total_profit) }}</td>
                                 <td class="px-4 py-4"></td>
                             </tr>
                         </tfoot>

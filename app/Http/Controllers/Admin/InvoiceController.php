@@ -182,12 +182,14 @@ class InvoiceController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'shop_id' => 'nullable|integer|exists:shops,id',
             'newspaper_id' => 'nullable|integer|exists:newspapers,id',
+            'show_profit' => 'nullable|boolean',
         ]);
 
         $dateFrom = $validated['date_from'] ?? $defaultDateFrom;
         $dateTo = $validated['date_to'] ?? $defaultDateTo;
         $shopId = $validated['shop_id'] ?? null;
         $newspaperId = $validated['newspaper_id'] ?? null;
+        $showProfit = $request->has('show_profit') ? $request->boolean('show_profit') : true;
 
         return Inertia::render('Admin/Reports/DailySales', [
             'shopReport' => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId),
@@ -200,6 +202,7 @@ class InvoiceController extends Controller
                 'date_to' => $dateTo,
                 'shop_id' => $shopId,
                 'newspaper_id' => $newspaperId,
+                'show_profit' => $showProfit,
             ],
         ]);
     }
@@ -215,6 +218,7 @@ class InvoiceController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'shop_id' => 'nullable|integer|exists:shops,id',
             'newspaper_id' => 'nullable|integer|exists:newspapers,id',
+            'show_profit' => 'nullable|boolean',
         ]);
 
         $reportType = $validated['report_type'] ?? 'by-shop';
@@ -222,6 +226,7 @@ class InvoiceController extends Controller
         $dateTo = $validated['date_to'] ?? $defaultDateTo;
         $shopId = $validated['shop_id'] ?? null;
         $newspaperId = $validated['newspaper_id'] ?? null;
+        $showProfit = $request->has('show_profit') ? $request->boolean('show_profit') : true;
 
         $report = match ($reportType) {
             'by-newspaper' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId),
@@ -238,6 +243,7 @@ class InvoiceController extends Controller
             'report' => $report,
             'reportType' => $reportType,
             'filters' => $filters,
+            'showProfit' => $showProfit,
         ]);
 
         return $pdf->download("daily-sales-{$reportType}-{$dateFrom}-to-{$dateTo}.pdf");
