@@ -30,7 +30,7 @@ const form = useForm({
     items: isEditing.value
         ? props.invoice.items.map(item => ({
             newspaper_id: item.newspaper_id.toString(),
-            price_id: item.price_id ? item.price_id.toString() : '',
+            price_id: item.price_id ? parseInt(item.price_id) : '',
             quantity: item.quantity,
             unit_price: parseFloat(item.unit_price),
             return_quantity: item.return_quantity || 0,
@@ -106,7 +106,7 @@ const handleNewspaperChange = (index, value) => {
 
     const prices = getPricesForNewspaper(value)
     if (prices.length === 1) {
-        form.items[index].price_id = prices[0].value
+        form.items[index].price_id = parseInt(prices[0].value)
         form.items[index].unit_price = prices[0].price
     }
 }
@@ -129,7 +129,7 @@ const handleReturnQuantityChange = (index) => {
 }
 
 const handlePriceChange = (index, value) => {
-    form.items[index].price_id = value
+    form.items[index].price_id = parseInt(value)
     const prices = priceOptions(index)
     const selected = prices.find(p => p.value === parseInt(value))
     form.items[index].unit_price = selected ? selected.price : 0

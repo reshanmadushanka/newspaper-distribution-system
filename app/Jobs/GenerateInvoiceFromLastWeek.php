@@ -75,6 +75,7 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
             // Create invoice items
             $invoiceItems = [];
             foreach ($lastWeekInvoice->items as $item) {
+                $returnQuantity = $item->return_quantity ?? 0;
                 $invoiceItems[] = [
                     'invoice_id' => $newInvoice->id,
                     'newspaper_id' => $item->newspaper_id,
@@ -82,15 +83,22 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
                     'total_price' => $item->quantity * $item->unit_price,
+                    'return_quantity' => $returnQuantity,
+                    'return_total_price' => $returnQuantity * $item->unit_price,
                 ];
             }
 
             if (!empty($invoiceItems)) {
                 $newInvoice->items()->insert($invoiceItems);
 
-                // Update total amount
+                // Update total amounts
                 $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
-                $newInvoice->update(['total_amount' => $totalAmount]);
+                $totalReturnAmount = array_sum(array_column($invoiceItems, 'return_total_price'));
+                $newInvoice->update([
+                    'total_amount' => $totalAmount,
+                    'total_net_amount' => $totalAmount - $totalReturnAmount,
+                    'return_total_amount' => $totalReturnAmount
+                ]);
             }
 
             $this->updateProgress('created', $newInvoice->id);
