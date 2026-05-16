@@ -14,7 +14,7 @@ class SyncAdminPermissions extends Command
      *
      * @var string
      */
-    protected $signature = 'permissions:sync-admin 
+    protected $signature = 'permissions:sync-admin
                             {--fresh : Remove existing admin permissions from config before syncing}';
 
     /**
@@ -22,14 +22,14 @@ class SyncAdminPermissions extends Command
      *
      * @var string
      */
-    protected $description = 'Add new permissions from config array and sync them with the admin role';
+    protected $description = 'Add new permissions from config array and sync them with the super-admin role ONLY';
 
     /**
      * Execute the console command.
      */
     public function handle(): int
     {
-        $permissions = Config::get('permissions-sync:admin_permissions', []);
+        $permissions = Config::get('permissions-sync.admin_permissions', []);
 
         if (empty($permissions)) {
             $this->warn('No permissions found in config/permissions-sync.php admin_permissions array.');
@@ -61,45 +61,51 @@ class SyncAdminPermissions extends Command
 
         $this->info("\nResult: $createdCount created, $existingCount already existed.");
 
-        // Get the admin role
-        $adminRole = Role::where('name', 'Super Admin')->where('guard_name', 'web')->first();
+        // Get the super-admin role
+        $superAdminRole = Role::where('name', 'super-admin')->where('guard_name', 'web')->first();
 
-        if (!$adminRole) {
-            $this->error('Admin role not found. Please run the seeder first.');
+        if (!$superAdminRole) {
+            $this->error('Super-admin role not found. Please run the seeder first.');
             return self::FAILURE;
         }
 
-        // Sync permissions with admin role
-        $currentPermissionIds = $adminRole->permissions()->pluck('id')->toArray();
+        // Sync permissions with super-admin role
+        $currentPermissionIds = $superAdminRole->permissions()->pluck('id')->toArray();
 
         if ($this->option('fresh')) {
-            // Remove only the config-based permissions from admin role
+            // Remove only the config-based permissions from super-admin role
             $configPermissionIds = Permission::whereIn('name', $permissions)
                 ->where('guard_name', 'web')
                 ->pluck('id')
                 ->toArray();
 
-            $adminRole->revokePermissionTo($configPermissionIds);
-            $this->info('Removed existing config-based permissions from admin role.');
-            $adminRole->syncPermissionsTo($configPermissionIds);
-            $this->info('Synced ' . count($configPermissionIds) . ' config-based permissions to admin role.');
+            $superAdminRole->revokePermissionTo($configPermissionIds);
+            $this->info('Removed existing config-based permissions from super-admin role.');
+            $superAdminRole->syncPermissions($configPermissionIds);
+            $this->info('Synced ' . count($configPermissionIds) . ' config-based permissions to super-admin role.');
         } else {
-            // Add new permissions to admin role without removing existing ones
+            // Add new permissions to super-admin role without removing existing ones
             $newPermissionIds = array_diff($permissionIds, $currentPermissionIds);
 
             if (!empty($newPermissionIds)) {
-                $adminRole->syncPermissionsWithoutDetaching($newPermissionIds);
-                $this->info('Added ' . count($newPermissionIds) . ' new permissions to admin role.');
+                foreach ($newPermissionIds as $id) {
+                    $superAdminRole->givePermissionTo($id);
+                }
+                $this->info('Added ' . count($newPermissionIds) . ' new permissions to super-admin role.');
             } else {
-                $this->info('No new permissions to add to admin role.');
+                $this->info('No new permissions to add to super-admin role.');
             }
 
             // Also ensure all config permissions are assigned
-            $adminRole->syncPermissionsWithoutDetaching($permissionIds);
-            $this->info('All config permissions are now synced with admin role.');
+            foreach ($permissionIds as $id) {
+                if (!in_array($id, $currentPermissionIds)) {
+                    $superAdminRole->givePermissionTo($id);
+                }
+            }
+            $this->info('All config permissions are now synced with super-admin role.');
         }
 
-        $this->info("\nAdmin role permissions: " . $adminRole->permissions()->pluck('name')->implode(', '));
+        $this->info("\nSuper-admin role permissions: " . $superAdminRole->permissions()->pluck('name')->implode(', '));
         $this->info('\nSync complete!');
 
         return self::SUCCESS;

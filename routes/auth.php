@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf')->middleware('permission:manage invoices');
         Route::get('invoices/{id}/pdf-view', [InvoiceController::class, 'streamPdf'])->name('invoices.pdf-view')->middleware('permission:manage invoices');
         Route::patch('invoices/{id}/mark-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.mark-paid')->middleware('permission:manage invoices');
+        Route::patch('invoices/{id}/mark-printed', [InvoiceController::class, 'markAsPrinted'])->name('invoices.mark-printed')->middleware('permission:manage invoices');
         Route::post('invoices/auto-generate/preview', [InvoiceController::class, 'autoGeneratePreview'])->name('invoices.auto-generate-preview')->middleware('permission:manage invoices');
         Route::post('invoices/auto-generate', [InvoiceController::class, 'autoGenerate'])->name('invoices.auto-generate')->middleware('permission:manage invoices');
         Route::get('invoices/auto-generate/progress', [InvoiceController::class, 'autoGenerateProgress'])->name('invoices.auto-generate-progress')->middleware('permission:manage invoices');

@@ -172,6 +172,16 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice marked as paid.');
     }
 
+    public function markAsPrinted(int $id)
+    {
+        $invoice = $this->invoiceService->markAsPrinted($id);
+
+        // return response()->json([
+        //     'message' => 'Invoice marked as printed.',
+        //     'printed_at' => $invoice->printed_at,
+        // ]);
+    }
+
     public function dailySales(Request $request)
     {
         $defaultDateFrom = today()->subDays(6)->toDateString();

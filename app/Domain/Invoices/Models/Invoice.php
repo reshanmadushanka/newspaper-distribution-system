@@ -15,22 +15,27 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'created_by',
     'total_amount',
     'status',
+    'printed_at',
     'notes',
 ])]
 class Invoice extends Model
 {
     use HasFactory, SoftDeletes;
-    
+
+    protected $casts = [
+        'printed_at' => 'datetime',
+    ];
+
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
     }
-    
+
     public function shop()
     {
         return $this->belongsTo(Shop::class);
     }
-    
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

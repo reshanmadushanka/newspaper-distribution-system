@@ -95,6 +95,13 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
     }
 
+    public function markAsPrinted(int $id): Invoice
+    {
+        $invoice = $this->findOrFail($id);
+        $invoice->update(['printed_at' => now()]);
+        return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
+    }
+
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice
     {
         return DB::transaction(function () use ($id, $invoiceData, $items) {
