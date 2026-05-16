@@ -4,6 +4,7 @@ namespace App\Domain\Invoices\Repositories;
 
 use App\Domain\Invoices\Models\Invoice;
 use App\Domain\Invoices\Models\InvoiceItem;
+use App\Domain\Shops\Models\Shop;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -96,6 +97,13 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
     }
 
+    public function markAsPrinted(int $id): Invoice
+    {
+        $invoice = $this->findOrFail($id);
+        $invoice->update(['printed_at' => now()]);
+        return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
+    }
+
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice
     {
         return DB::transaction(function () use ($id, $invoiceData, $items) {
@@ -181,5 +189,36 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             ->where('shop_id', $shopId)
             ->when($excludeId, fn($query) => $query->whereKeyNot($excludeId))
             ->exists();
+    }
+
+    public function getShopsWithoutInvoicesForDate(string $date): \Illuminate\Support\Collection
+    {
+        return Shop::where('status', 'active')
+            ->whereNotExists(function ($query) use ($date) {
+                $query->select(DB::raw(1))
+                    ->from('invoices')
+                    ->whereColumn('shops.id', 'invoices.shop_id')
+                    ->where('invoices.invoice_date', $date)
+                    ->whereNull('invoices.deleted_at');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    public function getShopsWithLastWeekInvoicesButNotForDate(string $targetDate): \Illuminate\Support\Collection
+    {
+        $lastWeekDate = date('Y-m-d', strtotime($targetDate . ' - 7 days'));
+
+        return Shop::where('status', 'active')
+            ->whereHas('invoices', function ($query) use ($lastWeekDate) {
+                $query->where('invoice_date', $lastWeekDate)
+                    ->whereNull('deleted_at');
+            })
+            ->whereDoesntHave('invoices', function ($query) use ($targetDate) {
+                $query->where('invoice_date', $targetDate)
+                    ->whereNull('deleted_at');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'created_by',
     'total_amount',
     'status',
+    'printed_at',
     'notes',
     'return_total_amount',
     'total_net_amount'
@@ -22,6 +23,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Invoice extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected $casts = [
+        'printed_at' => 'datetime',
+    ];
 
     public function items()
     {

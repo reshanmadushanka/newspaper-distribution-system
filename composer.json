@@ -10,7 +10,9 @@
         "barryvdh/laravel-dompdf": "*",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.7",
+        "laravel/telescope": "^5.20",
         "laravel/tinker": "^3.0",
+        "predis/predis": "^3.4",
         "spatie/laravel-permission": "^7.4",
         "symfony/clock": "7.4"
     },

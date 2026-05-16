@@ -90,6 +90,11 @@ class InvoiceService
         return $updated;
     }
 
+    public function markAsPrinted(int $id): Invoice
+    {
+        return $this->invoiceRepository->markAsPrinted($id);
+    }
+
     public function getInvoiceForEdit(int $id): Invoice
     {
         return $this->invoiceRepository->findOrFail($id);
@@ -428,4 +433,71 @@ class InvoiceService
     {
         return $this->invoiceRepository->existsByDateAndShop($date, $shopId, $excludeId);
     }
+
+    public function getShopsWithoutInvoicesForDate(string $date): \Illuminate\Support\Collection
+    {
+        return $this->invoiceRepository->getShopsWithoutInvoicesForDate($date);
+    }
+
+    public function getShopsWithLastWeekInvoicesButNotForDate(string $targetDate): \Illuminate\Support\Collection
+    {
+        return $this->invoiceRepository->getShopsWithLastWeekInvoicesButNotForDate($targetDate);
+    }
+
+    public function dispatchInvoiceGeneration(string $targetDate, int $userId): array
+    {
+        // Get all active shops
+        $shops = $this->shopRepository->getActiveShops();
+
+        // Initialize progress tracking
+        $cacheKey = "invoice_generation_{$userId}";
+        $progress = [
+            'total' => $shops->count(),
+            'processed' => 0,
+            'created' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+            'invoices' => [],
+            'status' => 'processing',
+            'started_at' => now()->toDateTimeString(),
+        ];
+
+        Cache::put($cacheKey, $progress, now()->addMinutes(30));
+
+        // Dispatch jobs for each shop
+        foreach ($shops as $shop) {
+            \App\Jobs\GenerateInvoiceFromLastWeek::dispatch(
+                $shop->id,
+                $targetDate,
+                $userId
+            )->onQueue('default');
+        }
+
+        return [
+            'message' => "Invoice generation started for {$shops->count()} shops",
+            'total_shops' => $shops->count(),
+            'target_date' => $targetDate,
+        ];
+    }
+
+    public function getGenerationProgress(int $userId): array
+    {
+        $cacheKey = "invoice_generation_{$userId}";
+        return Cache::get($cacheKey, [
+            'status' => 'not_started',
+            'total' => 0,
+            'processed' => 0,
+            'created' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+            'invoices' => [],
+        ]);
+    }
+
+    public function clearGenerationProgress(int $userId): void
+    {
+        $cacheKey = "invoice_generation_{$userId}";
+        Cache::forget($cacheKey);
+    }
+
 }

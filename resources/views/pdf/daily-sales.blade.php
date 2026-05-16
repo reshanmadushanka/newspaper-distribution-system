@@ -11,6 +11,7 @@
         $title = $titles[$reportType] ?? 'Sales Report';
         $dateFrom = \Carbon\Carbon::parse($report['date_from'])->format('M d, Y');
         $dateTo = \Carbon\Carbon::parse($report['date_to'])->format('M d, Y');
+        $showProfit = $showProfit ?? true;
     @endphp
     <title>{{ $title }} - {{ $dateFrom }} to {{ $dateTo }}</title>
     <style>
@@ -234,10 +235,12 @@
                 <div class="label">Total Revenue</div>
                 <div class="value">Rs. {{ number_format((float) $report['summary']['total_revenue'], 2) }}</div>
             </div>
+            @if($showProfit)
             <div class="summary-item">
                 <div class="label">Total Profit 12%</div>
                 <div class="value val-primary">Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}</div>
             </div>
+            @endif
         </div>
 
         <div class="section-title">Invoices</div>
@@ -250,7 +253,9 @@
                     <th>Status</th>
                     <th class="text-center">Items</th>
                     <th class="text-right">Amount</th>
-                    <th class="text-right">Profit 12%</th>
+                    @if($showProfit)
+                        <th class="text-right">Profit 12%</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -262,10 +267,12 @@
                         <td><span class="badge badge-{{ $inv['status'] }}">{{ $inv['status'] }}</span></td>
                         <td class="text-center">{{ $inv['items_count'] }}</td>
                         <td class="text-right">Rs. {{ number_format((float) $inv['total_amount'], 2) }}</td>
-                        <td class="text-right font-bold val-primary">Rs. {{ number_format((float) $inv['profit'], 2) }}</td>
+                        @if($showProfit)
+                            <td class="text-right font-bold val-primary">Rs. {{ number_format((float) $inv['profit'], 2) }}</td>
+                        @endif
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="empty">No invoices found for this selected report.</td></tr>
+                    <tr><td colspan="{{ $showProfit ? 7 : 6 }}" class="empty">No invoices found for this selected report.</td></tr>
                 @endforelse
             </tbody>
             @if(count($report['invoices']) > 0)
@@ -274,7 +281,9 @@
                         <td colspan="4">Total</td>
                         <td class="text-center">{{ $report['summary']['total_invoices'] }}</td>
                         <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_revenue'], 2) }}</td>
-                        <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}</td>
+                        @if($showProfit)
+                            <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}</td>
+                        @endif
                     </tr>
                 </tfoot>
             @endif
@@ -293,12 +302,14 @@
                 <div class="label">Revenue</div>
                 <div class="value">Rs. {{ number_format((float) $report['summary']['total_revenue'], 2) }}</div>
             </div>
+            @if($showProfit)
             <div class="summary-item">
                 <div class="label">Profit</div>
                 <div class="value {{ $report['summary']['total_profit'] >= 0 ? 'val-positive' : 'val-negative' }}">
                     Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="section-title">Breakdown by Newspaper</div>
@@ -310,8 +321,10 @@
                     <th class="text-center">Qty</th>
                     <th class="text-right">Revenue</th>
                     <th class="text-right">Cost</th>
-                    <th class="text-right">Profit</th>
-                    <th class="text-right">Margin</th>
+                    @if($showProfit)
+                        <th class="text-right">Profit</th>
+                        <th class="text-right">Margin</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -322,13 +335,15 @@
                         <td class="text-center">{{ $newspaper['quantity'] }}</td>
                         <td class="text-right">Rs. {{ number_format((float) $newspaper['total_revenue'], 2) }}</td>
                         <td class="text-right val-negative">Rs. {{ number_format((float) $newspaper['total_cost'], 2) }}</td>
-                        <td class="text-right font-bold {{ $newspaper['total_profit'] >= 0 ? 'val-positive' : 'val-negative' }}">
-                            Rs. {{ number_format((float) $newspaper['total_profit'], 2) }}
-                        </td>
-                        <td class="text-right">{{ $newspaper['profit_margin'] }}%</td>
+                        @if($showProfit)
+                            <td class="text-right font-bold {{ $newspaper['total_profit'] >= 0 ? 'val-positive' : 'val-negative' }}">
+                                Rs. {{ number_format((float) $newspaper['total_profit'], 2) }}
+                            </td>
+                            <td class="text-right">{{ $newspaper['profit_margin'] }}%</td>
+                        @endif
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="empty">No newspapers found for this selected report.</td></tr>
+                    <tr><td colspan="{{ $showProfit ? 7 : 5 }}" class="empty">No newspapers found for this selected report.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -346,12 +361,14 @@
                 <div class="label">Revenue</div>
                 <div class="value">Rs. {{ number_format((float) $report['summary']['total_revenue'], 2) }}</div>
             </div>
+            @if($showProfit)
             <div class="summary-item">
                 <div class="label">Profit</div>
                 <div class="value {{ $report['summary']['total_profit'] >= 0 ? 'val-positive' : 'val-negative' }}">
                     Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="section-title">Breakdown by Shop</div>
@@ -363,8 +380,10 @@
                     <th class="text-center">Qty</th>
                     <th class="text-right">Revenue</th>
                     <th class="text-right">Cost</th>
-                    <th class="text-right">Profit</th>
-                    <th class="text-right">Margin</th>
+                    @if($showProfit)
+                        <th class="text-right">Profit</th>
+                        <th class="text-right">Margin</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -375,13 +394,15 @@
                         <td class="text-center">{{ $shop['quantity'] }}</td>
                         <td class="text-right">Rs. {{ number_format((float) $shop['total_revenue'], 2) }}</td>
                         <td class="text-right val-negative">Rs. {{ number_format((float) $shop['total_cost'], 2) }}</td>
-                        <td class="text-right font-bold {{ $shop['total_profit'] >= 0 ? 'val-positive' : 'val-negative' }}">
-                            Rs. {{ number_format((float) $shop['total_profit'], 2) }}
-                        </td>
-                        <td class="text-right">{{ $shop['profit_margin'] }}%</td>
+                        @if($showProfit)
+                            <td class="text-right font-bold {{ $shop['total_profit'] >= 0 ? 'val-positive' : 'val-negative' }}">
+                                Rs. {{ number_format((float) $shop['total_profit'], 2) }}
+                            </td>
+                            <td class="text-right">{{ $shop['profit_margin'] }}%</td>
+                        @endif
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="empty">No shops found for this selected report.</td></tr>
+                    <tr><td colspan="{{ $showProfit ? 7 : 5 }}" class="empty">No shops found for this selected report.</td></tr>
                 @endforelse
             </tbody>
             @if(count($report['by_shop']) > 0)
@@ -392,8 +413,10 @@
                         <td class="text-center">{{ $report['summary']['total_quantity'] }}</td>
                         <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_revenue'], 2) }}</td>
                         <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_cost'], 2) }}</td>
-                        <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}</td>
-                        <td class="text-right">{{ $report['summary']['profit_margin'] }}%</td>
+                        @if($showProfit)
+                            <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}</td>
+                            <td class="text-right">{{ $report['summary']['profit_margin'] }}%</td>
+                        @endif
                     </tr>
                 </tfoot>
             @endif

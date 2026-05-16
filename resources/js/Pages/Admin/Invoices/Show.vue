@@ -10,6 +10,7 @@ import Swal from 'sweetalert2'
 
 const vPrint = print
 const printButton = ref(null)
+const isPrinting = ref(false)
 
 const props = defineProps({
     invoice: Object,
@@ -46,6 +47,35 @@ const invoiceUrl = computed(() => window.location.origin + `/admin/invoices/${pr
 
 const downloadPdf = () => {
     window.open(pdfUrl.value, '_blank')
+}
+
+const markAsPrinted = async () => {
+    if (props.invoice.printed_at || isPrinting.value) {
+        return
+    }
+
+    isPrinting.value = true
+    try {
+        await router.patch(`/admin/invoices/${props.invoice.id}/mark-printed`, {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                isPrinting.value = false
+            },
+            onError: () => {
+                isPrinting.value = false
+            }
+        })
+    } catch (error) {
+        isPrinting.value = false
+    }
+}
+
+const handlePrint = () => {
+    markAsPrinted()
+    setTimeout(() => {
+        const button = printButton.value?.$el ?? printButton.value
+        button?.click()
+    }, 100)
 }
 
 onMounted(() => {
@@ -134,9 +164,13 @@ const statusVariant = (status) => {
                     <Download class="mr-2 h-4 w-4" />
                     PDF
                 </Button>
-                <Button ref="printButton" v-print="'#printableInvoice'" class="rounded-xl shadow-lg shadow-primary/20">
+                <Button ref="printButton" v-print="'#printableInvoice'" class="rounded-xl shadow-lg shadow-primary/20" style="display: none;">
                     <Printer class="mr-2 h-4 w-4" />
                     Print
+                </Button>
+                <Button @click="handlePrint" class="rounded-xl shadow-lg shadow-primary/20">
+                    <Printer class="mr-2 h-4 w-4" />
+                    {{ invoice.printed_at ? 'Reprint' : 'Print' }}
                 </Button>
                 <div class="mx-2 h-6 w-px bg-border"></div>
                 <Link v-if="isDraft" :href="`/admin/invoices/${invoice.id}/edit`">
@@ -188,6 +222,15 @@ const statusVariant = (status) => {
                         <span class="text-xs font-semibold uppercase tracking-wider">Date</span>
                     </div>
                     <p class="font-semibold text-xl">{{ invoice.invoice_date }}</p>
+                </div>
+            </div>
+
+            <!-- Print Status -->
+            <div v-if="invoice.printed_at" class="mb-2 rounded-lg border border-blue-200 bg-blue-50 p-3 print:hidden">
+                <div class="flex items-center gap-2 text-blue-800">
+                    <Printer class="h-4 w-4" />
+                    <span class="text-xs font-semibold uppercase tracking-wider">Printed</span>
+                    <span class="text-xs">{{ new Date(invoice.printed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
                 </div>
             </div>
 

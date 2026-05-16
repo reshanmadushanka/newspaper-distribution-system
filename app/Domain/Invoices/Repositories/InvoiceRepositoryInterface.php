@@ -25,6 +25,8 @@ interface InvoiceRepositoryInterface
 
     public function updateStatus(int $id, string $status): Invoice;
 
+    public function markAsPrinted(int $id): Invoice;
+
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice;
 
     public function delete(int $id): bool;
@@ -43,4 +45,8 @@ interface InvoiceRepositoryInterface
     ): Collection;
 
     public function existsByDateAndShop(string $date, int $shopId, ?int $excludeId = null): bool;
+
+    public function getShopsWithoutInvoicesForDate(string $date): Collection;
+
+    public function getShopsWithLastWeekInvoicesButNotForDate(string $targetDate): Collection;
 }

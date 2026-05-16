@@ -1,14 +1,15 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer } from 'lucide-vue-next'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Datepicker } from '@/Components/ui/datepicker'
-import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useSessionStorage } from '@vueuse/core'
 import Swal from 'sweetalert2'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm.js'
+import AutoGenerateInvoiceModal from '@/Components/Admin/AutoGenerateInvoiceModal.vue'
 
 const componentProps = defineProps({
     invoices: Object,
@@ -55,6 +56,17 @@ let searchTimeout = null
 
 const canCreate = computed(() => permissions.value.includes('create invoices') || permissions.value.includes('manage invoices'))
 const canUpdate = computed(() => permissions.value.includes('manage invoices'))
+const canAutoGenerate = computed(() => permissions.value.includes('auto generate invoice'))
+
+const showAutoGenerateModal = ref(false)
+
+const openAutoGenerateModal = () => {
+    showAutoGenerateModal.value = true
+}
+
+const handleAutoGenerateComplete = () => {
+    reloadInvoices()
+}
 
 const { confirmDelete } = useDeleteConfirm('This will permanently delete the invoice and all its items.')
 
@@ -65,18 +77,32 @@ const handleDelete = (id) => {
 }
 
 const printInvoice = (id) => {
-    const width = 900
-    const height = 700
-    const left = window.screenX + (window.outerWidth - width) / 2
-    const top = window.screenY + (window.outerHeight - height) / 2
+    // Mark as printed first
+    router.patch(`/admin/invoices/${id}/mark-printed`, {}, {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            // Then open print popup
+            const width = 900
+            const height = 700
+            const left = window.screenX + (window.outerWidth - width) / 2
+            const top = window.screenY + (window.outerHeight - height) / 2
 
-    const popup = window.open(
-        `/admin/invoices/${id}?print=1`,
-        `invoice-print-${id}`,
-        `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    )
+            const popup = window.open(
+                `/admin/invoices/${id}?print=1`,
+                `invoice-print-${id}`,
+                `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+            )
 
-    popup?.focus()
+            popup?.focus()
+
+            // Reload the invoice list to show updated print status
+            reloadInvoices()
+        },
+        onError: () => {
+            Swal.fire('Error!', 'Failed to mark invoice as printed.', 'error')
+        }
+    })
 }
 
 const reloadInvoices = () => {
@@ -148,6 +174,10 @@ const statusVariant = (status) => {
     }
     return map[status] || 'secondary'
 }
+
+const isPrinted = (invoice) => {
+    return !!invoice.printed_at
+}
 </script>
 
 <template>
@@ -162,12 +192,22 @@ const statusVariant = (status) => {
                 </div>
                 <p class="text-muted-foreground">Manage distribution invoices.</p>
             </div>
-            <Link v-if="canCreate" href="/admin/invoices/create">
-                <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
-                    <Plus class="mr-2 h-4 w-4" />
-                    Create Invoice
+            <div class="flex flex-col sm:flex-row gap-3">
+                <Button v-if="canAutoGenerate"
+                    @click="openAutoGenerateModal"
+                    variant="outline"
+                    class="rounded-xl px-5 shadow-lg shadow-purple-500/10 transition-all hover:-translate-y-0.5 border-purple-300 hover:bg-purple-50"
+                >
+                    <Sparkles class="mr-2 h-4 w-4 text-purple-600" />
+                    Auto-Generate
                 </Button>
-            </Link>
+                <Link v-if="canCreate" href="/admin/invoices/create">
+                    <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
+                        <Plus class="mr-2 h-4 w-4" />
+                        Create Invoice
+                    </Button>
+                </Link>
+            </div>
         </div>
 
         <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
@@ -186,7 +226,7 @@ const statusVariant = (status) => {
                         </div>
                     </div>
                     <div class="text-sm text-muted-foreground">
-                        Showing {{ invoices.data.length }} invoices
+                        Showing {{ invoices?.data?.length ?? 0 }} invoices
                     </div>
                 </div>
                 <table class="w-full text-sm text-left">
@@ -197,11 +237,12 @@ const statusVariant = (status) => {
                             <th class="px-6 py-4">Date</th>
                             <th class="px-6 py-4 text-right">Amount</th>
                             <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Printed</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/50">
-                        <tr v-for="inv in invoices.data" :key="inv.id"
+                        <tr v-for="inv in invoices?.data ?? []" :key="inv.id"
                             class="group transition-colors hover:bg-secondary/20">
                             <td class="px-6 py-4">
                                 <div class="font-semibold text-foreground">#{{ inv.id }}</div>
@@ -225,6 +266,16 @@ const statusVariant = (status) => {
                                 <Badge :variant="statusVariant(inv.status)"
                                     class="rounded-full px-2 py-0 text-[10px] capitalize">
                                     {{ inv.status }}
+                                </Badge>
+                            </td>
+                            <td class="px-6 py-4">
+                                <Badge v-if="isPrinted(inv)" variant="success"
+                                    class="rounded-full px-2 py-0 text-[10px]">
+                                    Printed
+                                </Badge>
+                                <Badge v-else variant="outline"
+                                    class="rounded-full px-2 py-0 text-[10px] text-muted-foreground">
+                                    Not Printed
                                 </Badge>
                             </td>
                             <td class="px-6 py-4">
@@ -261,8 +312,8 @@ const statusVariant = (status) => {
                                 </div>
                             </td>
                         </tr>
-                        <tr v-if="invoices.data.length === 0">
-                            <td colspan="6" class="px-6 py-12 text-center text-muted-foreground italic">
+                        <tr v-if="!invoices?.data || invoices.data.length === 0">
+                            <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
                         </tr>
@@ -270,7 +321,7 @@ const statusVariant = (status) => {
                 </table>
             </div>
 
-            <div v-if="invoices.links && invoices.links.length > 3"
+            <div v-if="invoices?.links && invoices.links.length > 3"
                 class="px-6 py-4 border-t bg-secondary/10 flex items-center justify-center gap-2">
                 <Link v-for="link in invoices.links" :key="link.label" :href="link.url || ''" preserve-scroll preserve-state>
                     <Button :variant="link.active ? 'default' : 'ghost'" size="sm" :disabled="!link.url"
@@ -278,5 +329,12 @@ const statusVariant = (status) => {
                 </Link>
             </div>
         </div>
+
+        <!-- Auto-Generate Modal -->
+        <AutoGenerateInvoiceModal
+            v-if="showAutoGenerateModal"
+            @close="showAutoGenerateModal = false"
+            @completed="handleAutoGenerateComplete"
+        />
     </AdminLayout>
 </template>
