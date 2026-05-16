@@ -16,8 +16,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         ?string $search = null,
         ?string $dateFrom = null,
         ?string $dateTo = null
-    ): LengthAwarePaginator
-    {
+    ): LengthAwarePaginator {
         $search = trim((string) $search);
         $invoiceId = ltrim($search, '#');
 
@@ -68,12 +67,15 @@ class InvoiceRepository implements InvoiceRepositoryInterface
                 'quantity'     => $item['quantity'],
                 'unit_price'   => $item['unit_price'],
                 'total_price'  => $item['quantity'] * $item['unit_price'],
+                'return_quantity' => $item['return_quantity'] ?? 0,
+                'return_total_price' => ($item['return_quantity'] ?? 0) * $item['unit_price'],
             ], $items);
 
             $invoice->items()->insert($invoiceItems);
 
             $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
-            $invoice->update(['total_amount' => $totalAmount]);
+            $totalReturnAmount = array_sum(array_column($invoiceItems, 'return_total_price'));
+            $invoice->update(['total_amount' => $totalAmount - $totalReturnAmount]);
 
             return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
         });
@@ -117,12 +119,19 @@ class InvoiceRepository implements InvoiceRepositoryInterface
                 'quantity'     => $item['quantity'],
                 'unit_price'   => $item['unit_price'],
                 'total_price'  => $item['quantity'] * $item['unit_price'],
+                'return_quantity' => $item['return_quantity'] ?? 0,
+                'return_total_price' => ($item['return_quantity'] ?? 0) * $item['unit_price'],
             ], $items);
 
             $invoice->items()->insert($invoiceItems);
 
             $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
-            $invoice->update(['total_amount' => $totalAmount]);
+            $totalReturnAmount = array_sum(array_column($invoiceItems, 'return_total_price'));
+            $invoice->update([
+                'total_amount' => $totalAmount,
+                'total_net_amount' => $totalAmount - $totalReturnAmount,
+                'return_total_amount' => $totalReturnAmount
+            ]);
 
             return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
         });
@@ -164,8 +173,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         string $dateTo,
         ?int $shopId = null,
         ?int $newspaperId = null
-    ): Collection
-    {
+    ): Collection {
         return Invoice::with(['shop', 'items'])
             ->whereBetween('invoice_date', [$dateFrom, $dateTo])
             ->when($shopId, fn($q) => $q->where('shop_id', $shopId))

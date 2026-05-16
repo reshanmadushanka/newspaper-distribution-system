@@ -20,6 +20,24 @@ const totalQty = computed(() => {
     return props.invoice.items.reduce((sum, item) => sum + item.quantity, 0)
 })
 
+const hasReturns = computed(() => {
+    return props.invoice.items.some(item => item.return_quantity && item.return_quantity > 0)
+})
+
+const totalReturnQty = computed(() => {
+    if (!hasReturns.value) return 0
+    return props.invoice.items.reduce((sum, item) => sum + (item.return_quantity || 0), 0)
+})
+
+const totalAmount = computed(() => {
+    return props.invoice.items.reduce((sum, item) => sum + parseFloat(item.total_price || 0), 0)
+})
+
+const totalReturnAmount = computed(() => {
+    if (!hasReturns.value) return 0
+    return props.invoice.items.reduce((sum, item) => sum + parseFloat(item.return_total_price || 0), 0)
+})
+
 const hasWhatsApp = computed(() => !!props.invoice.shop?.whatsapp_phone)
 const hasEmail = computed(() => !!props.invoice.shop?.email)
 const isDraft = computed(() => props.invoice.status === 'draft')
@@ -118,6 +136,7 @@ const statusVariant = (status) => {
 </script>
 
 <template>
+
     <Head :title="`Invoice #${invoice.id}`" />
     <AdminLayout>
         <div class="mb-8 flex items-center justify-between no-print">
@@ -160,7 +179,8 @@ const statusVariant = (status) => {
                         Edit
                     </Button>
                 </Link>
-                <Button @click="handleDelete" variant="outline" class="rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10">
+                <Button @click="handleDelete" variant="outline"
+                    class="rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10">
                     <Trash2 class="mr-2 h-4 w-4" />
                     Delete
                 </Button>
@@ -168,7 +188,8 @@ const statusVariant = (status) => {
         </div>
 
         <!-- Invoice Content -->
-        <div id="printableInvoice" class="max-w-4xl mx-auto bg-card rounded-2xl border shadow-sm p-7 print:p-0 print:border-0 print:shadow-none">
+        <div id="printableInvoice"
+            class="max-w-4xl mx-auto bg-card rounded-2xl border shadow-sm p-7 print:p-0 print:border-0 print:shadow-none">
             <!-- Header -->
             <div class="relative mb-2 text-center print:mb-4">
                 <div>
@@ -176,7 +197,8 @@ const statusVariant = (status) => {
                     <p class="mt-1 text-xs font-medium text-muted-foreground">#{{ invoice.id }}</p>
                 </div>
                 <div class="absolute right-0 top-0">
-                    <Badge :variant="statusVariant(invoice.status)" class="rounded-full px-3 py-1 text-xs capitalize print:border-0">
+                    <Badge :variant="statusVariant(invoice.status)"
+                        class="rounded-full px-3 py-1 text-xs capitalize print:border-0">
                         {{ invoice.status }}
                     </Badge>
                 </div>
@@ -189,7 +211,8 @@ const statusVariant = (status) => {
                         <Store class="h-4 w-4" />
                         <span class="text-xs font-semibold uppercase tracking-wider">Shop</span>
                     </div>
-                    <p class="inline-block max-w-full rounded-md uppercase px-2.5 py-1 text-xl font-bold leading-tight text-primary break-words print:text-2xl">
+                    <p
+                        class="inline-block max-w-full rounded-md uppercase px-2.5 py-1 text-xl font-bold leading-tight text-primary break-words print:text-2xl">
                         {{ invoice.shop?.name }}
                     </p>
                 </div>
@@ -216,11 +239,26 @@ const statusVariant = (status) => {
                 <table class="w-full text-[16px]">
                     <thead>
                         <tr class="border-y-2 border-primary/20 bg-muted/30">
-                            <th class="py-2 pl-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">#</th>
-                            <th class="py-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Newspaper</th>
-                            <th class="py-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">Qty</th>
-                            <th class="py-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Unit Price</th>
-                            <th class="py-2 pr-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</th>
+                            <th
+                                class="py-2 pl-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                #</th>
+                            <th class="py-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Newspaper</th>
+                            <th
+                                class="py-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Qty</th>
+                            <th v-if="hasReturns"
+                                class="py-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Return</th>
+                            <th
+                                class="py-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Unit Price</th>
+                            <th
+                                class="py-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Total</th>
+                            <th v-if="hasReturns"
+                                class="py-2 pr-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Return Amt</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -228,8 +266,12 @@ const statusVariant = (status) => {
                             <td class="py-1.5 pl-2 text-muted-foreground">{{ index + 1 }}</td>
                             <td class="py-1.5 font-medium">{{ item.newspaper?.name }}</td>
                             <td class="py-1.5 text-center">{{ item.quantity }}</td>
+                            <td v-if="hasReturns" class="py-1.5 text-center">{{ item.return_quantity || 0 }}</td>
                             <td class="py-1.5 text-right">Rs. {{ parseFloat(item.unit_price).toFixed(2) }}</td>
-                            <td class="py-1.5 pr-2 text-right font-semibold">Rs. {{ parseFloat(item.total_price).toFixed(2) }}</td>
+                            <td class="py-1.5 text-right font-semibold">Rs. {{ parseFloat(item.total_price).toFixed(2)
+                                }}</td>
+                            <td v-if="hasReturns" class="py-1.5 pr-2 text-right font-semibold text-destructive">Rs. {{
+                                parseFloat(item.return_total_price || 0).toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -246,10 +288,26 @@ const statusVariant = (status) => {
                         <span class="text-muted-foreground">Total Quantity</span>
                         <span>{{ totalQty }}</span>
                     </div>
-                    <div class="flex justify-between text-lg font-bold border-t pt-2">
-                        <span>Total Amount</span>
-                        <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
-                    </div>
+                    <template v-if="hasReturns">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-muted-foreground">Return Total</span>
+                            <span class="text-destructive">Rs. {{ totalReturnAmount.toFixed(2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-muted-foreground font-bold">Net Amount</span>
+                            <span class="font-bold">Rs. {{ parseFloat(invoice.total_net_amount).toFixed(2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold border-t pt-2">
+                            <span>Total Amount</span>
+                            <span class="text-primary">Rs. {{ totalAmount.toFixed(2) }}</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="flex justify-between text-lg font-bold border-t pt-2">
+                            <span>Total Amount</span>
+                            <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
+                        </div>
+                    </template>
                 </div>
             </div>
 
@@ -258,7 +316,8 @@ const statusVariant = (status) => {
                 <div class="flex items-center gap-2 mb-2 text-muted-foreground">
                     <span class="text-xs font-semibold uppercase tracking-wider">Notes</span>
                 </div>
-                <p class="text-sm whitespace-pre-wrap text-muted-foreground bg-muted/30 rounded-lg p-3">{{ invoice.notes }}</p>
+                <p class="text-sm whitespace-pre-wrap text-muted-foreground bg-muted/30 rounded-lg p-3">{{ invoice.notes
+                    }}</p>
             </div>
 
             <!-- Footer -->
@@ -282,10 +341,12 @@ const statusVariant = (status) => {
         size: A5;
         margin: 5mm;
     }
+
     body {
         -webkit-print-color-adjust: exact;
         background: white !important;
     }
+
     #printableInvoice {
         width: 100%;
         min-height: calc(210mm - 10mm);
@@ -294,6 +355,7 @@ const statusVariant = (status) => {
         border: 0 !important;
         box-shadow: none !important;
     }
+
     .no-print {
         display: none !important;
     }

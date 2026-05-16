@@ -53,6 +53,7 @@ class InvoiceService
                 'price_id' => $item['price_id'] ?? null,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
+                'return_quantity' => $item['return_quantity'] ?? 0,
             ];
         }
 
@@ -116,6 +117,7 @@ class InvoiceService
                 'price_id' => $item['price_id'] ?? null,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
+                'return_quantity' => $item['return_quantity'] ?? 0,
             ];
         }
 
