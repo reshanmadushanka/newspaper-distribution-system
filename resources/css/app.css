@@ -7,29 +7,29 @@
 
 @theme {
     --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-    
+
     --color-background: oklch(0.98 0.01 240);
     --color-foreground: oklch(0.2 0.02 240);
-    
+
     --color-card: oklch(1 0 0);
     --color-card-foreground: oklch(0.2 0.02 240);
-    
+
     --color-primary: oklch(0.5 0.15 240);
     --color-primary-foreground: oklch(0.98 0.01 240);
-    
+
     --color-secondary: oklch(0.95 0.02 240);
     --color-secondary-foreground: oklch(0.2 0.02 240);
-    
+
     --color-muted: oklch(0.92 0.02 240);
     --color-muted-foreground: oklch(0.5 0.05 240);
-    
+
     --color-accent: oklch(0.9 0.05 240);
     --color-accent-foreground: oklch(0.2 0.02 240);
-    
+
     --color-border: oklch(0.9 0.02 240);
     --color-input: oklch(0.9 0.02 240);
     --color-ring: oklch(0.5 0.15 240);
-    
+
     --color-destructive: oklch(0.6 0.2 25);
     --color-destructive-foreground: oklch(0.98 0.01 240);
 
@@ -56,9 +56,70 @@
         -webkit-backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    
+
     .sidebar-gradient {
         background: linear-gradient(180deg, oklch(0.5 0.15 240) 0%, oklch(0.4 0.15 240) 100%);
     }
+}
+
+/* RTL Support */
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+[dir="rtl"] .space-x-2 > * + * {
+    margin-right: 0.5rem;
+    margin-left: 0;
+}
+
+[dir="rtl"] .space-x-3 > * + * {
+    margin-right: 0.75rem;
+    margin-left: 0;
+}
+
+[dir="rtl"] .space-x-4 > * + * {
+    margin-right: 1rem;
+    margin-left: 0;
+}
+
+[dir="rtl"] .mr-1 {
+    margin-right: 0;
+    margin-left: 0.25rem;
+}
+
+[dir="rtl"] .mr-2 {
+    margin-right: 0;
+    margin-left: 0.5rem;
+}
+
+[dir="rtl"] .ml-1 {
+    margin-left: 0;
+    margin-right: 0.25rem;
+}
+
+[dir="rtl"] .ml-2 {
+    margin-left: 0;
+    margin-right: 0.5rem;
+}
+
+[dir="rtl"] .pl-9 {
+    padding-left: 0;
+    padding-right: 2.25rem;
+}
+
+[dir="rtl"] .pr-4 {
+    padding-right: 0;
+    padding-left: 1rem;
+}
+
+[dir="rtl"] .left-3 {
+    left: auto;
+    right: 0.75rem;
+}
+
+[dir="rtl"] .right-0 {
+    right: auto;
+    left: 0;
 }
 

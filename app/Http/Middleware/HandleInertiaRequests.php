@@ -15,6 +15,12 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'locale' => app()->getLocale(),
+            'available_locales' => [
+                'en' => 'English',
+                'si' => 'සිංහල',
+            ],
+            'translations' => fn () => $this->getTranslations(),
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
@@ -28,6 +34,18 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+        ];
+    }
+
+    /**
+     * Get translations to share with Inertia.
+     */
+    protected function getTranslations(): array
+    {
+        return [
+            'navigation' => __('navigation'),
+            'common' => __('common'),
+            'newspapers' => __('newspapers'),
         ];
     }
 }

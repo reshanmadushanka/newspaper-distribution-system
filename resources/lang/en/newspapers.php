@@ -1,0 +1,22 @@
+<?php
+
+return [
+    'create' => 'Create Newspaper',
+    'edit' => 'Edit Newspaper',
+    'create_new' => 'Create New Newspaper',
+    'fill_create' => 'Fill in the details to register a new newspaper.',
+    'fill_update' => 'Fill in the details to update the newspaper.',
+    'newspaper_name' => 'Newspaper Name',
+    'publisher_name' => 'Publisher Name',
+    'language' => 'Language',
+    'frequency' => 'Publication Frequency',
+    'select_language' => 'Select language',
+    'select_frequency' => 'Select frequency',
+    'type_newspaper_name' => 'Type newspaper name...',
+    'type_publisher_name' => 'Type publisher name...',
+    'account_status' => 'Account Status',
+    'select_status' => 'Select status',
+    'create_button' => 'Create Newspaper',
+    'update_button' => 'Update Newspaper',
+    'cancel_return' => 'Cancel and return',
+];

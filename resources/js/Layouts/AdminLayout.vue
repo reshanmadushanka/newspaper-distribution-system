@@ -8,6 +8,7 @@ import {
 
 import { computed, ref, onMounted } from 'vue'
 import Toast from '@/Components/Toast.vue'
+import LanguageSwitcher from '@/Components/LanguageSwitcher.vue'
 
 const page = usePage()
 const permissions = page.props.auth.user?.permissions ?? []
@@ -240,6 +241,9 @@ onMounted(() => {
                     </div>
 
                     <div class="flex items-center gap-3">
+                        <!-- Language Switcher -->
+                        <LanguageSwitcher />
+
                         <button
                             class="relative rounded-full p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground focus:outline-none">
                             <Bell class="h-5 w-5" />
