@@ -4,16 +4,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Additional Permissions for Admin Role
+    | Additional Permissions for Super Admin Role
     |--------------------------------------------------------------------------
     |
     | These permissions will be added to the database and synced with the
-    | 'admin' role. This allows you to define new permissions in one place
-    | and automatically have them added to the admin role.
+    | 'super-admin' role ONLY (not the 'admin' role).
+    | Run: php artisan permissions:sync-admin
     |
     */
 
     'admin_permissions' => [
+        'manage users',
+        'view users',
+        'create users',
+        'edit users',
+        'delete users',
+        'manage roles',
+        'manage permissions',
+        'manage shops',
+        'view shops',
+        'create shops',
+        'edit shops',
+        'delete shops',
         'manage settings',
         'view reports',
         'export data',
@@ -32,7 +44,8 @@ return [
         'manage system invoices',
         'view system invoices',
         'create system invoices',
-        'view daily sales'
+        'view daily sales',
+        'auto generate invoice'
     ],
 
 ];

@@ -56,6 +56,7 @@ let searchTimeout = null
 
 const canCreate = computed(() => permissions.value.includes('create invoices') || permissions.value.includes('manage invoices'))
 const canUpdate = computed(() => permissions.value.includes('manage invoices'))
+const canAutoGenerate = computed(() => permissions.value.includes('auto generate invoice'))
 
 const showAutoGenerateModal = ref(false)
 
@@ -76,18 +77,32 @@ const handleDelete = (id) => {
 }
 
 const printInvoice = (id) => {
-    const width = 900
-    const height = 700
-    const left = window.screenX + (window.outerWidth - width) / 2
-    const top = window.screenY + (window.outerHeight - height) / 2
+    // Mark as printed first
+    router.patch(`/admin/invoices/${id}/mark-printed`, {}, {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            // Then open print popup
+            const width = 900
+            const height = 700
+            const left = window.screenX + (window.outerWidth - width) / 2
+            const top = window.screenY + (window.outerHeight - height) / 2
 
-    const popup = window.open(
-        `/admin/invoices/${id}?print=1`,
-        `invoice-print-${id}`,
-        `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    )
+            const popup = window.open(
+                `/admin/invoices/${id}?print=1`,
+                `invoice-print-${id}`,
+                `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+            )
 
-    popup?.focus()
+            popup?.focus()
+
+            // Reload the invoice list to show updated print status
+            reloadInvoices()
+        },
+        onError: () => {
+            Swal.fire('Error!', 'Failed to mark invoice as printed.', 'error')
+        }
+    })
 }
 
 const reloadInvoices = () => {
@@ -171,6 +186,10 @@ const statusVariant = (status) => {
     }
     return map[status] || 'secondary'
 }
+
+const isPrinted = (invoice) => {
+    return !!invoice.printed_at
+}
 </script>
 
 <template>
@@ -186,7 +205,7 @@ const statusVariant = (status) => {
                 <p class="text-muted-foreground">Manage distribution invoices.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
-                <Button
+                <Button v-if="canAutoGenerate"
                     @click="openAutoGenerateModal"
                     variant="outline"
                     class="rounded-xl px-5 shadow-lg shadow-purple-500/10 transition-all hover:-translate-y-0.5 border-purple-300 hover:bg-purple-50"
@@ -230,6 +249,7 @@ const statusVariant = (status) => {
                             <th class="px-6 py-4">Date</th>
                             <th class="px-6 py-4 text-right">Amount</th>
                             <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Printed</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -258,6 +278,16 @@ const statusVariant = (status) => {
                                 <Badge :variant="statusVariant(inv.status)"
                                     class="rounded-full px-2 py-0 text-[10px] capitalize">
                                     {{ inv.status }}
+                                </Badge>
+                            </td>
+                            <td class="px-6 py-4">
+                                <Badge v-if="isPrinted(inv)" variant="success"
+                                    class="rounded-full px-2 py-0 text-[10px]">
+                                    Printed
+                                </Badge>
+                                <Badge v-else variant="outline"
+                                    class="rounded-full px-2 py-0 text-[10px] text-muted-foreground">
+                                    Not Printed
                                 </Badge>
                             </td>
                             <td class="px-6 py-4">
@@ -295,7 +325,7 @@ const statusVariant = (status) => {
                             </td>
                         </tr>
                         <tr v-if="!invoices?.data || invoices.data.length === 0">
-                            <td colspan="6" class="px-6 py-12 text-center text-muted-foreground italic">
+                            <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
                         </tr>

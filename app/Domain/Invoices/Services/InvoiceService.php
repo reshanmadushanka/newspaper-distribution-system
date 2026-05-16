@@ -89,6 +89,11 @@ class InvoiceService
         return $updated;
     }
 
+    public function markAsPrinted(int $id): Invoice
+    {
+        return $this->invoiceRepository->markAsPrinted($id);
+    }
+
     public function getInvoiceForEdit(int $id): Invoice
     {
         return $this->invoiceRepository->findOrFail($id);

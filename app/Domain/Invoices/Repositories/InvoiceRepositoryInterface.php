@@ -25,6 +25,8 @@ interface InvoiceRepositoryInterface
 
     public function updateStatus(int $id, string $status): Invoice;
 
+    public function markAsPrinted(int $id): Invoice;
+
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice;
 
     public function delete(int $id): bool;
