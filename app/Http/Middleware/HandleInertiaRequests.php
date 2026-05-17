@@ -46,6 +46,12 @@ class HandleInertiaRequests extends Middleware
             'navigation' => __('navigation'),
             'common' => __('common'),
             'newspapers' => __('newspapers'),
+            'shops' => __('shops'),
+            'invoices' => __('invoices'),
+            'auth' => __('auth'),
+            'dashboard' => __('dashboard'),
+            'users' => __('users'),
+            'reports' => __('reports'),
         ];
     }
 }

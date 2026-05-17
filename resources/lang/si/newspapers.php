@@ -19,4 +19,7 @@ return [
     'create_button' => 'පුවත්පත සාදන්න',
     'update_button' => 'පුවත්පත යාවත්කාලීන කරන්න',
     'cancel_return' => 'අවලංගු කර ආපසු යන්න',
+    'manage_description' => 'පුවත්පත් නාමාවලිය, භාෂා සහ මිල ගණන් කළමනාකරණය කරන්න.',
+    'search_placeholder' => 'පුවත්පත් නම අනුව සොයන්න...',
+    'price_variants' => 'මිල විකල්ප',
 ];

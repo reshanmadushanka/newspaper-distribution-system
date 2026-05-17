@@ -4,9 +4,12 @@ import { ChevronLeft, Store, CalendarDays, Download, MessageCircle, Mail, Printe
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
+import { useTranslation } from '@/Composables/useTranslation'
 import { computed, onMounted, ref } from 'vue'
 import print from 'vue3-print-nb'
 import Swal from 'sweetalert2'
+
+const { t } = useTranslation()
 
 const vPrint = print
 const printButton = ref(null)
@@ -108,18 +111,18 @@ const sendEmail = () => {
 
 const handleDelete = () => {
     Swal.fire({
-        title: 'Delete Invoice?',
-        text: 'This will permanently delete the invoice and all its items.',
+        title: t('invoices.delete_invoice'),
+        text: t('invoices.delete_confirm'),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: 'var(--color-destructive)',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: t('common.yes_delete'),
+        cancelButtonText: t('common.cancel'),
         reverseButtons: true,
     }).then((result) => {
         if (result.isConfirmed) {
             router.delete(`/admin/invoices/${props.invoice.id}`, {
-                onError: (errors) => Swal.fire('Error!', Object.values(errors)[0], 'error'),
+                onError: (errors) => Swal.fire(t('common.error') + '!', Object.values(errors)[0], 'error'),
             })
         }
     })
@@ -137,7 +140,7 @@ const statusVariant = (status) => {
 
 <template>
 
-    <Head :title="`Invoice #${invoice.id}`" />
+    <Head :title="t('invoices.invoice_title', { id: invoice.id })" />
     <AdminLayout>
         <div class="mb-8 flex items-center justify-between no-print">
             <div class="flex items-center gap-4">
@@ -147,14 +150,14 @@ const statusVariant = (status) => {
                     </Button>
                 </Link>
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight">Invoice #{{ invoice.id }}</h2>
-                    <p class="text-sm text-muted-foreground">View and print invoice details.</p>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ t('invoices.invoice_title', { id: invoice.id }) }}</h2>
+                    <p class="text-sm text-muted-foreground">{{ t('invoices.view_description') }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <Button v-if="hasEmail" @click="sendEmail" variant="outline" class="rounded-xl">
                     <Mail class="mr-2 h-4 w-4" />
-                    Email
+                    {{ t('invoices.email') }}
                 </Button>
                 <Button v-if="hasWhatsApp" @click="sendWhatsApp" variant="outline" class="rounded-xl">
                     <MessageCircle class="mr-2 h-4 w-4" />
@@ -170,19 +173,19 @@ const statusVariant = (status) => {
                 </Button>
                 <Button @click="handlePrint" class="rounded-xl shadow-lg shadow-primary/20">
                     <Printer class="mr-2 h-4 w-4" />
-                    {{ invoice.printed_at ? 'Reprint' : 'Print' }}
+                    {{ invoice.printed_at ? t('invoices.reprint') : t('invoices.print') }}
                 </Button>
                 <div class="mx-2 h-6 w-px bg-border"></div>
                 <Link v-if="isDraft" :href="`/admin/invoices/${invoice.id}/edit`">
                     <Button variant="outline" class="rounded-xl">
                         <Pencil class="mr-2 h-4 w-4" />
-                        Edit
+                        {{ t('common.edit') }}
                     </Button>
                 </Link>
                 <Button @click="handleDelete" variant="outline"
                     class="rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10">
                     <Trash2 class="mr-2 h-4 w-4" />
-                    Delete
+                    {{ t('common.delete') }}
                 </Button>
             </div>
         </div>
@@ -193,7 +196,7 @@ const statusVariant = (status) => {
             <!-- Header -->
             <div class="relative mb-2 text-center print:mb-4">
                 <div>
-                    <h1 class="text-base font-bold uppercase tracking-normal text-foreground">Invoice</h1>
+                    <h1 class="text-base font-bold uppercase tracking-normal text-foreground">{{ t('invoices.invoice') }}</h1>
                     <p class="mt-1 text-xs font-medium text-muted-foreground">#{{ invoice.id }}</p>
                 </div>
                 <div class="absolute right-0 top-0">
@@ -209,7 +212,7 @@ const statusVariant = (status) => {
                 <div>
                     <div class="flex items-center gap-2 mb-1.5 text-muted-foreground">
                         <Store class="h-4 w-4" />
-                        <span class="text-xs font-semibold uppercase tracking-wider">Shop</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider">{{ t('invoices.shop') }}</span>
                     </div>
                     <p
                         class="inline-block max-w-full rounded-md uppercase px-2.5 py-1 text-xl font-bold leading-tight text-primary break-words print:text-2xl">
@@ -219,7 +222,7 @@ const statusVariant = (status) => {
                 <div class="text-right">
                     <div class="flex items-center justify-end gap-2 mb-1.5 text-muted-foreground">
                         <CalendarDays class="h-4 w-4" />
-                        <span class="text-xs font-semibold uppercase tracking-wider">Date</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider">{{ t('common.date') }}</span>
                     </div>
                     <p class="font-semibold text-xl">{{ invoice.invoice_date }}</p>
                 </div>
@@ -229,7 +232,7 @@ const statusVariant = (status) => {
             <div v-if="invoice.printed_at" class="mb-2 rounded-lg border border-blue-200 bg-blue-50 p-3 print:hidden">
                 <div class="flex items-center gap-2 text-blue-800">
                     <Printer class="h-4 w-4" />
-                    <span class="text-xs font-semibold uppercase tracking-wider">Printed</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider">{{ t('invoices.printed') }}</span>
                     <span class="text-xs">{{ new Date(invoice.printed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
                 </div>
             </div>
@@ -246,19 +249,19 @@ const statusVariant = (status) => {
                                 Newspaper</th>
                             <th
                                 class="py-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Qty</th>
+                                {{ t('invoices.qty') }}</th>
                             <th v-if="hasReturns"
                                 class="py-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Return</th>
+                                {{ t('invoices.return') }}</th>
                             <th
                                 class="py-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Unit Price</th>
+                                {{ t('invoices.unit_price') }}</th>
                             <th
                                 class="py-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Total</th>
+                                {{ t('invoices.total') }}</th>
                             <th v-if="hasReturns"
                                 class="py-2 pr-2 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Return Amt</th>
+                                {{ t('invoices.return_amt') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -281,30 +284,30 @@ const statusVariant = (status) => {
             <div class="flex justify-end border-t-2 border-primary/20 pt-3 print:pt-3">
                 <div class="w-64 space-y-2">
                     <div class="flex justify-between text-sm">
-                        <span class="text-muted-foreground">Total Items</span>
+                        <span class="text-muted-foreground">{{ t('invoices.total_items') }}</span>
                         <span>{{ invoice.items.length }}</span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-muted-foreground">Total Quantity</span>
+                        <span class="text-muted-foreground">{{ t('invoices.total_quantity') }}</span>
                         <span>{{ totalQty }}</span>
                     </div>
                     <template v-if="hasReturns">
                         <div class="flex justify-between text-sm">
-                            <span class="text-muted-foreground">Return Total</span>
+                            <span class="text-muted-foreground">{{ t('invoices.return_total') }}</span>
                             <span class="text-destructive">Rs. {{ totalReturnAmount.toFixed(2) }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-muted-foreground font-bold">Net Amount</span>
+                            <span class="text-muted-foreground font-bold">{{ t('invoices.net_amount') }}</span>
                             <span class="font-bold">Rs. {{ parseFloat(invoice.total_net_amount).toFixed(2) }}</span>
                         </div>
                         <div class="flex justify-between text-lg font-bold border-t pt-2">
-                            <span>Total Amount</span>
+                            <span>{{ t('invoices.total_amount') }}</span>
                             <span class="text-primary">Rs. {{ totalAmount.toFixed(2) }}</span>
                         </div>
                     </template>
                     <template v-else>
                         <div class="flex justify-between text-lg font-bold border-t pt-2">
-                            <span>Total Amount</span>
+                            <span>{{ t('invoices.total_amount') }}</span>
                             <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
                         </div>
                     </template>
@@ -314,7 +317,7 @@ const statusVariant = (status) => {
             <!-- Notes -->
             <div v-if="invoice.notes" class="mt-6 border-t pt-4 print:mt-4">
                 <div class="flex items-center gap-2 mb-2 text-muted-foreground">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Notes</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider">{{ t('invoices.notes') }}</span>
                 </div>
                 <p class="text-sm whitespace-pre-wrap text-muted-foreground bg-muted/30 rounded-lg p-3">{{ invoice.notes
                     }}</p>

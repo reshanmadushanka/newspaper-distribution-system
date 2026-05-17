@@ -19,4 +19,7 @@ return [
     'create_button' => 'Create Newspaper',
     'update_button' => 'Update Newspaper',
     'cancel_return' => 'Cancel and return',
+    'manage_description' => 'Manage newspaper catalog, languages and pricing.',
+    'search_placeholder' => 'Search newspaper by name...',
+    'price_variants' => 'Price Variants',
 ];

@@ -13,4 +13,5 @@ return [
     'users' => 'Users',
     'roles' => 'Roles',
     'permissions' => 'Permissions',
+    'manage_shops' => 'Manage Shops',
 ];

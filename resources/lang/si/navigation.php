@@ -13,4 +13,5 @@ return [
     'users' => 'පරිශීලකයින්',
     'roles' => 'කාර්යභාරයන්',
     'permissions' => 'අවසරයන්',
+    'manage_shops' => 'කඩ කළමනාකරණය',
 ];

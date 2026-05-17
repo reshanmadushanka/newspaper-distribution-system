@@ -7,8 +7,11 @@ import { Input } from '@/Components/ui/input'
 import { Datepicker } from '@/Components/ui/datepicker'
 import { Label } from '@/Components/ui/label'
 import { Select2 } from '@/Components/ui/select2'
+import { useTranslation } from '@/Composables/useTranslation'
 import { computed, ref, watch } from 'vue'
 import { History, AlertCircle, Loader2 } from 'lucide-vue-next'
+
+const { t } = useTranslation()
 
 const props = defineProps({
     invoice: Object,
@@ -222,7 +225,7 @@ const filteredNewspaperOptions = (currentIndex) => {
 
 <template>
 
-    <Head :title="isEditing ? `Edit Invoice #${invoice.id}` : 'Create Invoice'" />
+    <Head :title="isEditing ? t('invoices.edit_invoice', { id: invoice.id }) : t('invoices.create_invoice')" />
     <AdminLayout>
         <div class="mb-8 flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -232,8 +235,8 @@ const filteredNewspaperOptions = (currentIndex) => {
                     </Button>
                 </Link>
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight">{{ isEditing ? `Edit Invoice #${invoice.id}` : 'Create New Invoice' }}</h2>
-                    <p class="text-sm text-muted-foreground">{{ isEditing ? 'Modify invoice date and newspaper items.' : 'Select date and shop, then add newspaper items.' }}</p>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ isEditing ? t('invoices.edit_invoice', { id: invoice.id }) : t('invoices.create_new') }}</h2>
+                    <p class="text-sm text-muted-foreground">{{ isEditing ? t('invoices.edit_description') : t('invoices.create_description') }}</p>
                 </div>
             </div>
         </div>
@@ -243,18 +246,18 @@ const filteredNewspaperOptions = (currentIndex) => {
             <div class="rounded-2xl border bg-card p-6 shadow-sm">
                 <div class="mb-6 flex items-center gap-2 border-b pb-4">
                     <Store class="h-5 w-5 text-primary" />
-                    <h3 class="font-bold">Invoice Details</h3>
+                    <h3 class="font-bold">{{ t('invoices.invoice_details') }}</h3>
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
-                        <Label for="invoice_date" class="block text-sm font-medium text-gray-700">Invoice Date</Label>
+                        <Label for="invoice_date" class="block text-sm font-medium text-gray-700">{{ t('invoices.invoice_date') }}</Label>
                         <Datepicker id="invoice_date" v-model="form.invoice_date"
                             class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer" />
                         <p v-if="form.errors.invoice_date" class="text-xs text-destructive">{{ form.errors.invoice_date
                         }}</p>
                     </div>
                     <div class="space-y-2">
-                        <Label for="shop_id" class="block text-sm font-medium text-gray-700">Shop</Label>
+                        <Label for="shop_id" class="block text-sm font-medium text-gray-700">{{ t('invoices.shop') }}</Label>
                         <div v-if="isEditing" class="flex h-10 items-center rounded-lg border bg-muted/50 px-3 text-sm text-muted-foreground">
                             {{ invoice.shop?.name }}
                         </div>
@@ -262,7 +265,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                             v-else
                             v-model="form.shop_id"
                             :options="shopOptions"
-                            placeholder="Select a shop"
+                            :placeholder="t('invoices.select_shop')"
                         />
                         <p v-if="form.errors.shop_id" class="text-xs text-destructive">{{ form.errors.shop_id }}</p>
                     </div>
@@ -272,12 +275,12 @@ const filteredNewspaperOptions = (currentIndex) => {
                 <div v-if="form.invoice_date && form.shop_id" class="mt-6 border-t pt-6">
                     <div class="flex items-center gap-2 mb-4">
                         <History class="h-4 w-4 text-muted-foreground" />
-                        <h4 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Last Week Comparison (Same Day)</h4>
+                        <h4 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{{ t('invoices.last_week_comparison') }}</h4>
                     </div>
 
                     <div v-if="isLoadingSummary" class="flex items-center justify-center py-8">
                         <Loader2 class="h-6 w-6 animate-spin text-primary" />
-                        <span class="ml-2 text-sm text-muted-foreground">Fetching historical data...</span>
+                        <span class="ml-2 text-sm text-muted-foreground">{{ t('invoices.fetching_data') }}</span>
                     </div>
 
                     <div v-else-if="props.previousWeekSummary" class="bg-muted/30 rounded-xl p-4 border border-dashed">
@@ -311,10 +314,10 @@ const filteredNewspaperOptions = (currentIndex) => {
                 <div class="mb-6 flex items-center justify-between border-b pb-4">
                     <div class="flex items-center gap-2">
                         <Newspaper class="h-5 w-5 text-primary" />
-                        <h3 class="font-bold">Newspaper Items</h3>
+                        <h3 class="font-bold">{{ t('invoices.newspaper_items') }}</h3>
                     </div>
                     <Button type="button" variant="outline" size="sm" @click="addRow" class="rounded-xl">
-                        <Plus class="mr-1 h-4 w-4" /> Add Newspaper
+                        <Plus class="mr-1 h-4 w-4" /> {{ t('invoices.add_newspaper') }}
                     </Button>
                 </div>
 
@@ -324,12 +327,12 @@ const filteredNewspaperOptions = (currentIndex) => {
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="text-left text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
-                                <th class="px-2 py-2 w-80">Newspaper</th>
-                                <th class="px-2 py-2 w-40">Price Variant</th>
-                                <th class="px-2 py-2 w-24">Quantity</th>
-                                <th v-if="isEditing" class="px-2 py-2 w-24">Return Qty</th>
-                                <th class="px-2 py-2 w-28">Unit Price</th>
-                                <th class="px-2 py-2 w-28 text-right">Row Total</th>
+                                <th class="px-2 py-2 w-80">{{ t('invoices.newspaper') }}</th>
+                                <th class="px-2 py-2 w-40">{{ t('invoices.price_variant') }}</th>
+                                <th class="px-2 py-2 w-24">{{ t('invoices.quantity') }}</th>
+                                <th v-if="isEditing" class="px-2 py-2 w-24">{{ t('invoices.return_quantity') }}</th>
+                                <th class="px-2 py-2 w-28">{{ t('invoices.unit_price') }}</th>
+                                <th class="px-2 py-2 w-28 text-right">{{ t('invoices.row_total') }}</th>
                                 <th class="px-2 py-2 w-10"></th>
                             </tr>
                         </thead>
@@ -339,7 +342,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                                     <Select2
                                         :model-value="item.newspaper_id"
                                         :options="filteredNewspaperOptions(index)"
-                                        placeholder="Select newspaper"
+                                        :placeholder="t('invoices.select_newspaper')"
                                         @update:modelValue="value => handleNewspaperChange(index, value)"
                                     />
                                     <p v-if="form.errors[`items.${index}.newspaper_id`]"
@@ -350,7 +353,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                                     <Select2
                                         :model-value="item.price_id"
                                         :options="priceOptions(index)"
-                                        placeholder="Select price"
+                                        :placeholder="t('invoices.select_price')"
                                         @update:modelValue="value => handlePriceChange(index, value)"
                                         :disabled="!item.newspaper_id"
                                     />
@@ -403,15 +406,15 @@ const filteredNewspaperOptions = (currentIndex) => {
                 <div class="mt-4 flex justify-end border-t border-border/50 pt-4">
                     <div class="text-right space-y-2">
                         <div>
-                            <span class="text-xs text-muted-foreground">Invoice Total</span>
+                            <span class="text-xs text-muted-foreground">{{ t('invoices.invoice_total') }}</span>
                             <div class="text-2xl font-bold text-primary">Rs. {{ totalAmount.toFixed(2) }}</div>
                         </div>
                         <div v-if="isEditing">
-                            <span class="text-xs text-muted-foreground">Return Total</span>
+                            <span class="text-xs text-muted-foreground">{{ t('invoices.return_total') }}</span>
                             <div class="text-xl font-bold text-destructive">Rs. {{ totalReturnAmount.toFixed(2) }}</div>
                         </div>
                         <div v-if="isEditing" class="border-t pt-2">
-                            <span class="text-xs text-muted-foreground">Net Amount</span>
+                            <span class="text-xs text-muted-foreground">{{ t('invoices.net_amount') }}</span>
                             <div class="text-2xl font-bold">Rs. {{ (totalAmount - totalReturnAmount).toFixed(2) }}</div>
                         </div>
                     </div>
@@ -422,9 +425,9 @@ const filteredNewspaperOptions = (currentIndex) => {
             <div class="rounded-2xl border bg-card p-6 shadow-sm">
                 <div class="mb-4 flex items-center gap-2 border-b pb-4">
                     <StickyNote class="h-5 w-5 text-primary" />
-                    <h3 class="font-bold">Notes</h3>
+                    <h3 class="font-bold">{{ t('invoices.notes') }}</h3>
                 </div>
-                <textarea v-model="form.notes" placeholder="Add any notes or remarks about this invoice..."
+                <textarea v-model="form.notes" :placeholder="t('invoices.notes_placeholder')"
                     class="flex w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[100px] resize-y" />
                 <p v-if="form.errors.notes" class="mt-2 text-xs text-destructive">{{ form.errors.notes }}</p>
             </div>
@@ -432,11 +435,11 @@ const filteredNewspaperOptions = (currentIndex) => {
             <!-- Actions -->
             <div class="flex justify-end gap-3">
                 <Link href="/admin/invoices">
-                    <Button type="button" variant="outline" class="rounded-xl">Cancel</Button>
+                    <Button type="button" variant="outline" class="rounded-xl">{{ t('common.cancel') }}</Button>
                 </Link>
                 <Button type="submit" class="rounded-xl shadow-lg shadow-primary/20" :disabled="form.processing">
                     <Save class="mr-2 h-4 w-4" />
-                    {{ isEditing ? 'Update Invoice' : 'Create Invoice' }}
+                    {{ isEditing ? t('invoices.update_invoice') : t('invoices.create_invoice') }}
                 </Button>
             </div>
         </form>

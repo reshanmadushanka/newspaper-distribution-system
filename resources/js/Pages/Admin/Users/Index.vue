@@ -4,9 +4,12 @@ import { Plus, Pencil, Trash2, Users, Search, MoreHorizontal } from 'lucide-vue-
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { useTranslation } from '@/Composables/useTranslation'
 import { computed } from 'vue'
 import Swal from 'sweetalert2'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm'
+
+const { t } = useTranslation()
 
 defineProps({
     users: Object,
@@ -20,13 +23,13 @@ const canEdit = computed(() => permissions.value.includes('edit users') || permi
 const canDelete = computed(() => permissions.value.includes('delete users') || permissions.value.includes('manage users'))
 const canCreate = computed(() => permissions.value.includes('create users') || permissions.value.includes('manage users'))
 
-const { deleting, confirmDelete } = useDeleteConfirm('This action cannot be undone. This will permanently delete the User')
+const { deleting, confirmDelete } = useDeleteConfirm(t('common.cannot_undo') + ' ' + t('common.delete_confirm'))
 
 const handleDelete = (userId) => {
-    confirmDelete(() => 
+    confirmDelete(() =>
         router.delete(`/admin/users/${userId}`, {
             onError: (errors) => {
-                Swal.fire('Error!', Object.values(errors)[0] || 'Failed to delete user.', 'error')
+                Swal.fire(t('common.error') + '!', Object.values(errors)[0] || t('users.delete_failed'), 'error')
             }
         })
     )
@@ -35,20 +38,20 @@ const handleDelete = (userId) => {
 
 <template>
 
-    <Head title="Users" />
+    <Head :title="t('navigation.users')" />
     <AdminLayout>
         <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <div class="flex items-center gap-2 text-primary">
                     <Users class="h-6 w-6" />
-                    <h2 class="text-2xl font-bold tracking-tight">Users</h2>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ t('navigation.users') }}</h2>
                 </div>
-                <p class="text-muted-foreground">Manage your team members and their account access levels.</p>
+                <p class="text-muted-foreground">{{ t('users.manage_users') }}</p>
             </div>
             <Link v-if="canCreate" href="/admin/users/create">
                 <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
                     <Plus class="mr-2 h-4 w-4" />
-                    Add user
+                    {{ t('common.create') }} {{ t('navigation.users') }}
                 </Button>
             </Link>
         </div>
@@ -68,10 +71,10 @@ const handleDelete = (userId) => {
                 <table class="w-full text-sm text-left">
                     <thead class="bg-secondary/30 text-muted-foreground uppercase text-[10px] font-bold tracking-wider">
                         <tr>
-                            <th class="px-6 py-4">Name & Email</th>
-                            <th class="px-6 py-4">Roles</th>
-                            <th class="px-6 py-4">Status</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                            <th class="px-6 py-4">{{ t('users.user_info') }}</th>
+                            <th class="px-6 py-4">{{ t('users.roles') }}</th>
+                            <th class="px-6 py-4">{{ t('common.status') }}</th>
+                            <th class="px-6 py-4 text-right">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/50">
@@ -100,7 +103,7 @@ const handleDelete = (userId) => {
                             <td class="px-6 py-4">
                                 <Badge
                                     class="rounded-full bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-2">
-                                    Active</Badge>
+                                    {{ t('common.active') }}</Badge>
                             </td>
                             <td class="px-6 py-4">
                                 <div

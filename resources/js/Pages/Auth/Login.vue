@@ -5,6 +5,9 @@ import { Button } from '@/Components/ui/button'
 import { Card } from '@/Components/ui/card'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
+import { useTranslation } from '@/Composables/useTranslation'
+
+const { t } = useTranslation()
 
 const form = useForm({
     email: '',
@@ -21,7 +24,7 @@ function submit() {
 
 <template>
 
-    <Head title="NewsFlow Login" />
+    <Head :title="t('auth.login_title')" />
 
     <div class="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#0a0a0a] px-4 py-12">
         <!-- Background Image with Parallax-like Overlay -->
@@ -53,7 +56,7 @@ function submit() {
                 <h1 class="text-5xl font-black tracking-tight text-white mb-3">
                     News<span class="text-primary">Flow</span>
                 </h1>
-                <p class="text-gray-400 text-lg font-medium">Sri Lanka's Premier Distribution Portal</p>
+                <p class="text-gray-400 text-lg font-medium">{{ t('auth.login_subtitle') }}</p>
             </div>
 
             <Card
@@ -65,11 +68,11 @@ function submit() {
 
                 <form class="space-y-8 relative z-10" @submit.prevent="submit">
                     <div class="space-y-2.5">
-                        <Label for="email" class="text-sm font-bold text-gray-300 ml-1">Work Email</Label>
+                        <Label for="email" class="text-sm font-bold text-gray-300 ml-1">{{ t('auth.work_email') }}</Label>
                         <div class="relative group/input">
                             <Mail
                                 class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 transition-colors group-focus-within/input:text-primary" />
-                            <Input id="email" v-model="form.email" type="email" placeholder="name@newsflow.lk"
+                            <Input id="email" v-model="form.email" type="email" :placeholder="t('auth.email_placeholder')"
                                 class="h-14 pl-12 rounded-2xl bg-white/5 border-white/10 text-white placeholder:text-gray-600 transition-all focus:bg-white/10 focus:ring-4 focus:ring-primary/10 focus:border-primary/50"
                                 autocomplete="email" autofocus />
                         </div>
@@ -79,7 +82,7 @@ function submit() {
 
                     <div class="space-y-2.5">
                         <div class="flex items-center justify-between ml-1">
-                            <Label for="password" class="text-sm font-bold text-gray-300">Secure Password</Label>
+                            <Label for="password" class="text-sm font-bold text-gray-300">{{ t('auth.password') }}</Label>
                             <a href="#"
                                 class="text-xs font-bold text-primary/80 hover:text-primary transition-colors">Recovery
                                 Assistance</a>
@@ -87,7 +90,7 @@ function submit() {
                         <div class="relative group/input">
                             <Lock
                                 class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 transition-colors group-focus-within/input:text-primary" />
-                            <Input id="password" v-model="form.password" type="password" placeholder="••••••••"
+                            <Input id="password" v-model="form.password" type="password" :placeholder="t('auth.password_placeholder')"
                                 class="h-14 pl-12 rounded-2xl bg-white/5 border-white/10 text-white placeholder:text-gray-600 transition-all focus:bg-white/10 focus:ring-4 focus:ring-primary/10 focus:border-primary/50"
                                 autocomplete="current-password" />
                         </div>
@@ -105,15 +108,14 @@ function submit() {
                                 </svg>
                         </div>
                         <Label for="remember"
-                            class="text-sm font-bold text-gray-400 cursor-pointer select-none">Remember this
-                            device</Label>
+                            class="text-sm font-bold text-gray-400 cursor-pointer select-none">{{ t('auth.remember_me') }}</Label>
                     </div>
 
                     <Button
                         class="group/btn w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black text-lg shadow-2xl shadow-primary/30 transition-all hover:shadow-primary/40 hover:-translate-y-1 active:translate-y-0 disabled:opacity-70 overflow-hidden relative"
                         type="submit" :disabled="form.processing">
                         <span v-if="!form.processing" class="flex items-center justify-center gap-3 relative z-10">
-                            LOGIN
+                            {{ t('auth.sign_in').toUpperCase() }}
                             <ArrowRight class="h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
                         </span>
                         <span v-else class="flex items-center gap-2">
@@ -124,7 +126,7 @@ function submit() {
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            VERIFYING...
+                            {{ t('auth.signing_in') }}
                         </span>
                     </Button>
                 </form>
