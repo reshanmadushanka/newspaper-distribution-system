@@ -36,7 +36,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
                     });
                 });
             })
-            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate($perPage)
             ->appends([
                 'search' => $search,
