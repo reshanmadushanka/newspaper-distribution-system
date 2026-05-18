@@ -6,7 +6,6 @@ import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Select2 } from '@/Components/ui/select2'
-import { useSinhalaInput } from '@/Composables/useSinhalaInput'
 import { useTranslation } from '@/Composables/useTranslation'
 import { ref } from 'vue'
 
@@ -35,7 +34,6 @@ const form = useForm({
             : [{ label: '', price: '', cost_price: '' }],
 })
 
-const { enabled: sinhalaEnabled, toggle: toggleSinhala } = useSinhalaInput()
 const { t } = useTranslation()
 
 const addPriceRow = () => {
@@ -58,6 +56,7 @@ const submit = () => {
 </script>
 
 <template>
+
     <Head :title="newspaper ? t('newspapers.edit') : t('newspapers.create')" />
     <AdminLayout>
         <div class="mb-8 flex items-center justify-between">
@@ -68,28 +67,11 @@ const submit = () => {
                     </Button>
                 </Link>
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight">{{ newspaper ? t('newspapers.edit') : t('newspapers.create_new') }}</h2>
-                    <p class="text-sm text-muted-foreground">{{ newspaper ? t('newspapers.fill_update') : t('newspapers.fill_create') }}</p>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ newspaper ? t('newspapers.edit') :
+                        t('newspapers.create_new') }}</h2>
+                    <p class="text-sm text-muted-foreground">{{ newspaper ? t('newspapers.fill_update') :
+                        t('newspapers.fill_create') }}</p>
                 </div>
-            </div>
-
-            <!-- Sinhala Input Toggle -->
-            <div class="flex items-center gap-3 rounded-xl border bg-card px-4 py-2 shadow-sm">
-                <Type class="h-4 w-4 text-muted-foreground" />
-                <span class="text-sm font-medium">{{ sinhalaEnabled ? 'සිංහල' : 'English' }}</span>
-                <button
-                    type="button"
-                    role="switch"
-                    :aria-checked="sinhalaEnabled"
-                    @click="toggleSinhala"
-                    :class="sinhalaEnabled ? 'bg-primary' : 'bg-muted'"
-                    class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                    <span
-                        :class="sinhalaEnabled ? 'translate-x-4' : 'translate-x-0'"
-                        class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                    />
-                </button>
             </div>
         </div>
 
@@ -104,41 +86,38 @@ const submit = () => {
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div class="space-y-2">
                             <Label for="name">{{ t('newspapers.newspaper_name') }}</Label>
-                            <Input id="name" v-model="form.name" :placeholder="t('newspapers.type_newspaper_name')" :error="form.errors.name"/>
+                            <Input id="name" v-model="form.name" :placeholder="t('newspapers.type_newspaper_name')"
+                                :error="form.errors.name" />
                             <p v-if="form.errors.name" class="text-xs text-destructive">{{ form.errors.name }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="publisher_name">{{ t('newspapers.publisher_name') }}</Label>
-                            <Input id="publisher_name" v-model="form.publisher_name" :placeholder="t('newspapers.type_publisher_name')"/>
-                            <p v-if="form.errors.publisher_name" class="text-xs text-destructive">{{ form.errors.publisher_name }}</p>
+                            <Input id="publisher_name" v-model="form.publisher_name"
+                                :placeholder="t('newspapers.type_publisher_name')" />
+                            <p v-if="form.errors.publisher_name" class="text-xs text-destructive">{{
+                                form.errors.publisher_name }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="language">{{ t('newspapers.language') }}</Label>
                             <div class="relative">
-                                <Languages class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Select2
-                                    id="language"
-                                    v-model="form.language"
-                                    :options="languageOptions"
-                                    :placeholder="t('newspapers.select_language')"
-                                    class="pl-9"
-                                />
+                                <Languages
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Select2 id="language" v-model="form.language" :options="languageOptions"
+                                    :placeholder="t('newspapers.select_language')" class="pl-9" />
                             </div>
-                            <p v-if="form.errors.language" class="text-xs text-destructive">{{ form.errors.language }}</p>
+                            <p v-if="form.errors.language" class="text-xs text-destructive">{{ form.errors.language }}
+                            </p>
                         </div>
                         <div class="space-y-2">
                             <Label for="frequency">{{ t('newspapers.frequency') }}</Label>
                             <div class="relative">
-                                <Calendar class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Select2
-                                    id="frequency"
-                                    v-model="form.frequency"
-                                    :options="frequencyOptions"
-                                    :placeholder="t('newspapers.select_frequency')"
-                                    class="pl-9"
-                                />
+                                <Calendar
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Select2 id="frequency" v-model="form.frequency" :options="frequencyOptions"
+                                    :placeholder="t('newspapers.select_frequency')" class="pl-9" />
                             </div>
-                            <p v-if="form.errors.frequency" class="text-xs text-destructive">{{ form.errors.frequency }}</p>
+                            <p v-if="form.errors.frequency" class="text-xs text-destructive">{{ form.errors.frequency }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -164,31 +143,41 @@ const submit = () => {
                             class="rounded-xl border bg-muted/20 p-4 relative">
                             <button type="button" @click="removePriceRow(index)"
                                 class="absolute -top-2 -right-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 transition-colors"
-                                :disabled="form.prices.length === 1"
-                                v-if="form.prices.length > 1">
+                                :disabled="form.prices.length === 1" v-if="form.prices.length > 1">
                                 <Trash2 class="h-3 w-3" />
                             </button>
                             <div class="grid grid-cols-1 gap-3">
                                 <div class="space-y-2">
-                                    <Label :for="'price_label_' + index">{{ t('common.label') }} <span class="text-xs text-muted-foreground">({{ t('common.optional') }})</span></Label>
+                                    <Label :for="'price_label_' + index">{{ t('common.label') }} <span
+                                            class="text-xs text-muted-foreground">({{ t('common.optional')
+                                            }})</span></Label>
                                     <div class="relative">
-                                        <Tags class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input :id="'price_label_' + index" v-model="priceRow.label" class="pl-9" :placeholder="t('common.optional')" />
+                                        <Tags
+                                            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input :id="'price_label_' + index" v-model="priceRow.label" class="pl-9"
+                                            :placeholder="t('common.optional')" />
                                     </div>
                                 </div>
                                 <div class="space-y-2">
                                     <Label :for="'price_' + index">{{ t('common.selling_price') }}</Label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 flex items-center justify-center text-muted-foreground text-[10px] font-bold">Rs.</span>
-                                        <Input :id="'price_' + index" v-model="priceRow.price" class="pl-9" placeholder="0.00" />
+                                        <span
+                                            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 flex items-center justify-center text-muted-foreground text-[10px] font-bold">Rs.</span>
+                                        <Input :id="'price_' + index" v-model="priceRow.price" class="pl-9"
+                                            placeholder="0.00" />
                                     </div>
-                                    <p v-if="form.errors[`prices.${index}.price`]" class="text-xs text-destructive">{{ form.errors[`prices.${index}.price`] }}</p>
+                                    <p v-if="form.errors[`prices.${index}.price`]" class="text-xs text-destructive">{{
+                                        form.errors[`prices.${index}.price`] }}</p>
                                 </div>
                                 <div class="space-y-2">
-                                    <Label :for="'cost_price_' + index">{{ t('common.cost_price') }} <span class="text-xs text-muted-foreground">({{ t('common.optional') }})</span></Label>
+                                    <Label :for="'cost_price_' + index">{{ t('common.cost_price') }} <span
+                                            class="text-xs text-muted-foreground">({{ t('common.optional')
+                                            }})</span></Label>
                                     <div class="relative">
-                                        <ShieldAlert class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input :id="'cost_price_' + index" v-model="priceRow.cost_price" class="pl-9" placeholder="0.00" />
+                                        <ShieldAlert
+                                            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input :id="'cost_price_' + index" v-model="priceRow.cost_price" class="pl-9"
+                                            placeholder="0.00" />
                                     </div>
                                 </div>
                             </div>
@@ -205,22 +194,21 @@ const submit = () => {
                     <div class="space-y-4">
                         <div class="space-y-2">
                             <Label for="status">{{ t('newspapers.account_status') }}</Label>
-                            <Select2
-                                v-model="form.status"
-                                :options="statusOptions"
-                                :placeholder="t('newspapers.select_status')"
-                            />
+                            <Select2 v-model="form.status" :options="statusOptions"
+                                :placeholder="t('newspapers.select_status')" />
                         </div>
                     </div>
                 </div>
 
                 <!-- Actions -->
                 <div class="rounded-2xl border bg-card p-6 shadow-sm">
-                    <Button type="submit" class="w-full rounded-xl py-6 shadow-lg shadow-primary/20" :disabled="form.processing">
+                    <Button type="submit" class="w-full rounded-xl py-6 shadow-lg shadow-primary/20"
+                        :disabled="form.processing">
                         <Save class="mr-2 h-4 w-4" />
                         {{ newspaper ? t('newspapers.update_button') : t('newspapers.create_button') }}
                     </Button>
-                    <Link href="/admin/newspapers" class="mt-3 block text-center text-sm text-muted-foreground hover:text-foreground">
+                    <Link href="/admin/newspapers"
+                        class="mt-3 block text-center text-sm text-muted-foreground hover:text-foreground">
                         {{ t('newspapers.cancel_return') }}
                     </Link>
                 </div>
