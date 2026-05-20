@@ -16,8 +16,8 @@
     <title>{{ $title }} - {{ $dateFrom }} to {{ $dateTo }}</title>
     <style>
         @page {
-            size: A4 landscape;
-            margin: 24px 30px;
+            size: A5 landscape;
+            margin: 10px 12px;
         }
 
         :root {
@@ -35,16 +35,16 @@
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 8pt;
-            line-height: 1.45;
+            line-height: 1.25;
             color: var(--gray-700);
             margin: 0;
             background: #fff;
         }
 
         .header {
-            padding: 0 0 16px;
-            border-bottom: 2px solid var(--gray-200);
-            margin-bottom: 18px;
+            padding: 0 0 5px;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 6px;
         }
 
         .header-content,
@@ -65,12 +65,12 @@
         .header-right {
             text-align: right;
             color: var(--gray-500);
-            font-size: 7.5pt;
+            font-size: 6.5pt;
         }
 
         .report-title {
             color: var(--primary);
-            font-size: 18pt;
+            font-size: 12pt;
             font-weight: 800;
             margin: 0;
             text-transform: uppercase;
@@ -78,76 +78,109 @@
 
         .report-date {
             color: var(--gray-500);
-            font-size: 9pt;
-            margin-top: 4px;
+            font-size: 7.5pt;
+            margin-top: 1px;
         }
 
         .meta-grid {
-            border-spacing: 8px 0;
-            margin: 0 0 18px -8px;
+            border-spacing: 3px 0;
+            margin: 0 0 5px -3px;
         }
 
         .meta-item {
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            padding: 8px 10px;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 2px 4px;
             width: 25%;
+            font-size: 7.5pt;
         }
 
         .summary-grid {
-            border-spacing: 8px 0;
-            margin: 0 0 20px -8px;
+            border-spacing: 3px 0;
+            margin: 0 0 6px -3px;
         }
 
         .summary-item {
-            background: var(--gray-50);
             border: 1px solid var(--gray-200);
-            padding: 10px 12px;
+            padding: 3px 5px;
         }
 
         .label {
             color: var(--gray-500);
-            font-size: 6.5pt;
+            font-size: 6pt;
             font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 1px;
         }
 
         .value {
             color: var(--primary);
-            font-size: 12pt;
+            font-size: 9.5pt;
             font-weight: 800;
         }
 
         .section-title {
             color: var(--primary);
-            font-size: 10pt;
+            font-size: 8pt;
             font-weight: 800;
             text-transform: uppercase;
-            margin: 18px 0 8px;
+            margin: 5px 0 3px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 18px;
+            margin-bottom: 4px;
+            table-layout: fixed;
         }
 
         th {
             background: var(--gray-100);
             color: var(--gray-500);
-            font-size: 7pt;
+            font-size: 8.5pt;
             font-weight: 800;
             text-transform: uppercase;
-            padding: 8px 9px;
+            padding: 4px 3px;
             text-align: left;
             border: 1px solid var(--gray-200);
+            white-space: nowrap;
         }
 
         td {
-            padding: 7px 9px;
+            font-size: 10pt;
+            padding: 4px 3px;
             border: 1px solid var(--gray-200);
+            white-space: nowrap;
         }
+
+        .invoice-report-table th:nth-child(1),
+        .invoice-report-table td:nth-child(1) { width: 8%; }
+        .invoice-report-table th:nth-child(2),
+        .invoice-report-table td:nth-child(2) { width: 12%; }
+        .invoice-report-table th:nth-child(3),
+        .invoice-report-table td:nth-child(3) { width: 30%; }
+        .invoice-report-table th:nth-child(4),
+        .invoice-report-table td:nth-child(4) { width: 10%; }
+        .invoice-report-table th:nth-child(5),
+        .invoice-report-table td:nth-child(5) { width: 7%; }
+        .invoice-report-table th:nth-child(6),
+        .invoice-report-table td:nth-child(6),
+        .invoice-report-table th:nth-child(7),
+        .invoice-report-table td:nth-child(7) { width: 16.5%; }
+
+        .breakdown-table th:nth-child(1),
+        .breakdown-table td:nth-child(1) { width: 34%; }
+        .breakdown-table th:nth-child(2),
+        .breakdown-table td:nth-child(2),
+        .breakdown-table th:nth-child(3),
+        .breakdown-table td:nth-child(3) { width: 8%; }
+        .breakdown-table th:nth-child(4),
+        .breakdown-table td:nth-child(4),
+        .breakdown-table th:nth-child(5),
+        .breakdown-table td:nth-child(5),
+        .breakdown-table th:nth-child(6),
+        .breakdown-table td:nth-child(6) { width: 14%; }
+        .breakdown-table th:nth-child(7),
+        .breakdown-table td:nth-child(7) { width: 8%; }
 
         .tr-even { background: var(--gray-50); }
         .text-right { text-align: right; }
@@ -173,22 +206,18 @@
         .total-row td {
             background: var(--gray-100);
             color: var(--primary);
-            font-weight: 800;
+            font-size: 10pt;
+            font-weight: 700;
         }
 
         .empty {
             text-align: center;
             color: var(--gray-500);
-            padding: 24px;
+            padding: 10px;
         }
 
         .footer {
-            border-top: 1px solid var(--gray-200);
-            margin-top: 22px;
-            padding-top: 10px;
-            text-align: center;
-            color: var(--gray-500);
-            font-size: 7pt;
+            display: none;
         }
     </style>
 </head>
@@ -200,8 +229,8 @@
                 <div class="report-date">{{ $dateFrom }} to {{ $dateTo }}</div>
             </div>
             <div class="header-right">
-                Generated by Newspaper System<br>
-                {{ now()->format('M d, Y h:i A') }}
+                Generated by NewsFlow System<br>
+                {{ now()->format('M d, Y') }}
             </div>
         </div>
     </div>
@@ -232,7 +261,7 @@
                 <div class="value">{{ $report['summary']['total_invoices'] }}</div>
             </div>
             <div class="summary-item">
-                <div class="label">Total Revenue</div>
+                <div class="label">Total Bill</div>
                 <div class="value">Rs. {{ number_format((float) $report['summary']['total_revenue'], 2) }}</div>
             </div>
             @if($showProfit)
@@ -244,14 +273,14 @@
         </div>
 
         <div class="section-title">Invoices</div>
-        <table>
+        <table class="invoice-report-table">
             <thead>
                 <tr>
                     <th># ID</th>
                     <th>Date</th>
                     <th>Shop</th>
                     <th>Status</th>
-                    <th class="text-center">Items</th>
+                    <th class="text-center">Qty</th>
                     <th class="text-right">Amount</th>
                     @if($showProfit)
                         <th class="text-right">Profit 12%</th>
@@ -276,10 +305,13 @@
                 @endforelse
             </tbody>
             @if(count($report['invoices']) > 0)
+                @php
+                    $invoiceTotalQuantity = $report['summary']['total_quantity'] ?? collect($report['invoices'])->sum('items_count');
+                @endphp
                 <tfoot>
                     <tr class="total-row">
                         <td colspan="4">Total</td>
-                        <td class="text-center">{{ $report['summary']['total_invoices'] }}</td>
+                        <td class="text-center">{{ $invoiceTotalQuantity }}</td>
                         <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_revenue'], 2) }}</td>
                         @if($showProfit)
                             <td class="text-right">Rs. {{ number_format((float) $report['summary']['total_profit'], 2) }}</td>
@@ -313,7 +345,7 @@
         </div>
 
         <div class="section-title">Breakdown by Newspaper</div>
-        <table>
+        <table class="breakdown-table">
             <thead>
                 <tr>
                     <th>Newspaper</th>
@@ -372,7 +404,7 @@
         </div>
 
         <div class="section-title">Breakdown by Shop</div>
-        <table>
+        <table class="breakdown-table">
             <thead>
                 <tr>
                     <th>Shop</th>

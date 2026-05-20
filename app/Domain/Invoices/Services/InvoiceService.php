@@ -392,18 +392,21 @@ class InvoiceService
             $invoices = $this->invoiceRepository->getInvoiceList($dateFrom, $dateTo, $shopId, $newspaperId);
 
             $totalAmount = 0;
+            $totalQuantity = 0;
 
-            $invoiceList = $invoices->map(function ($inv) use (&$totalAmount) {
+            $invoiceList = $invoices->map(function ($inv) use (&$totalAmount, &$totalQuantity) {
                 $amount = (float) $inv->total_amount;
                 $profit = round($amount * 0.12, 2);
+                $quantity = (int) $inv->items->sum('quantity');
                 $totalAmount += $amount;
+                $totalQuantity += $quantity;
 
                 return [
                     'id' => $inv->id,
                     'invoice_date' => $inv->invoice_date,
                     'shop_name' => $inv->shop->name,
                     'status' => $inv->status,
-                    'items_count' => $inv->items->count(),
+                    'items_count' => $quantity,
                     'total_amount' => $amount,
                     'profit' => $profit,
                 ];
@@ -416,6 +419,7 @@ class InvoiceService
                 'date_to' => $dateTo,
                 'summary' => [
                     'total_invoices' => $invoices->count(),
+                    'total_quantity' => $totalQuantity,
                     'total_revenue' => $totalAmount,
                     'total_profit' => $totalProfit,
                 ],
