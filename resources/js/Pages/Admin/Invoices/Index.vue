@@ -230,7 +230,7 @@ const isPrinted = (invoice) => {
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div class="relative w-full sm:w-64">
                             <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input v-model="search" type="search" :placeholder="t('invoices.search_placeholder')"
+                            <input v-model="search" type="text" :placeholder="t('invoices.search_placeholder')"
                                 class="w-full h-9 pl-9 pr-4 rounded-lg border bg-secondary/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
                         </div>
                         <div class="relative w-full sm:w-72">
