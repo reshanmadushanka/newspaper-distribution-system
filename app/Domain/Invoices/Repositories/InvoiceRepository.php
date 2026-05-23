@@ -219,10 +219,12 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         return Shop::where('status', 'active')
             ->whereHas('invoices', function ($query) use ($lastWeekDate) {
                 $query->where('invoice_date', $lastWeekDate)
+                    ->where('invoice_type', 'daily')
                     ->whereNull('deleted_at');
             })
             ->whereDoesntHave('invoices', function ($query) use ($targetDate) {
                 $query->where('invoice_date', $targetDate)
+                    ->where('invoice_type', 'daily')
                     ->whereNull('deleted_at');
             })
             ->orderBy('name')

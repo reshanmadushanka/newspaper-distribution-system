@@ -7,10 +7,18 @@ import { createInertiaApp } from '@inertiajs/vue3'
 import Singlish from 'singlish-pro';
 
 window.addEventListener('DOMContentLoaded', () => {
-    new Singlish({
+    const isSinhalaLocale = (locale) => locale?.toLowerCase().startsWith('si')
+    const singlish = new Singlish({
         showUI: false, // Shows the floating toggle button
-        enabled: false // Starts in English mode
+        enabled: isSinhalaLocale(document.documentElement.lang)
     });
+
+    document.addEventListener('inertia:success', (event) => {
+        const locale = event.detail.page.props.locale
+
+        document.documentElement.lang = locale
+        singlish.enabled = isSinhalaLocale(locale)
+    })
 });
 
 createInertiaApp({

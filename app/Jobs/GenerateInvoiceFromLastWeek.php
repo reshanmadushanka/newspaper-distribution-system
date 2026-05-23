@@ -41,6 +41,7 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
         $lastWeekInvoice = Invoice::with(['items'])
             ->where('invoice_date', $lastWeekDate)
             ->where('shop_id', $this->shopId)
+            ->where('invoice_type', 'daily')
             ->first();
 
         if (!$lastWeekInvoice) {
@@ -52,6 +53,7 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
         // Check if invoice already exists for target date
         $existingInvoice = Invoice::where('invoice_date', $this->targetDate)
             ->where('shop_id', $this->shopId)
+            ->where('invoice_type', 'daily')
             ->first();
 
         if ($existingInvoice) {
@@ -70,6 +72,7 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
                 'total_amount' => 0,
                 'status' => 'draft',
                 'notes' => $lastWeekInvoice->notes,
+                'invoice_type' => 'daily',
             ]);
 
             // Create invoice items
