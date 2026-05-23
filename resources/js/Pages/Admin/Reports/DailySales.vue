@@ -27,6 +27,7 @@ const dateRange = ref([
 ])
 const shopId = ref(props.filters.shop_id ? String(props.filters.shop_id) : 'all')
 const newspaperId = ref(props.filters.newspaper_id ? String(props.filters.newspaper_id) : 'all')
+const invoiceType = ref(props.filters.invoice_type ?? '')
 const showProfit = ref(props.filters.show_profit ?? true)
 
 const fetchReport = () => {
@@ -42,6 +43,7 @@ const fetchReport = () => {
         shop_id: shopId.value === 'all' ? null : shopId.value,
         newspaper_id: newspaperId.value === 'all' ? null : newspaperId.value,
         show_profit: showProfit.value ? 1 : 0,
+        invoice_type: invoiceType.value || null,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -60,6 +62,7 @@ const downloadPdf = () => {
         date_from: dateFrom,
         date_to: dateTo,
         show_profit: showProfit.value ? '1' : '0',
+        invoice_type: invoiceType.value || '',
     })
 
     if (shopId.value !== 'all') {
@@ -159,7 +162,18 @@ const newspaperOptions = computed(() => {
                 />
             </div>
 
-            <div class="flex items-end gap-2">
+        <!-- Invoice Type Filter - Show for all report types -->
+        <div>
+            <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{{ t('invoices.invoice_type') }}</label>
+            <select v-model="invoiceType"
+                class="h-9 w-full sm:w-auto rounded-lg border bg-secondary/30 text-sm px-3 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                <option value="">{{ t('invoices.type_all') }}</option>
+                <option value="daily">{{ t('invoices.type_daily') }}</option>
+                <option value="monthly">{{ t('invoices.type_monthly') }}</option>
+            </select>
+        </div>
+
+        <div class="flex items-end gap-2">
                 <Button @click="fetchReport" class="rounded-xl shadow-lg shadow-primary/20">
                     <FileText class="mr-2 h-4 w-4" />
                     {{ t('reports.load_report') }}

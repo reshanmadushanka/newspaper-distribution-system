@@ -30,22 +30,26 @@ class InvoiceController extends Controller
             'search' => 'nullable|string|max:100',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date|after_or_equal:date_from',
+            'invoice_type' => 'nullable|string|in:daily,monthly',
         ]);
 
         $search = trim((string) ($validated['search'] ?? ''));
         $dateFrom = $validated['date_from'] ?? $defaultDateFrom;
         $dateTo = $validated['date_to'] ?? $defaultDateTo;
+        $invoiceType = $validated['invoice_type'] ?? null;
 
         return Inertia::render('Admin/Invoices/Index', [
             'invoices' => $this->invoiceService->getPaginatedInvoices(
                 search: $search,
                 dateFrom: $dateFrom,
-                dateTo: $dateTo
+                dateTo: $dateTo,
+                invoiceType: $invoiceType
             ),
             'filters' => [
                 'search' => $search,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
+                'invoice_type' => $invoiceType,
             ],
         ]);
     }
@@ -128,6 +132,7 @@ class InvoiceController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.return_quantity' => 'nullable|integer|min:0',
+            'invoice_type' => 'nullable|string|in:daily,monthly',
         ]);
 
         $invoice = $this->invoiceService->getInvoiceForEdit($id);
@@ -196,6 +201,7 @@ class InvoiceController extends Controller
             'shop_id' => 'nullable|integer|exists:shops,id',
             'newspaper_id' => 'nullable|integer|exists:newspapers,id',
             'show_profit' => 'nullable|boolean',
+            'invoice_type' => 'nullable|string|in:daily,monthly',
         ]);
 
         $dateFrom = $validated['date_from'] ?? $defaultDateFrom;
@@ -203,11 +209,12 @@ class InvoiceController extends Controller
         $shopId = $validated['shop_id'] ?? null;
         $newspaperId = $validated['newspaper_id'] ?? null;
         $showProfit = $request->has('show_profit') ? $request->boolean('show_profit') : true;
+        $invoiceType = $validated['invoice_type'] ?? null;
 
         return Inertia::render('Admin/Reports/DailySales', [
-            'shopReport' => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId),
-            'newspaperReport' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId),
-            'invoiceReport' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId),
+            'shopReport' => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId, $invoiceType),
+            'newspaperReport' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId, $invoiceType),
+            'invoiceReport' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId, $invoiceType),
             'shops' => Shop::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'newspapers' => Newspaper::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'filters' => [
@@ -216,6 +223,7 @@ class InvoiceController extends Controller
                 'shop_id' => $shopId,
                 'newspaper_id' => $newspaperId,
                 'show_profit' => $showProfit,
+                'invoice_type' => $invoiceType,
             ],
         ]);
     }
@@ -232,6 +240,7 @@ class InvoiceController extends Controller
             'shop_id' => 'nullable|integer|exists:shops,id',
             'newspaper_id' => 'nullable|integer|exists:newspapers,id',
             'show_profit' => 'nullable|boolean',
+            'invoice_type' => 'nullable|string|in:daily,monthly',
         ]);
 
         $reportType = $validated['report_type'] ?? 'by-shop';
@@ -240,10 +249,11 @@ class InvoiceController extends Controller
         $shopId = $validated['shop_id'] ?? null;
         $newspaperId = $validated['newspaper_id'] ?? null;
         $showProfit = $request->has('show_profit') ? $request->boolean('show_profit') : true;
+        $invoiceType = $validated['invoice_type'] ?? null;
 
         $report = match ($reportType) {
             'by-newspaper' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId),
-            'by-invoice' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId),
+            'by-invoice' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId, $invoiceType),
             default => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId),
         };
 

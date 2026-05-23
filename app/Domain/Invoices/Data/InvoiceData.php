@@ -9,6 +9,7 @@ class InvoiceData
         return [
             'invoice_date' => 'required|date',
             'shop_id' => 'required|exists:shops,id',
+            'invoice_type' => 'required|string|in:daily,monthly',
             'notes' => 'nullable|string|max:500',
             'items' => 'required|array|min:1',
             'items.*.newspaper_id' => 'required|exists:newspapers,id',

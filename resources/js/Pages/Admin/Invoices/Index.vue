@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles } from 'lucide-vue-next'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles, Tag } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
@@ -23,13 +23,14 @@ const page = usePage()
 const { props } = page
 const permissions = computed(() => props.auth.user?.permissions ?? [])
 const currentQuery = new URLSearchParams(page.url.split('?')[1] ?? '')
-const hasFilterQuery = ['search', 'date_from', 'date_to'].some((key) => currentQuery.has(key))
+const hasFilterQuery = ['search', 'date_from', 'date_to', 'invoice_type'].some((key) => currentQuery.has(key))
 const rememberedFilters = useSessionStorage('admin.invoices.index.filters', {
     search: componentProps.filters?.search ?? '',
     dateRange: [
         componentProps.filters?.date_from ?? '',
         componentProps.filters?.date_to ?? '',
     ],
+    invoiceType: componentProps.filters?.invoice_type ?? '',
 }, { mergeDefaults: true })
 
 if (hasFilterQuery) {
@@ -39,6 +40,7 @@ if (hasFilterQuery) {
             componentProps.filters?.date_from ?? '',
             componentProps.filters?.date_to ?? '',
         ],
+        invoiceType: componentProps.filters?.invoice_type ?? '',
     }
 }
 
@@ -53,6 +55,13 @@ const dateRange = computed({
     get: () => Array.isArray(rememberedFilters.value.dateRange) ? rememberedFilters.value.dateRange : ['', ''],
     set: (value) => {
         rememberedFilters.value.dateRange = Array.isArray(value) ? value : ['', '']
+    },
+})
+
+const invoiceType = computed({
+    get: () => rememberedFilters.value.invoiceType ?? '',
+    set: (value) => {
+        rememberedFilters.value.invoiceType = value
     },
 })
 let searchTimeout = null
@@ -119,6 +128,7 @@ const reloadInvoices = () => {
         search: search.value || undefined,
         date_from: dateFrom,
         date_to: dateTo,
+        invoice_type: invoiceType.value || undefined,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -132,17 +142,18 @@ onMounted(() => {
     const propDateFrom = componentProps.filters?.date_from ?? ''
     const propDateTo = componentProps.filters?.date_to ?? ''
     const propSearch = componentProps.filters?.search ?? ''
+    const propInvoiceType = componentProps.filters?.invoice_type ?? ''
 
     if (!dateFrom || !dateTo) {
         return
     }
 
-    if (dateFrom !== propDateFrom || dateTo !== propDateTo || search.value !== propSearch) {
+    if (dateFrom !== propDateFrom || dateTo !== propDateTo || search.value !== propSearch || invoiceType.value !== propInvoiceType) {
         reloadInvoices()
     }
 })
 
-watch([search, dateRange], () => {
+watch([search, dateRange, invoiceType], () => {
     clearTimeout(searchTimeout)
 
     searchTimeout = setTimeout(() => {
@@ -227,6 +238,14 @@ const isPrinted = (invoice) => {
                             <Datepicker v-model="dateRange" mode="range" :placeholder="t('invoices.date_range_placeholder')"
                                 class="w-full h-9 pl-9 pr-4 rounded-lg border bg-secondary/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" />
                         </div>
+                        <div class="flex flex-col gap-2">
+                            <select v-model="invoiceType"
+                                class="h-9 w-full sm:w-auto rounded-lg border bg-secondary/30 text-sm px-3 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                                <option value="">{{ t('invoices.type_all') }}</option>
+                                <option value="daily">{{ t('invoices.type_daily') }}</option>
+                                <option value="monthly">{{ t('invoices.type_monthly') }}</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="text-sm text-muted-foreground">
                         {{ t('common.showing') }} {{ invoices?.data?.length ?? 0 }} {{ t('navigation.invoices') }}
@@ -241,6 +260,7 @@ const isPrinted = (invoice) => {
                             <th class="px-6 py-4 text-right">{{ t('common.amount') }}</th>
                             <th class="px-6 py-4">{{ t('common.status') }}</th>
                             <th class="px-6 py-4">{{ t('invoices.printed') }}</th>
+                            <th class="px-6 py-4">{{ t('invoices.invoice_type') }}</th>
                             <th class="px-6 py-4 text-right">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
@@ -282,6 +302,12 @@ const isPrinted = (invoice) => {
                                 </Badge>
                             </td>
                             <td class="px-6 py-4">
+                                <Badge :variant="inv.invoice_type === 'monthly' ? 'warning' : 'secondary'"
+                                    class="rounded-full px-2 py-0 text-[10px] capitalize">
+                                    {{ inv.invoice_type }}
+                                </Badge>
+                            </td>
+                            <td class="px-6 py-4">
                                 <div
                                     class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                                     <Button v-if="canUpdate && inv.status === 'draft'" @click="markAsPaid(inv.id)"
@@ -316,7 +342,7 @@ const isPrinted = (invoice) => {
                             </td>
                         </tr>
                         <tr v-if="!invoices?.data || invoices.data.length === 0">
-                            <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">
+                            <td colspan="8" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
                         </tr>

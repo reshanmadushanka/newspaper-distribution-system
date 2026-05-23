@@ -68,5 +68,9 @@ return [
     'return_amt' => 'ආපසු මුදල',
     'total_items' => 'මුළු අයිතම',
     'total_quantity' => 'මුළු ප්‍රමාණය',
+    'invoice_type' => 'බිල්පත් වර්ගය',
+    'type_daily' => 'දිනපතා',
+    'type_monthly' => 'මාසික',
+    'type_all' => 'සියලු වර්ග',
     'total_amount' => 'මුළු මුදල',
 ];

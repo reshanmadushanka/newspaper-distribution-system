@@ -68,5 +68,9 @@ return [
     'return_amt' => 'Return Amt',
     'total_items' => 'Total Items',
     'total_quantity' => 'Total Quantity',
+    'invoice_type' => 'Invoice Type',
+    'type_daily' => 'Daily',
+    'type_monthly' => 'Monthly',
+    'type_all' => 'All Types',
     'total_amount' => 'Total Amount',
 ];

@@ -285,37 +285,45 @@
 </head>
 <body>
     <!-- Header -->
-    <div class="header">
-        <div class="brand">
-            <div class="brand-name">NEWSPAPER DISTRIBUTION</div>
-            <div class="brand-tagline">Reliable Daily Supply Service</div>
-        </div>
-        <div class="invoice-badge">
-            <div class="invoice-label">INVOICE</div>
-            <div class="invoice-number">#{{ $invoice->id }}</div>
-        </div>
-    </div>
-
-    <!-- Info Cards -->
-    <div class="info-grid">
-        <div class="info-card">
-            <div class="info-label">Billed To</div>
-            <div class="info-value">{{ $invoice->shop->name }}</div>
-            @if($invoice->shop->address)
-            <div class="info-value small" style="color: #64748b; margin-top: 2px;">{{ $invoice->shop->address }}</div>
-            @endif
-        </div>
-        <div class="info-card">
-            <div class="info-label">Invoice Date</div>
-            <div class="info-value">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</div>
-        </div>
-        <div class="info-card">
-            <div class="info-label">Status</div>
-            <div class="info-value">
-                <span class="status-badge status-{{ $invoice->status }}">{{ $invoice->status }}</span>
+        <div class="header">
+            <div class="brand">
+                <div class="brand-name">NEWSPAPER DISTRIBUTION</div>
+                <div class="brand-tagline">Reliable Daily Supply Service</div>
+            </div>
+            <div class="invoice-badge">
+                <div class="invoice-label">INVOICE</div>
+                <div class="invoice-number">#{{ $invoice->id }}</div>
+                <div class="status-badge status-{{ $invoice->invoice_type === 'monthly' ? 'cancelled' : 'paid' }}"
+                     style="margin-top: 4px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px;">
+                    {{ strtoupper($invoice->invoice_type ?? 'daily') }}
+                </div>
             </div>
         </div>
-    </div>
+
+    <!-- Info Cards -->
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">Billed To</div>
+                <div class="info-value">{{ $invoice->shop->name }}</div>
+                @if($invoice->shop->address)
+                <div class="info-value small" style="color: #64748b; margin-top: 2px;">{{ $invoice->shop->address }}</div>
+                @endif
+            </div>
+            <div class="info-card">
+                <div class="info-label">Invoice Type</div>
+                <div class="info-value">{{ strtoupper($invoice->invoice_type ?? 'daily') }}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Invoice Date</div>
+                <div class="info-value">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Status</div>
+                <div class="info-value">
+                    <span class="status-badge status-{{ $invoice->status }}">{{ $invoice->status }}</span>
+                </div>
+            </div>
+        </div>
 
     <!-- Items Table -->
     <div class="table-container">

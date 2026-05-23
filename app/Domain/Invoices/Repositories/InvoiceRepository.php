@@ -15,7 +15,8 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         int $perPage = 10,
         ?string $search = null,
         ?string $dateFrom = null,
-        ?string $dateTo = null
+        ?string $dateTo = null,
+        ?string $invoiceType = null
     ): LengthAwarePaginator {
         $search = trim((string) $search);
         $invoiceId = ltrim($search, '#');
@@ -25,6 +26,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             ->when($dateFrom && $dateTo, function ($query) use ($dateFrom, $dateTo) {
                 $query->whereBetween('invoice_date', [$dateFrom, $dateTo]);
             })
+            ->when($invoiceType, fn($query) => $query->where('invoice_type', $invoiceType))
             ->when($search !== '', function ($query) use ($search, $invoiceId) {
                 $query->where(function ($query) use ($search, $invoiceId) {
                     if (ctype_digit($invoiceId)) {
@@ -42,6 +44,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
                 'search' => $search,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
+                'invoice_type' => $invoiceType,
             ]);
     }
 
@@ -150,20 +153,22 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             ->get();
     }
 
-    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null): Collection
+    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null, ?string $invoiceType = null): Collection
     {
         return Invoice::with(['shop', 'items.newspaper'])
             ->whereBetween('invoice_date', [$dateFrom, $dateTo])
+            ->when($invoiceType, fn($q) => $q->where('invoice_type', $invoiceType))
             ->when($shopId, fn($q) => $q->where('shop_id', $shopId))
             ->orderBy('shop_id')
             ->orderBy('invoice_date')
             ->get();
     }
 
-    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null): Collection
+    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?string $invoiceType = null): Collection
     {
         return InvoiceItem::with(['invoice.shop', 'newspaper'])
-            ->whereHas('invoice', fn($q) => $q->whereBetween('invoice_date', [$dateFrom, $dateTo]))
+            ->whereHas('invoice', fn($q) => $q->whereBetween('invoice_date', [$dateFrom, $dateTo])
+            ->when($invoiceType, fn($inq) => $inq->where('invoice_type', $invoiceType)))
             ->when($newspaperId, fn($q) => $q->where('newspaper_id', $newspaperId))
             ->get();
     }
@@ -172,10 +177,12 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         string $dateFrom,
         string $dateTo,
         ?int $shopId = null,
-        ?int $newspaperId = null
+        ?int $newspaperId = null,
+        ?string $invoiceType = null
     ): Collection {
         return Invoice::with(['shop', 'items'])
             ->whereBetween('invoice_date', [$dateFrom, $dateTo])
+            ->when($invoiceType, fn($q) => $q->where('invoice_type', $invoiceType))
             ->when($shopId, fn($q) => $q->where('shop_id', $shopId))
             ->when($newspaperId, fn($q) => $q->whereHas('items', fn($itemQuery) => $itemQuery->where('newspaper_id', $newspaperId)))
             ->orderBy('invoice_date')

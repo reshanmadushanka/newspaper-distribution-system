@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
-import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, StickyNote, Tags } from 'lucide-vue-next'
+import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, StickyNote, Tags, Calendar } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -29,6 +29,7 @@ const defaultDate = tomorrow.toISOString().split('T')[0]
 const form = useForm({
     invoice_date: isEditing.value ? props.invoice.invoice_date : defaultDate,
     shop_id: isEditing.value ? props.invoice.shop_id : '',
+    invoice_type: isEditing.value ? (props.invoice.invoice_type || 'daily') : 'daily',
     notes: isEditing.value ? (props.invoice.notes || '') : '',
     items: isEditing.value
         ? props.invoice.items.map(item => ({
@@ -268,6 +269,20 @@ const filteredNewspaperOptions = (currentIndex) => {
                             :placeholder="t('invoices.select_shop')"
                         />
                         <p v-if="form.errors.shop_id" class="text-xs text-destructive">{{ form.errors.shop_id }}</p>
+                    </div>
+                </div>
+
+                <!-- Invoice Type -->
+                <div class="border-t pt-4">
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" :value="'daily'" v-model="form.invoice_type" class="w-4 h-4 accent-primary" />
+                            <span class="text-sm font-medium text-foreground">{{ t('invoices.type_daily') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" :value="'monthly'" v-model="form.invoice_type" class="w-4 h-4 accent-primary" />
+                            <span class="text-sm font-medium text-foreground">{{ t('invoices.type_monthly') }}</span>
+                        </label>
                     </div>
                 </div>
 

@@ -29,10 +29,11 @@ class InvoiceService
         int $perPage = 10,
         ?string $search = null,
         ?string $dateFrom = null,
-        ?string $dateTo = null
+        ?string $dateTo = null,
+        ?string $invoiceType = null
     ): LengthAwarePaginator
     {
-        return $this->invoiceRepository->paginate($perPage, $search, $dateFrom, $dateTo);
+        return $this->invoiceRepository->paginate($perPage, $search, $dateFrom, $dateTo, $invoiceType);
     }
 
     public function createInvoice(array $data, int $userId): Invoice
@@ -44,6 +45,7 @@ class InvoiceService
             'total_amount' => 0,
             'status' => 'draft',
             'notes' => $data['notes'] ?? null,
+            'invoice_type' => $data['invoice_type'] ?? 'daily',
         ];
 
         $items = [];
@@ -108,6 +110,7 @@ class InvoiceService
             'invoice_date' => $data['invoice_date'],
             'total_amount' => 0,
             'notes' => $data['notes'] ?? null,
+            'invoice_type' => $data['invoice_type'] ?? null,
         ];
 
         $items = [];
@@ -247,12 +250,12 @@ class InvoiceService
         });
     }
 
-    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null): array
+    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null, ?string $invoiceType = null): array
     {
-        $cacheKey = self::CACHE_KEY_BY_SHOP . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all');
+        $cacheKey = self::CACHE_KEY_BY_SHOP . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all') . '_' . ($invoiceType ?? 'all');
 
-        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId) {
-            $invoices = $this->invoiceRepository->getByShopReport($dateFrom, $dateTo, $shopId);
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId, $invoiceType) {
+            $invoices = $this->invoiceRepository->getByShopReport($dateFrom, $dateTo, $shopId, $invoiceType);
 
             $totalRevenue = 0;
             $totalCost = 0;
@@ -313,12 +316,12 @@ class InvoiceService
         });
     }
 
-    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null): array
+    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?string $invoiceType = null): array
     {
-        $cacheKey = self::CACHE_KEY_BY_NEWSPAPER . "{$dateFrom}_{$dateTo}_" . ($newspaperId ?? 'all');
+        $cacheKey = self::CACHE_KEY_BY_NEWSPAPER . "{$dateFrom}_{$dateTo}_" . ($newspaperId ?? 'all') . '_' . ($invoiceType ?? 'all');
 
-        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $newspaperId) {
-            $items = $this->invoiceRepository->getByNewspaperReport($dateFrom, $dateTo, $newspaperId);
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $newspaperId, $invoiceType) {
+            $items = $this->invoiceRepository->getByNewspaperReport($dateFrom, $dateTo, $newspaperId, $invoiceType);
 
             $totalRevenue = 0;
             $totalCost = 0;
@@ -383,13 +386,14 @@ class InvoiceService
         string $dateFrom,
         string $dateTo,
         ?int $shopId = null,
-        ?int $newspaperId = null
+        ?int $newspaperId = null,
+        ?string $invoiceType = null
     ): array
     {
-        $cacheKey = self::CACHE_KEY_INVOICE_LIST . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all') . '_' . ($newspaperId ?? 'all');
+        $cacheKey = self::CACHE_KEY_INVOICE_LIST . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all') . '_' . ($newspaperId ?? 'all') . '_' . ($invoiceType ?? 'all');
 
-        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId, $newspaperId) {
-            $invoices = $this->invoiceRepository->getInvoiceList($dateFrom, $dateTo, $shopId, $newspaperId);
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId, $newspaperId, $invoiceType) {
+            $invoices = $this->invoiceRepository->getInvoiceList($dateFrom, $dateTo, $shopId, $newspaperId, $invoiceType);
 
             $totalAmount = 0;
             $totalQuantity = 0;
