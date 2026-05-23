@@ -18,7 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'printed_at',
     'notes',
     'return_total_amount',
-    'total_net_amount'
+    'total_net_amount',
+    'invoice_type',
 ])]
 class Invoice extends Model
 {

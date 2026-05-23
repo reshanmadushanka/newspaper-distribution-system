@@ -1,15 +1,18 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles } from 'lucide-vue-next'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles, Tag } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Datepicker } from '@/Components/ui/datepicker'
+import { useTranslation } from '@/Composables/useTranslation'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useSessionStorage } from '@vueuse/core'
 import Swal from 'sweetalert2'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm.js'
 import AutoGenerateInvoiceModal from '@/Components/Admin/AutoGenerateInvoiceModal.vue'
+
+const { t } = useTranslation()
 
 const componentProps = defineProps({
     invoices: Object,
@@ -20,13 +23,14 @@ const page = usePage()
 const { props } = page
 const permissions = computed(() => props.auth.user?.permissions ?? [])
 const currentQuery = new URLSearchParams(page.url.split('?')[1] ?? '')
-const hasFilterQuery = ['search', 'date_from', 'date_to'].some((key) => currentQuery.has(key))
+const hasFilterQuery = ['search', 'date_from', 'date_to', 'invoice_type'].some((key) => currentQuery.has(key))
 const rememberedFilters = useSessionStorage('admin.invoices.index.filters', {
     search: componentProps.filters?.search ?? '',
     dateRange: [
         componentProps.filters?.date_from ?? '',
         componentProps.filters?.date_to ?? '',
     ],
+    invoiceType: componentProps.filters?.invoice_type ?? '',
 }, { mergeDefaults: true })
 
 if (hasFilterQuery) {
@@ -36,6 +40,7 @@ if (hasFilterQuery) {
             componentProps.filters?.date_from ?? '',
             componentProps.filters?.date_to ?? '',
         ],
+        invoiceType: componentProps.filters?.invoice_type ?? '',
     }
 }
 
@@ -50,6 +55,13 @@ const dateRange = computed({
     get: () => Array.isArray(rememberedFilters.value.dateRange) ? rememberedFilters.value.dateRange : ['', ''],
     set: (value) => {
         rememberedFilters.value.dateRange = Array.isArray(value) ? value : ['', '']
+    },
+})
+
+const invoiceType = computed({
+    get: () => rememberedFilters.value.invoiceType ?? '',
+    set: (value) => {
+        rememberedFilters.value.invoiceType = value
     },
 })
 let searchTimeout = null
@@ -68,11 +80,11 @@ const handleAutoGenerateComplete = () => {
     reloadInvoices()
 }
 
-const { confirmDelete } = useDeleteConfirm('This will permanently delete the invoice and all its items.')
+const { confirmDelete } = useDeleteConfirm(t('common.cannot_undo') + ' ' + t('invoices.delete_confirm'))
 
 const handleDelete = (id) => {
     confirmDelete(() => router.delete(`/admin/invoices/${id}`, {
-        onError: (errors) => Swal.fire('Error!', Object.values(errors)[0], 'error'),
+        onError: (errors) => Swal.fire(t('common.error') + '!', Object.values(errors)[0], 'error'),
     }))
 }
 
@@ -116,6 +128,7 @@ const reloadInvoices = () => {
         search: search.value || undefined,
         date_from: dateFrom,
         date_to: dateTo,
+        invoice_type: invoiceType.value || undefined,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -129,17 +142,18 @@ onMounted(() => {
     const propDateFrom = componentProps.filters?.date_from ?? ''
     const propDateTo = componentProps.filters?.date_to ?? ''
     const propSearch = componentProps.filters?.search ?? ''
+    const propInvoiceType = componentProps.filters?.invoice_type ?? ''
 
     if (!dateFrom || !dateTo) {
         return
     }
 
-    if (dateFrom !== propDateFrom || dateTo !== propDateTo || search.value !== propSearch) {
+    if (dateFrom !== propDateFrom || dateTo !== propDateTo || search.value !== propSearch || invoiceType.value !== propInvoiceType) {
         reloadInvoices()
     }
 })
 
-watch([search, dateRange], () => {
+watch([search, dateRange, invoiceType], () => {
     clearTimeout(searchTimeout)
 
     searchTimeout = setTimeout(() => {
@@ -152,12 +166,12 @@ onUnmounted(() => {
 })
 
 const markAsPaid = (id) => {
-    const { confirmDelete: confirmMarkPaid } = useDeleteConfirm('This will mark the invoice as paid.')
+    const { confirmDelete: confirmMarkPaid } = useDeleteConfirm(t('invoices.mark_paid_confirm'))
     confirmMarkPaid(() => router.patch(`/admin/invoices/${id}/mark-paid`, {}, {
         onSuccess: () => {
             Swal.fire({
-                title: 'Paid!',
-                text: 'Invoice has been marked as paid.',
+                title: t('invoices.paid') + '!',
+                text: t('invoices.marked_paid_message'),
                 icon: 'success',
                 timer: 2000,
                 showConfirmButton: false,
@@ -182,15 +196,15 @@ const isPrinted = (invoice) => {
 
 <template>
 
-    <Head title="Invoices" />
+    <Head :title="t('navigation.invoices')" />
     <AdminLayout>
         <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <div class="flex items-center gap-2 text-primary">
                     <FileText class="h-6 w-6" />
-                    <h2 class="text-2xl font-bold tracking-tight">Invoices</h2>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ t('navigation.invoices') }}</h2>
                 </div>
-                <p class="text-muted-foreground">Manage distribution invoices.</p>
+                <p class="text-muted-foreground">{{ t('invoices.manage_description') }}</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <Button v-if="canAutoGenerate"
@@ -199,12 +213,12 @@ const isPrinted = (invoice) => {
                     class="rounded-xl px-5 shadow-lg shadow-purple-500/10 transition-all hover:-translate-y-0.5 border-purple-300 hover:bg-purple-50"
                 >
                     <Sparkles class="mr-2 h-4 w-4 text-purple-600" />
-                    Auto-Generate
+                    {{ t('invoices.auto_generate') }}
                 </Button>
                 <Link v-if="canCreate" href="/admin/invoices/create">
                     <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
                         <Plus class="mr-2 h-4 w-4" />
-                        Create Invoice
+                        {{ t('invoices.create_invoice') }}
                     </Button>
                 </Link>
             </div>
@@ -216,29 +230,38 @@ const isPrinted = (invoice) => {
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div class="relative w-full sm:w-64">
                             <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input v-model="search" type="search" placeholder="Search invoice or shop..."
+                            <input v-model="search" type="search" :placeholder="t('invoices.search_placeholder')"
                                 class="w-full h-9 pl-9 pr-4 rounded-lg border bg-secondary/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
                         </div>
                         <div class="relative w-full sm:w-72">
                             <CalendarDays class="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Datepicker v-model="dateRange" mode="range" placeholder="Select invoice date range"
+                            <Datepicker v-model="dateRange" mode="range" :placeholder="t('invoices.date_range_placeholder')"
                                 class="w-full h-9 pl-9 pr-4 rounded-lg border bg-secondary/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" />
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <select v-model="invoiceType"
+                                class="h-9 w-full sm:w-auto rounded-lg border bg-secondary/30 text-sm px-3 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                                <option value="">{{ t('invoices.type_all') }}</option>
+                                <option value="daily">{{ t('invoices.type_daily') }}</option>
+                                <option value="monthly">{{ t('invoices.type_monthly') }}</option>
+                            </select>
                         </div>
                     </div>
                     <div class="text-sm text-muted-foreground">
-                        Showing {{ invoices?.data?.length ?? 0 }} invoices
+                        {{ t('common.showing') }} {{ invoices?.data?.length ?? 0 }} {{ t('navigation.invoices') }}
                     </div>
                 </div>
                 <table class="w-full text-sm text-left">
                     <thead class="bg-secondary/30 text-muted-foreground uppercase text-[10px] font-bold tracking-wider">
                         <tr>
-                            <th class="px-6 py-4">Invoice</th>
-                            <th class="px-6 py-4">Shop</th>
-                            <th class="px-6 py-4">Date</th>
-                            <th class="px-6 py-4 text-right">Amount</th>
-                            <th class="px-6 py-4">Status</th>
-                            <th class="px-6 py-4">Printed</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                            <th class="px-6 py-4">{{ t('invoices.invoice') }}</th>
+                            <th class="px-6 py-4">{{ t('invoices.shop') }}</th>
+                            <th class="px-6 py-4">{{ t('common.date') }}</th>
+                            <th class="px-6 py-4 text-right">{{ t('common.amount') }}</th>
+                            <th class="px-6 py-4">{{ t('common.status') }}</th>
+                            <th class="px-6 py-4">{{ t('invoices.printed') }}</th>
+                            <th class="px-6 py-4">{{ t('invoices.invoice_type') }}</th>
+                            <th class="px-6 py-4 text-right">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/50">
@@ -279,6 +302,12 @@ const isPrinted = (invoice) => {
                                 </Badge>
                             </td>
                             <td class="px-6 py-4">
+                                <Badge :variant="inv.invoice_type === 'monthly' ? 'warning' : 'secondary'"
+                                    class="rounded-full px-2 py-0 text-[10px] capitalize">
+                                    {{ inv.invoice_type }}
+                                </Badge>
+                            </td>
+                            <td class="px-6 py-4">
                                 <div
                                     class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                                     <Button v-if="canUpdate && inv.status === 'draft'" @click="markAsPaid(inv.id)"
@@ -313,7 +342,7 @@ const isPrinted = (invoice) => {
                             </td>
                         </tr>
                         <tr v-if="!invoices?.data || invoices.data.length === 0">
-                            <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">
+                            <td colspan="8" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
                         </tr>

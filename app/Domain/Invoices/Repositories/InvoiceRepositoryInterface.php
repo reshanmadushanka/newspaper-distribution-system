@@ -12,7 +12,8 @@ interface InvoiceRepositoryInterface
         int $perPage = 10,
         ?string $search = null,
         ?string $dateFrom = null,
-        ?string $dateTo = null
+        ?string $dateTo = null,
+        ?string $invoiceType = null
     ): LengthAwarePaginator;
 
     public function find(int $id): ?Invoice;
@@ -35,13 +36,14 @@ interface InvoiceRepositoryInterface
 
     public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null): Collection;
 
-    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null): Collection;
+    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?string $invoiceType = null): Collection;
 
     public function getInvoiceList(
         string $dateFrom,
         string $dateTo,
         ?int $shopId = null,
-        ?int $newspaperId = null
+        ?int $newspaperId = null,
+        ?string $invoiceType = null
     ): Collection;
 
     public function existsByDateAndShop(string $date, int $shopId, ?int $excludeId = null): bool;

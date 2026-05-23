@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'shops' => 'Shops',
+    'create_shop' => 'Create Shop',
+    'edit_shop' => 'Edit Shop',
+    'shop_name' => 'Shop Name',
+    'owner_name' => 'Owner Name',
+    'address' => 'Address',
+    'phone' => 'Phone',
+    'create_new' => 'Create New Shop',
+    'fill_create' => 'Fill in the details to register a new shop.',
+    'fill_update' => 'Fill in the details to update the shop.',
+    'type_shop_name' => 'Type shop name...',
+    'type_owner_name' => 'Type owner name...',
+    'type_address' => 'Type address...',
+    'type_phone' => 'Type phone number...',
+    'create_button' => 'Create Shop',
+    'update_button' => 'Update Shop',
+    'cancel_return' => 'Cancel and return',
+    'manage_description' => 'Manage distribution points, contacts and credit limits.',
+    'shop_info' => 'Shop Info',
+    'contact' => 'Contact',
+    'delete_failed' => 'Failed to delete shop.',
+    'no_shops_message' => 'No shops found. Click "Add shop" to get started.',
+];

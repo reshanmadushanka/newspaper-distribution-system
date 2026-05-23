@@ -8,10 +8,13 @@ import {
 
 import { computed, ref, onMounted } from 'vue'
 import Toast from '@/Components/Toast.vue'
+import LanguageSwitcher from '@/Components/LanguageSwitcher.vue'
+import { useTranslation } from '@/Composables/useTranslation'
 
 const page = usePage()
 const permissions = page.props.auth.user?.permissions ?? []
 const user = computed(() => page.props.auth.user)
+const { t } = useTranslation()
 
 const isMobileMenuOpen = ref(false)
 const expandedGroups = ref(['Access Management']) // Default expanded
@@ -24,71 +27,71 @@ const toggleGroup = (title) => {
     }
 }
 
-const menuGroups = computed(() => [
+const getMenuGroups = () => [
     {
-        title: 'Overview',
+        title: t('navigation.dashboard'),
         type: 'item',
-        label: 'Dashboard',
+        label: t('navigation.dashboard'),
         href: '/dashboard',
         icon: LayoutDashboard,
         permission: 'view dashboard'
     },
     {
-        title: 'Shops',
+        title: t('navigation.shops'),
         type: 'item',
-        label: 'Shops',
+        label: t('navigation.shops'),
         href: '/admin/shops',
         icon: Store,
         permission: 'manage shops'
     },
     {
-        title: 'News Papers',
+        title: t('navigation.newspapers'),
         type: 'item',
-        label: 'News Papers',
+        label: t('navigation.newspapers'),
         href: '/admin/newspapers',
         icon: Newspaper,
         permission: 'manage newspapers'
     },
     {
-        title: 'Invoices',
+        title: t('navigation.invoices'),
         type: 'item',
-        label: 'Invoices',
+        label: t('navigation.invoices'),
         href: '/admin/invoices',
         icon: FileText,
         permission: 'manage invoices'
     },
     {
-        title: 'Reports',
+        title: t('navigation.reports'),
         type: 'item',
-        label: 'Sales Report',
+        label: t('navigation.sales_report'),
         href: '/admin/reports/daily-sales',
         icon: BarChart3,
         permission: 'view daily sales'
     },
     {
-        title: 'System Invoices',
+        title: t('navigation.system_invoices'),
         type: 'item',
-        label: 'System Invoices',
+        label: t('navigation.system_invoices'),
         href: '/admin/system-invoices',
         icon: FileText,
         permission: 'manage system invoices'
     },
     {
-        title: 'My Payments',
+        title: t('navigation.my_payments'),
         type: 'item',
-        label: 'My Payments',
+        label: t('navigation.my_payments'),
         href: '/admin/payments/pending',
         icon: Bell,
         permission: null // All logged-in users can see their payments
     },
     {
-        title: 'Access Management',
+        title: t('navigation.access_management'),
         type: 'group',
         icon: Lock,
         items: [
-            { label: 'Users', href: '/admin/users', icon: Users, permission: 'manage users' },
-            { label: 'Roles', href: '/admin/roles', icon: Shield, permission: 'manage roles' },
-            { label: 'Permissions', href: '/admin/permissions', icon: KeyRound, permission: 'manage permissions' },
+            { label: t('navigation.users'), href: '/admin/users', icon: Users, permission: 'manage users' },
+            { label: t('navigation.roles'), href: '/admin/roles', icon: Shield, permission: 'manage roles' },
+            { label: t('navigation.permissions'), href: '/admin/permissions', icon: KeyRound, permission: 'manage permissions' },
         ]
 
     }
@@ -103,7 +106,9 @@ const menuGroups = computed(() => [
 }).filter(group => {
     if (group.type === 'group') return group.items.length > 0
     return !group.permission || permissions.includes(group.permission)
-}))
+})
+
+const menuGroups = computed(() => getMenuGroups())
 
 const isActive = (href) => page.url.startsWith(href)
 const isGroupActive = (items) => items.some(item => isActive(item.href))
@@ -234,12 +239,15 @@ onMounted(() => {
                         <!-- Search Bar -->
                         <div class="relative hidden sm:block">
                             <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input type="text" placeholder="Quick Search..."
+                            <input type="text" :placeholder="t('common.quick_search')"
                                 class="h-9 w-64 rounded-full border bg-secondary/50 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary/50 focus:bg-card focus:ring-4 focus:ring-primary/5" />
                         </div>
                     </div>
 
                     <div class="flex items-center gap-3">
+                        <!-- Language Switcher -->
+                        <LanguageSwitcher />
+
                         <button
                             class="relative rounded-full p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground focus:outline-none">
                             <Bell class="h-5 w-5" />
@@ -253,7 +261,7 @@ onMounted(() => {
                                 class="h-7 w-7 rounded-full bg-destructive/10 text-destructive flex items-center justify-center group-hover:bg-white/20 group-hover:text-white transition-colors">
                                 <LogOut class="h-4 w-4" />
                             </div>
-                            <span class="text-xs font-bold">Logout</span>
+                            <span class="text-xs font-bold">{{ t('common.logout') }}</span>
                         </Link>
                     </div>
                 </div>

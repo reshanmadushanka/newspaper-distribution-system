@@ -180,6 +180,15 @@ Future modules:
 - Print invoice or billing note.
 - Lock confirmed invoices from casual editing.
 
+### 6.4.1 Monthly Invoice
+
+- Create monthly invoices for any specific shop.
+- Same shop can have separate invoices for different newspapers (mixed within a single monthly invoice).
+- A `invoice_type` field (`daily` | `monthly`) records whether an invoice is a daily dispatch or a monthly summary.
+- Invoice list page has a filter to view daily only, monthly only, or both.
+- When creating/editing an invoice, the user selects daily or monthly before adding items.
+- Monthly invoices share the same shop-newspaper-item structure as daily invoices — only the business context (monthly billing period) differs.
+
 ### 6.5 Forecasting
 
 - Suggest tomorrow quantities based on historical sales.
@@ -371,6 +380,7 @@ Usability:
 |---|---|---|
 | id | bigserial pk | Primary key |
 | invoice_no | varchar unique | Generated sequence |
+| invoice_type | varchar(20) default 'daily' | `daily` or `monthly` |
 | shop_id | bigint fk | Shop |
 | route_id | bigint nullable fk | Snapshot/helper |
 | invoice_date | date | Business invoice date |
@@ -1045,6 +1055,7 @@ CREATE INDEX idx_invoices_shop_date ON invoices(shop_id, invoice_date);
 CREATE INDEX idx_invoices_dispatch_date ON invoices(dispatch_date);
 CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE UNIQUE INDEX idx_invoices_invoice_no ON invoices(invoice_no);
+CREATE INDEX idx_invoices_invoice_type ON invoices(invoice_type);
 
 CREATE INDEX idx_invoice_items_invoice_id ON invoice_items(invoice_id);
 CREATE INDEX idx_invoice_items_newspaper_id ON invoice_items(newspaper_id);
@@ -1304,10 +1315,13 @@ Technical scalability:
 ### Phase 3: Invoicing
 
 - Forecast-assisted invoice creation.
+- Daily invoice creation with invoice type selection (daily/monthly).
 - Draft/confirm workflow.
 - Invoice item snapshots.
+- Monthly invoice support — same shop, different newspapers grouped by month.
+- Invoice list separated by daily/monthly type with optional filter.
 - Invoice printing.
-- Invoice delivery by email and WhatsApp.
+- Invoice delivery options: print, email, and WhatsApp.
 - Daily dispatch report.
 
 ### Phase 4: Returns
@@ -1478,6 +1492,11 @@ Frontend:
 - `printed`
 - `cancelled`
 - `reversed`
+
+`InvoiceType`:
+
+- `daily`
+- `monthly`
 
 `InvoiceDeliveryChannel`:
 
