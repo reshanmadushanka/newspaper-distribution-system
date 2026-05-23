@@ -5,7 +5,10 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm'
+import { useTranslation } from '@/Composables/useTranslation'
 import { onUnmounted, ref, watch } from 'vue'
+
+const { t } = useTranslation()
 
 const props = defineProps({
     newspapers: Object,
@@ -18,7 +21,7 @@ const props = defineProps({
 const search = ref(props.filters?.search ?? '')
 let searchTimeout = null
 
-const { deleting, confirmDelete } = useDeleteConfirm('This action cannot be undone. This will permanently delete the newspaper.')
+const { deleting, confirmDelete } = useDeleteConfirm(t('common.cannot_undo') + ' ' + t('common.delete_confirm'))
 
 const reloadNewspapers = () => {
     router.get('/admin/newspapers', {
@@ -47,7 +50,7 @@ const handleDelete = (newspaperId) => {
     confirmDelete(() =>
         router.delete(`/admin/newspapers/${newspaperId}`, {
             onError: (errors) => {
-                Swal.fire('Error!', Object.values(errors)[0] || 'Failed to delete newspaper.', 'error')
+                Swal.fire(t('common.error') + '!', Object.values(errors)[0] || 'Failed to delete newspaper.', 'error')
             }
         })
     )
@@ -65,20 +68,20 @@ const languageVariant = (lang) => {
 
 <template>
 
-    <Head title="Newspapers" />
+    <Head :title="t('navigation.newspapers')" />
     <AdminLayout>
         <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <div class="flex items-center gap-2 text-primary">
                     <Newspaper class="h-6 w-6" />
-                    <h2 class="text-2xl font-bold tracking-tight">Newspapers</h2>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ t('navigation.newspapers') }}</h2>
                 </div>
-                <p class="text-muted-foreground">Manage newspaper catalog, languages and pricing.</p>
+                <p class="text-muted-foreground">{{ t('newspapers.manage_description') }}</p>
             </div>
             <Link v-if="canCreate" href="/admin/newspapers/create">
                 <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
                     <Plus class="mr-2 h-4 w-4" />
-                    Add newspaper
+                    {{ t('common.create') }} {{ t('navigation.newspapers') }}
                 </Button>
             </Link>
         </div>
@@ -89,24 +92,24 @@ const languageVariant = (lang) => {
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div class="relative w-full sm:w-64">
                             <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input v-model="search" type="search" placeholder="Search newspaper by name..."
+                            <input v-model="search" type="search" :placeholder="t('newspapers.search_placeholder')"
                                 class="w-full h-9 pl-9 pr-4 rounded-lg border bg-secondary/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
                         </div>
                     </div>
                     <div class="text-sm text-muted-foreground">
-                        Showing {{ newspapers.data.length }} Newspapers
+                        {{ t('common.showing') }} {{ newspapers.data.length }} {{ t('navigation.newspapers') }}
                     </div>
                 </div>
                 <table class="w-full text-sm text-left">
                     <thead class="bg-secondary/30 text-muted-foreground uppercase text-[10px] font-bold tracking-wider">
                         <tr>
-                            <th class="px-6 py-4">Newspaper</th>
-                            <th class="px-6 py-4">Language</th>
-                            <th class="px-6 py-4">Publication</th>
-                            <th class="px-6 py-4">Price</th>
-                            <th class="px-6 py-4">Cost</th>
-                            <th class="px-6 py-4">Price Variants</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                            <th class="px-6 py-4">{{ t('common.name') }}</th>
+                            <th class="px-6 py-4">{{ t('newspapers.language') }}</th>
+                            <th class="px-6 py-4">{{ t('newspapers.frequency') }}</th>
+                            <th class="px-6 py-4">{{ t('common.price') }}</th>
+                            <th class="px-6 py-4">{{ t('common.cost_price') }}</th>
+                            <th class="px-6 py-4">{{ t('newspapers.price_variants') }}</th>
+                            <th class="px-6 py-4 text-right">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/50">

@@ -4,9 +4,12 @@ import { Plus, Pencil, Trash2, Store, Search, MapPin, Phone, Mail } from 'lucide
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { useTranslation } from '@/Composables/useTranslation'
 import { computed } from 'vue'
 import Swal from 'sweetalert2'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm'
+
+const { t } = useTranslation()
 
 defineProps({
     shops: Object,
@@ -19,13 +22,13 @@ const canEdit = computed(() => permissions.value.includes('edit shops') || permi
 const canDelete = computed(() => permissions.value.includes('delete shops') || permissions.value.includes('manage shops'))
 const canCreate = computed(() => permissions.value.includes('create shops') || permissions.value.includes('manage shops'))
 
-const { deleting, confirmDelete } = useDeleteConfirm('This action cannot be undone. This will permanently delete the Shop')
+const { deleting, confirmDelete } = useDeleteConfirm(t('common.cannot_undo') + ' ' + t('common.delete_confirm'))
 
 const handleDelete = (shopId) => {
-    confirmDelete(() => 
+    confirmDelete(() =>
         router.delete(`/admin/shops/${shopId}`, {
             onError: (errors) => {
-                Swal.fire('Error!', Object.values(errors)[0] || 'Failed to delete shop.', 'error')
+                Swal.fire(t('common.error') + '!', Object.values(errors)[0] || t('shops.delete_failed'), 'error')
             }
         })
     )
@@ -33,20 +36,20 @@ const handleDelete = (shopId) => {
 </script>
 
 <template>
-    <Head title="Shops" />
+    <Head :title="t('navigation.shops')" />
     <AdminLayout>
         <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <div class="flex items-center gap-2 text-primary">
                     <Store class="h-6 w-6" />
-                    <h2 class="text-2xl font-bold tracking-tight">Shops</h2>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ t('navigation.shops') }}</h2>
                 </div>
-                <p class="text-muted-foreground">Manage distribution points, contacts and credit limits.</p>
+                <p class="text-muted-foreground">{{ t('shops.manage_description') }}</p>
             </div>
             <Link v-if="canCreate" href="/admin/shops/create">
                 <Button class="rounded-xl px-5 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
                     <Plus class="mr-2 h-4 w-4" />
-                    Add shop
+                    {{ t('common.create') }} {{ t('navigation.shops') }}
                 </Button>
             </Link>
         </div>
@@ -56,10 +59,10 @@ const handleDelete = (shopId) => {
                 <table class="w-full text-sm text-left">
                     <thead class="bg-secondary/30 text-muted-foreground uppercase text-[10px] font-bold tracking-wider">
                         <tr>
-                            <th class="px-6 py-4">Shop Info</th>
-                            <th class="px-6 py-4">Contact</th>
-                            <th class="px-6 py-4">Status</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                            <th class="px-6 py-4">{{ t('shops.shop_info') }}</th>
+                            <th class="px-6 py-4">{{ t('shops.contact') }}</th>
+                            <th class="px-6 py-4">{{ t('common.status') }}</th>
+                            <th class="px-6 py-4 text-right">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/50">
@@ -103,7 +106,7 @@ const handleDelete = (shopId) => {
                         </tr>
                         <tr v-if="shops.data.length === 0">
                             <td colspan="6" class="px-6 py-12 text-center text-muted-foreground italic">
-                                No shops found. Click "Add shop" to get started.
+                                {{ t('shops.no_shops_message') }}
                             </td>
                         </tr>
                     </tbody>

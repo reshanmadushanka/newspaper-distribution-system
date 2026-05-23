@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import { useTranslation } from '@/Composables/useTranslation'
 import {
     Users,
     Shield,
@@ -16,6 +17,8 @@ import {
     AlertCircle,
     Check
 } from 'lucide-vue-next'
+
+const { t } = useTranslation()
 
 const props = defineProps({
     stats: Array,
@@ -37,11 +40,11 @@ const iconMap = {
 
 <template>
 
-    <Head title="Dashboard" />
+    <Head :title="t('navigation.dashboard')" />
     <AdminLayout>
         <div class="mb-8">
-            <h2 class="text-3xl font-bold tracking-tight">Welcome back, Admin!</h2>
-            <p class="text-muted-foreground mt-1">Here's what's happening with your distribution system today.</p>
+            <h2 class="text-3xl font-bold tracking-tight">{{ t('dashboard.welcome_back') }}</h2>
+            <p class="text-muted-foreground mt-1">{{ t('dashboard.description') }}</p>
         </div>
 
         <!-- Pending Payments Alert -->
@@ -50,15 +53,15 @@ const iconMap = {
                 <AlertCircle class="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
                 <div class="flex-1">
                     <h3 class="text-lg font-bold text-yellow-900 mb-1">
-                        ⚠️ Payment Due: {{ systemInvoiceStats.pending_count }} invoice{{ systemInvoiceStats.pending_count !== 1 ? 's' : '' }}
+                        ⚠️ {{ t('dashboard.payment_due', { count: systemInvoiceStats.pending_count }) }}
                     </h3>
                     <p class="text-yellow-800 mb-4">
-                        You have pending invoices totaling <span class="font-bold">Rs. {{ Number(systemInvoiceStats.pending_amount).toFixed(2) }}</span> that need your attention.
+                        {{ t('dashboard.pending_invoices_message', { amount: Number(systemInvoiceStats.pending_amount).toFixed(2) }) }}
                     </p>
                     <Link href="/admin/payments/pending">
                         <button class="px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium hover:bg-yellow-700 transition-colors inline-flex items-center gap-2">
                             <Check class="h-4 w-4" />
-                            View & Pay Now
+                            {{ t('dashboard.view_pay_now') }}
                         </button>
                     </Link>
                 </div>
@@ -90,8 +93,8 @@ const iconMap = {
             <!-- Recent Activity -->
             <div class="lg:col-span-2 rounded-2xl border bg-card p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold">Recent Distributions</h3>
-                    <button class="text-sm font-medium text-primary hover:underline">View all</button>
+                    <h3 class="text-lg font-bold">{{ t('dashboard.recent_distributions') }}</h3>
+                    <button class="text-sm font-medium text-primary hover:underline">{{ t('common.view_all') }}</button>
                 </div>
                 <div class="space-y-4">
                     <div v-for="invoice in recentInvoices" :key="invoice.id"
@@ -114,7 +117,7 @@ const iconMap = {
                         </div>
                     </div>
                     <div v-if="recentInvoices.length === 0" class="text-center py-8 text-muted-foreground">
-                        No recent distributions found.
+                        {{ t('dashboard.no_recent_distributions') }}
                     </div>
                 </div>
             </div>
@@ -122,27 +125,26 @@ const iconMap = {
             <!-- Quick Actions / Tips -->
             <div class="space-y-6">
                 <div class="rounded-2xl bg-primary p-6 text-primary-foreground shadow-lg shadow-primary/20">
-                    <h3 class="text-lg font-bold mb-2">Upgrade to Pro</h3>
-                    <p class="text-sm opacity-90 mb-4">Get access to advanced analytics and automated distribution
-                        routing.</p>
+                    <h3 class="text-lg font-bold mb-2">{{ t('dashboard.upgrade_pro') }}</h3>
+                    <p class="text-sm opacity-90 mb-4">{{ t('dashboard.upgrade_description') }}</p>
                     <button
                         class="w-full py-2.5 rounded-xl bg-white text-primary font-bold text-sm transition-transform hover:scale-[1.02] active:scale-[0.98]">
-                        Learn More
+                        {{ t('dashboard.learn_more') }}
                     </button>
                 </div>
 
                 <div class="rounded-2xl border bg-card p-6 shadow-sm">
-                    <h3 class="text-lg font-bold mb-4">Quick Actions</h3>
+                    <h3 class="text-lg font-bold mb-4">{{ t('dashboard.quick_actions') }}</h3>
                     <div class="grid grid-cols-2 gap-3">
                         <Link :href="'/admin/shops'"
                             class="flex flex-col items-center justify-center p-4 rounded-xl bg-secondary/50 hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/20">
                             <Store class="h-5 w-5 mb-2" />
-                            <span class="text-xs font-medium">Manage Shops</span>
+                            <span class="text-xs font-medium">{{ t('navigation.manage_shops') }}</span>
                         </Link>
                         <Link :href="'/admin/invoices'"
                             class="flex flex-col items-center justify-center p-4 rounded-xl bg-secondary/50 hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/20">
                             <FileText class="h-5 w-5 mb-2" />
-                            <span class="text-xs font-medium">New Invoice</span>
+                            <span class="text-xs font-medium">{{ t('invoices.create_invoice') }}</span>
                         </Link>
                     </div>
                 </div>
