@@ -8,7 +8,7 @@ import Singlish from 'singlish-pro';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Singlish({
-        showUI: true, // Shows the floating toggle button
+        showUI: false, // Shows the floating toggle button
         enabled: false // Starts in English mode
     });
 });
