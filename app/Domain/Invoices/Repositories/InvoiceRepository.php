@@ -132,7 +132,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             $totalReturnAmount = array_sum(array_column($invoiceItems, 'return_total_price'));
             $invoice->update([
                 'total_amount' => $totalAmount,
-                'total_net_amount' => $totalAmount - $totalReturnAmount,
+                'total_net_amount' => $totalAmount - $totalReturnAmount + (float)($invoiceData['previous_deficit'] ?? 0) - (float)($invoiceData['special_discount'] ?? 0),
                 'return_total_amount' => $totalReturnAmount
             ]);
 

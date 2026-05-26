@@ -31,6 +31,8 @@ const form = useForm({
     shop_id: isEditing.value ? props.invoice.shop_id : '',
     invoice_type: isEditing.value ? (props.invoice.invoice_type || 'daily') : 'daily',
     notes: isEditing.value ? (props.invoice.notes || '') : '',
+    previous_deficit: isEditing.value ? parseFloat(props.invoice.previous_deficit) || 0 : 0,
+    special_discount: isEditing.value ? parseFloat(props.invoice.special_discount) || 0 : 0,
     items: isEditing.value
         ? props.invoice.items.map(item => ({
             newspaper_id: item.newspaper_id.toString(),
@@ -53,6 +55,12 @@ const totalReturnAmount = computed(() => {
     return form.items.reduce((sum, item) => {
         return sum + (parseFloat(item.return_quantity) || 0) * (parseFloat(item.unit_price) || 0)
     }, 0)
+})
+
+const netAmount = computed(() => {
+    const deficit = parseFloat(form.previous_deficit) || 0
+    const discount = parseFloat(form.special_discount) || 0
+    return totalAmount.value - totalReturnAmount.value + deficit - discount
 })
 
 const newspaperOptions = computed(() => {
@@ -419,7 +427,27 @@ const filteredNewspaperOptions = (currentIndex) => {
                 </div>
 
                 <div class="mt-4 flex justify-end border-t border-border/50 pt-4">
-                    <div class="text-right space-y-2">
+                    <div class="text-right space-y-2 max-w-xs w-full">
+                        <div v-if="isEditing" class="flex items-center justify-between gap-2">
+                            <span class="text-xs text-green-600 font-medium">+ {{ t('invoices.previous_deficit') }}</span>
+                            <Input
+                                v-model.number="form.previous_deficit"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                class="h-8 w-28 text-right text-sm"
+                            />
+                        </div>
+                        <div v-if="isEditing" class="flex items-center justify-between gap-2">
+                            <span class="text-xs text-destructive font-medium">- {{ t('invoices.special_discount') }}</span>
+                            <Input
+                                v-model.number="form.special_discount"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                class="h-8 w-28 text-right text-sm"
+                            />
+                        </div>
                         <div>
                             <span class="text-xs text-muted-foreground">{{ t('invoices.invoice_total') }}</span>
                             <div class="text-2xl font-bold text-primary">Rs. {{ totalAmount.toFixed(2) }}</div>
@@ -430,7 +458,7 @@ const filteredNewspaperOptions = (currentIndex) => {
                         </div>
                         <div v-if="isEditing" class="border-t pt-2">
                             <span class="text-xs text-muted-foreground">{{ t('invoices.net_amount') }}</span>
-                            <div class="text-2xl font-bold">Rs. {{ (totalAmount - totalReturnAmount).toFixed(2) }}</div>
+                            <div class="text-2xl font-bold">Rs. {{ netAmount.toFixed(2) }}</div>
                         </div>
                     </div>
                 </div>

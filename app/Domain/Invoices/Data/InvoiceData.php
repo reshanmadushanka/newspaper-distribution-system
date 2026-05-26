@@ -17,6 +17,8 @@ class InvoiceData
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.return_quantity' => 'nullable|integer|min:0',
+            'previous_deficit' => 'nullable|numeric|min:0',
+            'special_discount' => 'nullable|numeric|min:0',
         ];
     }
 }

@@ -133,6 +133,8 @@ class InvoiceController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.return_quantity' => 'nullable|integer|min:0',
             'invoice_type' => 'nullable|string|in:daily,monthly',
+            'previous_deficit' => 'nullable|numeric|min:0',
+            'special_discount' => 'nullable|numeric|min:0',
         ]);
 
         $invoice = $this->invoiceService->getInvoiceForEdit($id);

@@ -46,6 +46,8 @@ class InvoiceService
             'status' => 'draft',
             'notes' => $data['notes'] ?? null,
             'invoice_type' => $data['invoice_type'] ?? 'daily',
+            'previous_deficit' => $data['previous_deficit'] ?? 0,
+            'special_discount' => $data['special_discount'] ?? 0,
         ];
 
         $items = [];
@@ -111,6 +113,8 @@ class InvoiceService
             'total_amount' => 0,
             'notes' => $data['notes'] ?? null,
             'invoice_type' => $data['invoice_type'] ?? null,
+            'previous_deficit' => $data['previous_deficit'] ?? 0,
+            'special_discount' => $data['special_discount'] ?? 0,
         ];
 
         $items = [];
