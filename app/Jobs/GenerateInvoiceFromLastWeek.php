@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Domain\Invoices\Models\Invoice;
+use App\Domain\Newspapers\Models\NewspaperPrice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -79,7 +80,11 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
                 $invoiceItems[] = [
                     'invoice_id' => $newInvoice->id,
                     'newspaper_id' => $item->newspaper_id,
-                    'price_id' => $item->price_id,
+                    'price_id' => $this->resolvePriceId(
+                        $item->newspaper_id,
+                        $item->price_id,
+                        $item->unit_price
+                    ),
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
                     'total_price' => $item->quantity * $item->unit_price
@@ -176,5 +181,18 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
         Cache::put($cacheKey, $progress, now()->addMinutes(30));
 
         Log::error("Failed to generate invoice for shop {$this->shopId}: " . $exception->getMessage());
+    }
+
+    private function resolvePriceId(int $newspaperId, ?int $priceId, float|string $unitPrice): ?int
+    {
+        Log::info("Resolving price ID for newspaper_id: {$newspaperId}, price_id: {$priceId}, unit_price: {$unitPrice}");
+        if (!empty($priceId)) {
+            return $priceId;
+        }
+        Log::info("Price ID is missing, looking up by newspaper_id and unit_price");
+        return NewspaperPrice::query()
+            ->where('newspaper_id', $newspaperId)
+            ->where('price', $unitPrice)
+            ->value('id');
     }
 }

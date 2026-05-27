@@ -258,6 +258,7 @@ const isPrinted = (invoice) => {
                             <th class="px-6 py-4">{{ t('invoices.shop') }}</th>
                             <th class="px-6 py-4">{{ t('common.date') }}</th>
                             <th class="px-6 py-4 text-right">{{ t('common.amount') }}</th>
+                            <th class="px-6 py-4 text-right">{{ t('invoices.return_total') }}</th>
                             <th class="px-6 py-4">{{ t('common.status') }}</th>
                             <th class="px-6 py-4">{{ t('invoices.printed') }}</th>
                             <th class="px-6 py-4">{{ t('invoices.invoice_type') }}</th>
@@ -284,6 +285,9 @@ const isPrinted = (invoice) => {
                             </td>
                             <td class="px-6 py-4 text-right font-semibold">
                                 Rs. {{ parseFloat(inv.total_amount).toFixed(2) }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-semibold text-destructive">
+                                Rs. {{ parseFloat(inv.return_total_amount || 0).toFixed(2) }}
                             </td>
                             <td class="px-6 py-4">
                                 <Badge :variant="statusVariant(inv.status)"
@@ -342,7 +346,7 @@ const isPrinted = (invoice) => {
                             </td>
                         </tr>
                         <tr v-if="!invoices?.data || invoices.data.length === 0">
-                            <td colspan="8" class="px-6 py-12 text-center text-muted-foreground italic">
+                            <td colspan="9" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
                         </tr>

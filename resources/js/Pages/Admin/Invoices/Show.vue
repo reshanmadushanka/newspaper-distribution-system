@@ -47,6 +47,24 @@ const isDraft = computed(() => props.invoice.status === 'draft')
 
 const pdfUrl = computed(() => `/admin/invoices/${props.invoice.id}/pdf`)
 const invoiceUrl = computed(() => window.location.origin + `/admin/invoices/${props.invoice.id}`)
+const invoiceDateLabel = computed(() => {
+    const invoiceDate = props.invoice?.invoice_date
+    if (!invoiceDate) {
+        return ''
+    }
+
+    const parsedDate = new Date(`${invoiceDate}T00:00:00`)
+    if (Number.isNaN(parsedDate.getTime())) {
+        return invoiceDate
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    }).format(parsedDate)
+})
 
 const downloadPdf = () => {
     window.open(pdfUrl.value, '_blank')
@@ -96,7 +114,7 @@ onMounted(() => {
 const sendWhatsApp = () => {
     const phone = props.invoice.shop.whatsapp_phone.replace(/[^0-9]/g, '')
     const text = encodeURIComponent(
-        `Invoice #${props.invoice.id}\nShop: ${props.invoice.shop?.name}\nDate: ${props.invoice.invoice_date}\nTotal: Rs. ${parseFloat(props.invoice.total_amount).toFixed(2)}\n\nView invoice: ${invoiceUrl.value}`
+        `Invoice #${props.invoice.id}\nShop: ${props.invoice.shop?.name}\nDate: ${invoiceDateLabel.value}\nTotal: Rs. ${parseFloat(props.invoice.total_amount).toFixed(2)}\n\nView invoice: ${invoiceUrl.value}`
     )
     window.open(`https://wa.me/${phone}?text=${text}`, '_blank')
 }
@@ -104,7 +122,7 @@ const sendWhatsApp = () => {
 const sendEmail = () => {
     const subject = encodeURIComponent(`Invoice #${props.invoice.id} - ${props.invoice.shop?.name}`)
     const body = encodeURIComponent(
-        `Dear ${props.invoice.shop?.name},\n\nPlease find the invoice details below:\n\nInvoice #: ${props.invoice.id}\nDate: ${props.invoice.invoice_date}\nTotal Amount: Rs. ${parseFloat(props.invoice.total_amount).toFixed(2)}\n\nYou can view and download the PDF invoice here:\n${invoiceUrl.value}\n\nThank you.`
+        `Dear ${props.invoice.shop?.name},\n\nPlease find the invoice details below:\n\nInvoice #: ${props.invoice.id}\nDate: ${invoiceDateLabel.value}\nTotal Amount: Rs. ${parseFloat(props.invoice.total_amount).toFixed(2)}\n\nYou can view and download the PDF invoice here:\n${invoiceUrl.value}\n\nThank you.`
     )
     window.location.href = `mailto:${props.invoice.shop.email}?subject=${subject}&body=${body}`
 }
@@ -224,7 +242,7 @@ const statusVariant = (status) => {
                         <CalendarDays class="h-4 w-4" />
                         <span class="text-xs font-semibold uppercase tracking-wider">{{ t('common.date') }}</span>
                     </div>
-                    <p class="font-semibold text-xl">{{ invoice.invoice_date }}</p>
+                    <p class="font-semibold text-xl">{{ invoiceDateLabel }}</p>
                 </div>
             </div>
 
