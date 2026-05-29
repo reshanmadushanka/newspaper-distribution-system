@@ -3,6 +3,7 @@
 namespace App\Domain\Invoices\Repositories;
 
 use App\Domain\Invoices\Models\Invoice;
+use App\Domain\Invoices\Models\InvoiceItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -51,4 +52,11 @@ interface InvoiceRepositoryInterface
     public function getShopsWithoutInvoicesForDate(string $date): Collection;
 
     public function getShopsWithLastWeekInvoicesButNotForDate(string $targetDate): Collection;
+
+        // Invoice item specific operations
+        public function findItem(int $id): ?InvoiceItem;
+
+        public function deleteItem(int $id): bool;
+
+        public function recalculateTotals(int $invoiceId): Invoice;
 }

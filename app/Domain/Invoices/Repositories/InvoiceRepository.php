@@ -149,6 +149,33 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         return Invoice::findOrFail($id)->delete();
     }
 
+    public function findItem(int $id): ?InvoiceItem
+    {
+        return InvoiceItem::find($id);
+    }
+
+    public function deleteItem(int $id): bool
+    {
+        return InvoiceItem::findOrFail($id)->delete();
+    }
+
+    public function recalculateTotals(int $invoiceId): Invoice
+    {
+        $invoice = $this->findOrFail($invoiceId);
+
+        $finalItems = $invoice->items()->get(['total_price', 'return_total_price']);
+        $totalAmount = (float) $finalItems->sum('total_price');
+        $totalReturnAmount = (float) $finalItems->sum('return_total_price');
+
+        $invoice->update([
+            'total_amount' => $totalAmount,
+            'return_total_amount' => $totalReturnAmount,
+            'total_net_amount' => $totalAmount - $totalReturnAmount,
+        ]);
+
+        return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
+    }
+
     public function getDailyReportInvoices(string $date): Collection
     {
         return Invoice::with(['shop', 'items.newspaper'])
