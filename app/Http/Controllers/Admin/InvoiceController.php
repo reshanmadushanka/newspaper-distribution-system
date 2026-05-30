@@ -184,14 +184,13 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice marked as paid.');
     }
 
-    public function markAsPrinted(int $id)
+    public function markAsPrinted(int $id): RedirectResponse
     {
-        $invoice = $this->invoiceService->markAsPrinted($id);
+        $this->invoiceService->markAsPrinted($id);
 
-        // return response()->json([
-        //     'message' => 'Invoice marked as printed.',
-        //     'printed_at' => $invoice->printed_at,
-        // ]);
+        // Redirect back to the current page (preserving pagination/filters in the
+        // referrer URL) so the list stays put instead of resetting to page 1.
+        return back(303);
     }
 
     public function dailySales(Request $request)
