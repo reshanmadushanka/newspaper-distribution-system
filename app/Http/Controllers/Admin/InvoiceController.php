@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Domain\Invoices\Services\InvoiceService;
 use App\Domain\Invoices\Data\InvoiceData;
+use App\Domain\Invoices\Models\Invoice;
+use App\Domain\Invoices\Models\InvoiceItem;
 use App\Domain\Newspapers\Models\Newspaper;
 use App\Domain\Shops\Models\Shop;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -345,6 +347,25 @@ class InvoiceController extends Controller
         return response()->json([
             'message' => 'Progress cleared',
         ]);
+    }
+
+    public function deleteItem(Invoice $invoice, InvoiceItem $item)
+    {
+        try {
+            $updated = $this->invoiceService->deleteInvoiceItem($invoice->id, $item->id);
+
+            // Redirect back to the invoice edit page so Inertia handles the client-side visit
+            return redirect()->route('admin.invoices.edit', $invoice->id)
+                ->with('success', 'Item deleted successfully.')
+                ->setStatusCode(303);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['message' => 'Failed to delete item'], 500);
+        }
     }
 
 }

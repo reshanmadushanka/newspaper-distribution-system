@@ -35,6 +35,7 @@ return [
     'invoice' => 'Invoice',
     'printed' => 'Printed',
     'delete_confirm' => 'This will permanently delete the invoice and all its items.',
+    'delete_item_confirm' => 'Are you sure you want to delete this item from the invoice? This will remove it from the database.',
     'mark_paid_confirm' => 'This will mark the invoice as paid.',
     'marked_paid_message' => 'Invoice has been marked as paid.',
     'edit_invoice' => 'Edit Invoice #:id',

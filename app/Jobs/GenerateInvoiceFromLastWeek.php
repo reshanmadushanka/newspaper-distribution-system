@@ -3,8 +3,7 @@
 namespace App\Jobs;
 
 use App\Domain\Invoices\Models\Invoice;
-use App\Domain\Invoices\Models\InvoiceItem;
-use App\Domain\Shops\Models\Shop;
+use App\Domain\Newspapers\Models\NewspaperPrice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -78,29 +77,29 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
             // Create invoice items
             $invoiceItems = [];
             foreach ($lastWeekInvoice->items as $item) {
-                $returnQuantity = $item->return_quantity ?? 0;
                 $invoiceItems[] = [
                     'invoice_id' => $newInvoice->id,
                     'newspaper_id' => $item->newspaper_id,
-                    'price_id' => $item->price_id,
+                    'price_id' => $this->resolvePriceId(
+                        $item->newspaper_id,
+                        $item->price_id,
+                        $item->unit_price
+                    ),
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
-                    'total_price' => $item->quantity * $item->unit_price,
-                    'return_quantity' => $returnQuantity,
-                    'return_total_price' => $returnQuantity * $item->unit_price,
+                    'total_price' => $item->quantity * $item->unit_price
                 ];
             }
 
             if (!empty($invoiceItems)) {
                 $newInvoice->items()->insert($invoiceItems);
 
-                // Update total amounts
+                // Auto-generated invoices start fresh without copied return quantities.
                 $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
-                $totalReturnAmount = array_sum(array_column($invoiceItems, 'return_total_price'));
                 $newInvoice->update([
                     'total_amount' => $totalAmount,
-                    'total_net_amount' => $totalAmount - $totalReturnAmount,
-                    'return_total_amount' => $totalReturnAmount
+                    'total_net_amount' => $totalAmount,
+                    'return_total_amount' => 0,
                 ]);
             }
 
@@ -182,5 +181,18 @@ class GenerateInvoiceFromLastWeek implements ShouldQueue
         Cache::put($cacheKey, $progress, now()->addMinutes(30));
 
         Log::error("Failed to generate invoice for shop {$this->shopId}: " . $exception->getMessage());
+    }
+
+    private function resolvePriceId(int $newspaperId, ?int $priceId, float|string $unitPrice): ?int
+    {
+        Log::info("Resolving price ID for newspaper_id: {$newspaperId}, price_id: {$priceId}, unit_price: {$unitPrice}");
+        if (!empty($priceId)) {
+            return $priceId;
+        }
+        Log::info("Price ID is missing, looking up by newspaper_id and unit_price");
+        return NewspaperPrice::query()
+            ->where('newspaper_id', $newspaperId)
+            ->where('price', $unitPrice)
+            ->value('id');
     }
 }

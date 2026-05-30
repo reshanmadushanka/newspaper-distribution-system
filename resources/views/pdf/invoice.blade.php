@@ -315,7 +315,7 @@
             </div>
             <div class="info-card">
                 <div class="info-label">Invoice Date</div>
-                <div class="info-value">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</div>
+                <div class="info-value">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('l, M d, Y') }}</div>
             </div>
             <div class="info-card">
                 <div class="info-label">Status</div>
@@ -410,4 +410,3 @@
     </div>
 </body>
 </html>
-

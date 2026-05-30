@@ -9,6 +9,8 @@ import { Label } from '@/Components/ui/label'
 import { Select2 } from '@/Components/ui/select2'
 import { useTranslation } from '@/Composables/useTranslation'
 import { computed, ref, watch } from 'vue'
+import Swal from 'sweetalert2'
+import { useDeleteConfirm } from '@/Composables/useDeleteConfirm.js'
 import { History, AlertCircle, Loader2 } from 'lucide-vue-next'
 
 const { t } = useTranslation()
@@ -154,6 +156,10 @@ const rowTotal = (index) => {
 }
 
 const isLoadingSummary = ref(false)
+const deletingItemId = ref(null)
+
+// Delete confirmation (SweetAlert2)
+// We'll call `useDeleteConfirm` per-invocation to allow dynamic messages
 
 const fetchPreviousWeekSummary = () => {
     if (!form.invoice_date || !form.shop_id) {
@@ -187,10 +193,51 @@ const addRow = () => {
     form.items.push(newItem)
 }
 
-const removeRow = (index) => {
-    if (form.items.length > 1) {
-        form.items.splice(index, 1)
-    }
+const deleteItemFromDatabase = (itemId, index) => {
+    return new Promise((resolve, reject) => {
+        deletingItemId.value = itemId
+
+        router.delete(`/admin/invoices/${props.invoice.id}/items/${itemId}`, {
+            onSuccess: () => {
+                // Remove from form items after successful deletion
+                form.items.splice(index, 1)
+                deletingItemId.value = null
+            },
+            onError: (errors) => {
+                console.error('Failed to delete invoice item:', errors)
+                deletingItemId.value = null
+                const msg = Object.values(errors || {})[0] || 'Failed to delete item. Please try again.'
+                Swal.fire(t('common.error') + '!', msg, 'error')
+                reject(errors)
+            },
+            onFinish: () => {
+                deletingItemId.value = null
+                resolve()
+            }
+        })
+    })
+}
+
+const removeRow = async (index) => {
+    if (form.items.length <= 1) return
+
+    // Check if this is an existing item (has id from database)
+    const item = form.items[index]
+    const originalItem = isEditing.value ? props.invoice.items[index] : null
+
+    const message = (isEditing.value && originalItem && originalItem.id)
+        ? (t('invoices.delete_item_confirm') || 'Are you sure you want to delete this item from the invoice? This will remove it from the database.')
+        : (t('common.delete_confirm') || 'Remove this item from the form?')
+
+    const { confirmDelete } = useDeleteConfirm(t('common.cannot_undo') + ' ' + message)
+
+    await confirmDelete(async () => {
+        if (isEditing.value && originalItem && originalItem.id) {
+            await deleteItemFromDatabase(originalItem.id, index)
+        } else {
+            form.items.splice(index, 1)
+        }
+    })
 }
 
 const submit = () => {
@@ -417,8 +464,9 @@ const filteredNewspaperOptions = (currentIndex) => {
                                 <td class="px-2 py-2">
                                     <button type="button" @click="removeRow(index)"
                                         class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
-                                        :disabled="form.items.length === 1">
-                                        <Trash2 class="h-4 w-4" />
+                                        :disabled="form.items.length === 1 || deletingItemId === (isEditing && props.invoice.items[index]?.id)">
+                                        <Loader2 v-if="deletingItemId === (isEditing && props.invoice.items[index]?.id)" class="h-4 w-4 animate-spin" />
+                                        <Trash2 v-else class="h-4 w-4" />
                                     </button>
                                 </td>
                             </tr>
@@ -486,5 +534,6 @@ const filteredNewspaperOptions = (currentIndex) => {
                 </Button>
             </div>
         </form>
+        
     </AdminLayout>
 </template>

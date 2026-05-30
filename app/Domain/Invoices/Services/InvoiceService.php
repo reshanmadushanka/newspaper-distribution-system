@@ -104,6 +104,31 @@ class InvoiceService
         return $this->invoiceRepository->findOrFail($id);
     }
 
+    public function deleteInvoiceItem(int $invoiceId, int $itemId): Invoice
+    {
+        $invoice = $this->invoiceRepository->findOrFail($invoiceId);
+
+        $item = $this->invoiceRepository->findItem($itemId);
+        if (!$item || $item->invoice_id !== $invoice->id) {
+            throw new \InvalidArgumentException('Item not found in this invoice.');
+        }
+
+        if ($invoice->items()->count() <= 1) {
+            throw new \RuntimeException('Cannot delete the last item from an invoice.');
+        }
+
+        // Delete the item
+        $this->invoiceRepository->deleteItem($itemId);
+
+        // Recalculate totals and return updated invoice
+        $updated = $this->invoiceRepository->recalculateTotals($invoiceId);
+
+        // clear cache for the invoice date
+        $this->clearDailyReportCache($invoice->invoice_date);
+
+        return $updated;
+    }
+
     public function updateInvoice(int $id, array $data): Invoice
     {
         $invoice = $this->invoiceRepository->findOrFail($id);

@@ -113,23 +113,27 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             $invoice = $this->findOrFail($id);
             $invoice->update($invoiceData);
 
-            $invoice->items()->delete();
+            foreach ($items as $item) {
+                $invoice->items()->updateOrCreate(
+                    [
+                        'invoice_id'   => $invoice->id,
+                        'newspaper_id' => $item['newspaper_id'],
+                    ],
+                    [
+                        'price_id'           => $item['price_id'] ?? null,
+                        'quantity'           => $item['quantity'],
+                        'unit_price'         => $item['unit_price'],
+                        'total_price'        => $item['quantity'] * $item['unit_price'],
+                        'return_quantity'    => $item['return_quantity'] ?? 0,
+                        'return_total_price' => ($item['return_quantity'] ?? 0) * $item['unit_price'],
+                    ]
+                );
+            }
 
-            $invoiceItems = array_map(fn($item) => [
-                'invoice_id'   => $invoice->id,
-                'newspaper_id' => $item['newspaper_id'],
-                'price_id'     => $item['price_id'] ?? null,
-                'quantity'     => $item['quantity'],
-                'unit_price'   => $item['unit_price'],
-                'total_price'  => $item['quantity'] * $item['unit_price'],
-                'return_quantity' => $item['return_quantity'] ?? 0,
-                'return_total_price' => ($item['return_quantity'] ?? 0) * $item['unit_price'],
-            ], $items);
+            $finalItems        = $invoice->items()->get(['total_price', 'return_total_price']);
+            $totalAmount       = (float) $finalItems->sum('total_price');
+            $totalReturnAmount = (float) $finalItems->sum('return_total_price');
 
-            $invoice->items()->insert($invoiceItems);
-
-            $totalAmount = array_sum(array_column($invoiceItems, 'total_price'));
-            $totalReturnAmount = array_sum(array_column($invoiceItems, 'return_total_price'));
             $invoice->update([
                 'total_amount' => $totalAmount,
                 'total_net_amount' => $totalAmount - $totalReturnAmount + (float)($invoiceData['previous_deficit'] ?? 0) - (float)($invoiceData['special_discount'] ?? 0),
@@ -143,6 +147,33 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     public function delete(int $id): bool
     {
         return Invoice::findOrFail($id)->delete();
+    }
+
+    public function findItem(int $id): ?InvoiceItem
+    {
+        return InvoiceItem::find($id);
+    }
+
+    public function deleteItem(int $id): bool
+    {
+        return InvoiceItem::findOrFail($id)->delete();
+    }
+
+    public function recalculateTotals(int $invoiceId): Invoice
+    {
+        $invoice = $this->findOrFail($invoiceId);
+
+        $finalItems = $invoice->items()->get(['total_price', 'return_total_price']);
+        $totalAmount = (float) $finalItems->sum('total_price');
+        $totalReturnAmount = (float) $finalItems->sum('return_total_price');
+
+        $invoice->update([
+            'total_amount' => $totalAmount,
+            'return_total_amount' => $totalReturnAmount,
+            'total_net_amount' => $totalAmount - $totalReturnAmount,
+        ]);
+
+        return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
     }
 
     public function getDailyReportInvoices(string $date): Collection
@@ -168,7 +199,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     {
         return InvoiceItem::with(['invoice.shop', 'newspaper'])
             ->whereHas('invoice', fn($q) => $q->whereBetween('invoice_date', [$dateFrom, $dateTo])
-            ->when($invoiceType, fn($inq) => $inq->where('invoice_type', $invoiceType)))
+                ->when($invoiceType, fn($inq) => $inq->where('invoice_type', $invoiceType)))
             ->when($newspaperId, fn($q) => $q->where('newspaper_id', $newspaperId))
             ->get();
     }
