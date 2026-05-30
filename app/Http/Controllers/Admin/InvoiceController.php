@@ -135,6 +135,8 @@ class InvoiceController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.return_quantity' => 'nullable|integer|min:0',
             'invoice_type' => 'nullable|string|in:daily,monthly',
+            'previous_deficit' => 'nullable|numeric|min:0',
+            'special_discount' => 'nullable|numeric|min:0',
         ]);
 
         $invoice = $this->invoiceService->getInvoiceForEdit($id);
@@ -182,14 +184,13 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice marked as paid.');
     }
 
-    public function markAsPrinted(int $id)
+    public function markAsPrinted(int $id): RedirectResponse
     {
-        $invoice = $this->invoiceService->markAsPrinted($id);
+        $this->invoiceService->markAsPrinted($id);
 
-        // return response()->json([
-        //     'message' => 'Invoice marked as printed.',
-        //     'printed_at' => $invoice->printed_at,
-        // ]);
+        // Redirect back to the current page (preserving pagination/filters in the
+        // referrer URL) so the list stays put instead of resetting to page 1.
+        return back(303);
     }
 
     public function dailySales(Request $request)

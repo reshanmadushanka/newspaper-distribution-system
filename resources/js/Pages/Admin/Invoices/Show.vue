@@ -311,6 +311,14 @@ const statusVariant = (status) => {
                     </div>
                     <template v-if="hasReturns">
                         <div class="flex justify-between text-sm">
+                            <span class="text-muted-foreground">+ {{ t('invoices.previous_deficit') }}</span>
+                            <span>Rs. {{ parseFloat(invoice.previous_deficit || 0).toFixed(2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-muted-foreground">- {{ t('invoices.special_discount') }}</span>
+                            <span class="text-destructive">Rs. {{ parseFloat(invoice.special_discount || 0).toFixed(2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
                             <span class="text-muted-foreground">{{ t('invoices.return_total') }}</span>
                             <span class="text-destructive">Rs. {{ totalReturnAmount.toFixed(2) }}</span>
                         </div>
@@ -324,6 +332,14 @@ const statusVariant = (status) => {
                         </div>
                     </template>
                     <template v-else>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-muted-foreground">+ {{ t('invoices.previous_deficit') }}</span>
+                            <span>Rs. {{ parseFloat(invoice.previous_deficit || 0).toFixed(2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-muted-foreground">- {{ t('invoices.special_discount') }}</span>
+                            <span class="text-destructive">Rs. {{ parseFloat(invoice.special_discount || 0).toFixed(2) }}</span>
+                        </div>
                         <div class="flex justify-between text-lg font-bold border-t pt-2">
                             <span>{{ t('invoices.total_amount') }}</span>
                             <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>

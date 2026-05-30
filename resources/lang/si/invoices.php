@@ -74,4 +74,6 @@ return [
     'type_monthly' => 'මාසික',
     'type_all' => 'සියලු වර්ග',
     'total_amount' => 'මුළු මුදල',
+    'previous_deficit' => 'පෙර හිඟ මුදල',
+    'special_discount' => 'විශේෂ වට්ටම',
 ];

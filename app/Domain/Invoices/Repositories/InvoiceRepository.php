@@ -135,9 +135,9 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             $totalReturnAmount = (float) $finalItems->sum('return_total_price');
 
             $invoice->update([
-                'total_amount'        => $totalAmount,
-                'return_total_amount' => $totalReturnAmount,
-                'total_net_amount'    => $totalAmount - $totalReturnAmount,
+                'total_amount' => $totalAmount,
+                'total_net_amount' => $totalAmount - $totalReturnAmount + (float)($invoiceData['previous_deficit'] ?? 0) - (float)($invoiceData['special_discount'] ?? 0),
+                'return_total_amount' => $totalReturnAmount
             ]);
 
             return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);

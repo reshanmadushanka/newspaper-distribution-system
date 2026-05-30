@@ -89,7 +89,8 @@ const handleDelete = (id) => {
 }
 
 const printInvoice = (id) => {
-    // Mark as printed first
+    // Mark as printed first. The controller redirects back to the current page,
+    // so the "Printed" badge refreshes while pagination/filters stay put.
     router.patch(`/admin/invoices/${id}/mark-printed`, {}, {
         preserveState: true,
         preserveScroll: true,
@@ -107,9 +108,6 @@ const printInvoice = (id) => {
             )
 
             popup?.focus()
-
-            // Reload the invoice list to show updated print status
-            reloadInvoices()
         },
         onError: () => {
             Swal.fire('Error!', 'Failed to mark invoice as printed.', 'error')
