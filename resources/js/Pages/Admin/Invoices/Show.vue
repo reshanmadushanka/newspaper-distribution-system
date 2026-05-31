@@ -332,17 +332,32 @@ const statusVariant = (status) => {
                         </div>
                     </template>
                     <template v-else>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-muted-foreground">+ {{ t('invoices.previous_deficit') }}</span>
-                            <span>Rs. {{ parseFloat(invoice.previous_deficit || 0).toFixed(2) }}</span>
+                        <!-- Adjustments Section -->
+                        <div class="space-y-2 pb-3 border-b">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-muted-foreground">{{ t('invoices.subtotal') }}</span>
+                                <span>Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-muted-foreground">+ {{ t('invoices.previous_deficit') }}</span>
+                                <span class="text-amber-600">Rs. {{ parseFloat(invoice.previous_deficit || 0).toFixed(2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-muted-foreground">- {{ t('invoices.special_discount') }}</span>
+                                <span class="text-green-600">Rs. {{ parseFloat(invoice.special_discount || 0).toFixed(2) }}</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-muted-foreground">- {{ t('invoices.special_discount') }}</span>
-                            <span class="text-destructive">Rs. {{ parseFloat(invoice.special_discount || 0).toFixed(2) }}</span>
-                        </div>
-                        <div class="flex justify-between text-lg font-bold border-t pt-2">
-                            <span>{{ t('invoices.total_amount') }}</span>
-                            <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
+
+                        <!-- Final Amounts -->
+                        <div class="space-y-2 pt-3">
+                            <div class="flex justify-between text-base font-semibold">
+                                <span>{{ t('invoices.net_amount') }}</span>
+                                <span>Rs. {{ parseFloat(invoice.total_net_amount || invoice.total_amount).toFixed(2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-xl font-bold border-t pt-3">
+                                <span class="text-primary">{{ t('invoices.total_amount') }}</span>
+                                <span class="text-primary">Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
+                            </div>
                         </div>
                     </template>
                 </div>

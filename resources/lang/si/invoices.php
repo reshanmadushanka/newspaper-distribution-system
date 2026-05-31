@@ -76,4 +76,5 @@ return [
     'total_amount' => 'මුළු මුදල',
     'previous_deficit' => 'පෙර හිඟ මුදල',
     'special_discount' => 'විශේෂ වට්ටම',
+    'notes' => 'සටහන්',
 ];

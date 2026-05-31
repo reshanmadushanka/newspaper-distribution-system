@@ -74,6 +74,7 @@ return [
     'type_monthly' => 'Monthly',
     'type_all' => 'All Types',
     'total_amount' => 'Total Amount',
-    'previous_deficit' => 'Previous deficit',
+    'previous_deficit' => 'Previous Arrears',
     'special_discount' => 'Special Discount',
+    'notes' => 'Notes',
 ];
