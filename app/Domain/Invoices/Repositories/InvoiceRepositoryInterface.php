@@ -29,6 +29,10 @@ interface InvoiceRepositoryInterface
 
     public function markAsPrinted(int $id): Invoice;
 
+    public function findManyForPrint(array $ids): Collection;
+
+    public function markManyAsPrinted(array $ids): int;
+
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice;
 
     public function delete(int $id): bool;

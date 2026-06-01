@@ -193,6 +193,33 @@ class InvoiceController extends Controller
         return back(303);
     }
 
+    public function markManyAsPrinted(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1|max:100',
+            'ids.*' => 'integer|distinct|exists:invoices,id',
+        ]);
+
+        $this->invoiceService->markManyAsPrinted($validated['ids']);
+
+        return back(303);
+    }
+
+    public function batchPrint(Request $request): Response
+    {
+        $ids = $this->parseInvoiceIds((string) $request->query('ids', ''));
+
+        abort_if(empty($ids), 404);
+
+        $invoices = $this->invoiceService->getInvoicesForPrint($ids);
+
+        abort_if($invoices->isEmpty(), 404);
+
+        return Inertia::render('Admin/Invoices/BatchPrint', [
+            'invoices' => $invoices,
+        ]);
+    }
+
     public function dailySales(Request $request)
     {
         $defaultDateFrom = today()->subDays(6)->toDateString();
@@ -367,4 +394,16 @@ class InvoiceController extends Controller
         }
     }
 
+    private function parseInvoiceIds(string $ids): array
+    {
+        return collect(explode(',', $ids))
+            ->map(fn($id) => trim($id))
+            ->filter(fn($id) => ctype_digit($id))
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
+            ->unique()
+            ->take(100)
+            ->values()
+            ->all();
+    }
 }

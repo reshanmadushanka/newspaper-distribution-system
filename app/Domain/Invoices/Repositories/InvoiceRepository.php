@@ -107,6 +107,45 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         return $invoice->fresh(['shop', 'items.newspaper', 'items.price', 'creator']);
     }
 
+    public function findManyForPrint(array $ids): Collection
+    {
+        $ids = collect($ids)->map(fn($id) => (int) $id)->filter()->unique()->values();
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $positionSql = 'CASE id ';
+        $bindings = [];
+
+        foreach ($ids as $index => $id) {
+            $positionSql .= 'WHEN ? THEN ? ';
+            $bindings[] = $id;
+            $bindings[] = $index;
+        }
+
+        $positionSql .= 'END';
+
+        return Invoice::query()
+            ->with(['shop', 'items.newspaper', 'items.price', 'creator'])
+            ->whereIn('id', $ids)
+            ->orderByRaw($positionSql, $bindings)
+            ->get();
+    }
+
+    public function markManyAsPrinted(array $ids): int
+    {
+        $ids = collect($ids)->map(fn($id) => (int) $id)->filter()->unique()->values();
+
+        if ($ids->isEmpty()) {
+            return 0;
+        }
+
+        return Invoice::query()
+            ->whereIn('id', $ids)
+            ->update(['printed_at' => now()]);
+    }
+
     public function updateWithItems(int $id, array $invoiceData, array $items): Invoice
     {
         return DB::transaction(function () use ($id, $invoiceData, $items) {

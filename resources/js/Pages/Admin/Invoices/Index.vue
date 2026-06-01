@@ -71,6 +71,12 @@ const canUpdate = computed(() => permissions.value.includes('manage invoices'))
 const canAutoGenerate = computed(() => permissions.value.includes('auto generate invoice'))
 
 const showAutoGenerateModal = ref(false)
+const selectedInvoiceIds = ref([])
+const visibleInvoiceIds = computed(() => (componentProps.invoices?.data ?? []).map((invoice) => invoice.id))
+const selectedCount = computed(() => selectedInvoiceIds.value.length)
+const allVisibleSelected = computed(() => {
+    return visibleInvoiceIds.value.length > 0 && visibleInvoiceIds.value.every((id) => selectedInvoiceIds.value.includes(id))
+})
 
 const openAutoGenerateModal = () => {
     showAutoGenerateModal.value = true
@@ -112,6 +118,63 @@ const printInvoice = (id) => {
         onError: () => {
             Swal.fire('Error!', 'Failed to mark invoice as printed.', 'error')
         }
+    })
+}
+
+const toggleInvoiceSelection = (id) => {
+    if (selectedInvoiceIds.value.includes(id)) {
+        selectedInvoiceIds.value = selectedInvoiceIds.value.filter((selectedId) => selectedId !== id)
+        return
+    }
+
+    selectedInvoiceIds.value = [...selectedInvoiceIds.value, id]
+}
+
+const toggleVisibleSelection = () => {
+    if (allVisibleSelected.value) {
+        selectedInvoiceIds.value = selectedInvoiceIds.value.filter((id) => !visibleInvoiceIds.value.includes(id))
+        return
+    }
+
+    selectedInvoiceIds.value = [...new Set([...selectedInvoiceIds.value, ...visibleInvoiceIds.value])]
+}
+
+const printSelectedInvoices = () => {
+    const ids = selectedInvoiceIds.value
+
+    if (ids.length === 0) {
+        Swal.fire('Select invoices', 'Select at least one invoice to print.', 'info')
+        return
+    }
+
+    const width = 900
+    const height = 700
+    const left = window.screenX + (window.outerWidth - width) / 2
+    const top = window.screenY + (window.outerHeight - height) / 2
+    const popup = window.open(
+        'about:blank',
+        `invoice-batch-print-${Date.now()}`,
+        `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    )
+
+    router.patch('/admin/invoices/mark-printed/batch', { ids }, {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            const query = ids.join(',')
+            const url = `/admin/invoices/print/batch?ids=${query}&print=1`
+
+            if (popup) {
+                popup.location.href = url
+                popup.focus()
+            } else {
+                window.open(url, '_blank')
+            }
+        },
+        onError: () => {
+            popup?.close()
+            Swal.fire('Error!', 'Failed to prepare selected invoices for printing.', 'error')
+        },
     })
 }
 
@@ -158,6 +221,10 @@ watch([search, dateRange, invoiceType], () => {
         reloadInvoices()
     }, 350)
 }, { deep: true })
+
+watch(() => componentProps.invoices?.data, () => {
+    selectedInvoiceIds.value = selectedInvoiceIds.value.filter((id) => visibleInvoiceIds.value.includes(id))
+})
 
 onUnmounted(() => {
     clearTimeout(searchTimeout)
@@ -249,9 +316,28 @@ const isPrinted = (invoice) => {
                         {{ t('common.showing') }} {{ invoices?.data?.length ?? 0 }} {{ t('navigation.invoices') }}
                     </div>
                 </div>
+                <div v-if="selectedCount > 0" class="border-b bg-secondary/10 px-6 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="text-sm font-medium">
+                        {{ selectedCount }} selected
+                    </div>
+                    <Button @click="printSelectedInvoices" class="rounded-xl px-4">
+                        <Printer class="mr-2 h-4 w-4" />
+                        Print Selected
+                    </Button>
+                </div>
                 <table class="w-full text-sm text-left">
                     <thead class="bg-secondary/30 text-muted-foreground uppercase text-[10px] font-bold tracking-wider">
                         <tr>
+                            <th class="px-6 py-4">
+                                <input
+                                    type="checkbox"
+                                    class="h-4 w-4 accent-primary"
+                                    :checked="allVisibleSelected"
+                                    :disabled="visibleInvoiceIds.length === 0"
+                                    aria-label="Select all invoices on this page"
+                                    @change="toggleVisibleSelection"
+                                />
+                            </th>
                             <th class="px-6 py-4">{{ t('invoices.invoice') }}</th>
                             <th class="px-6 py-4">{{ t('invoices.shop') }}</th>
                             <th class="px-6 py-4">{{ t('common.date') }}</th>
@@ -266,6 +352,15 @@ const isPrinted = (invoice) => {
                     <tbody class="divide-y divide-border/50">
                         <tr v-for="inv in invoices?.data ?? []" :key="inv.id"
                             class="group transition-colors hover:bg-secondary/20">
+                            <td class="px-6 py-4">
+                                <input
+                                    type="checkbox"
+                                    class="h-4 w-4 accent-primary"
+                                    :checked="selectedInvoiceIds.includes(inv.id)"
+                                    :aria-label="`Select invoice ${inv.id}`"
+                                    @change="toggleInvoiceSelection(inv.id)"
+                                />
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="font-semibold text-foreground">#{{ inv.id }}</div>
                             </td>
@@ -344,7 +439,7 @@ const isPrinted = (invoice) => {
                             </td>
                         </tr>
                         <tr v-if="!invoices?.data || invoices.data.length === 0">
-                            <td colspan="9" class="px-6 py-12 text-center text-muted-foreground italic">
+                            <td colspan="10" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No invoices match your search.' : 'No invoices found. Click "Create Invoice" to get started.' }}
                             </td>
                         </tr>

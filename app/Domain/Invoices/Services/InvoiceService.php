@@ -99,6 +99,16 @@ class InvoiceService
         return $this->invoiceRepository->markAsPrinted($id);
     }
 
+    public function getInvoicesForPrint(array $ids): Collection
+    {
+        return $this->invoiceRepository->findManyForPrint($ids);
+    }
+
+    public function markManyAsPrinted(array $ids): int
+    {
+        return $this->invoiceRepository->markManyAsPrinted($ids);
+    }
+
     public function getInvoiceForEdit(int $id): Invoice
     {
         return $this->invoiceRepository->findOrFail($id);

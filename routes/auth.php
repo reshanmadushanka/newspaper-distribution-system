@@ -27,6 +27,8 @@ Route::middleware('auth')->group(function (): void {
         Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:manage permissions');
         Route::resource('shops', ShopController::class)->except(['show'])->middleware('permission:manage shops');
         Route::resource('newspapers', NewspaperController::class)->except(['show'])->middleware('permission:manage newspapers');
+        Route::get('invoices/print/batch', [InvoiceController::class, 'batchPrint'])->name('invoices.print.batch')->middleware('permission:manage invoices');
+        Route::patch('invoices/mark-printed/batch', [InvoiceController::class, 'markManyAsPrinted'])->name('invoices.mark-printed.batch')->middleware('permission:manage invoices');
         Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])->middleware('permission:manage invoices');
         Route::delete('invoices/{invoice}/items/{item}', [InvoiceController::class, 'deleteItem'])->name('invoices.items.destroy')->middleware('permission:manage invoices');
         Route::get('invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf')->middleware('permission:manage invoices');
