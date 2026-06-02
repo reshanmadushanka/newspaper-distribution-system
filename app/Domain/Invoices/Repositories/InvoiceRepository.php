@@ -195,11 +195,12 @@ class InvoiceRepository implements InvoiceRepositoryInterface
             ->get();
     }
 
-    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?string $invoiceType = null): Collection
+    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?int $shopId = null, ?string $invoiceType = null): Collection
     {
         return InvoiceItem::with(['invoice.shop', 'newspaper'])
             ->whereHas('invoice', fn($q) => $q->whereBetween('invoice_date', [$dateFrom, $dateTo])
-                ->when($invoiceType, fn($inq) => $inq->where('invoice_type', $invoiceType)))
+                ->when($invoiceType, fn($inq) => $inq->where('invoice_type', $invoiceType))
+                ->when($shopId, fn($inq) => $inq->where('shop_id', $shopId)))
             ->when($newspaperId, fn($q) => $q->where('newspaper_id', $newspaperId))
             ->get();
     }
