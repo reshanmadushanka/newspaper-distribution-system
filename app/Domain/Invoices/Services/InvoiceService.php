@@ -345,12 +345,12 @@ class InvoiceService
         });
     }
 
-    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?string $invoiceType = null): array
+    public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?string $invoiceType = null, ?int $shopId = null): array
     {
-        $cacheKey = self::CACHE_KEY_BY_NEWSPAPER . "{$dateFrom}_{$dateTo}_" . ($newspaperId ?? 'all') . '_' . ($invoiceType ?? 'all');
+        $cacheKey = self::CACHE_KEY_BY_NEWSPAPER . "{$dateFrom}_{$dateTo}_" . ($newspaperId ?? 'all') . '_' . ($shopId ?? 'all') . '_' . ($invoiceType ?? 'all');
 
-        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $newspaperId, $invoiceType) {
-            $items = $this->invoiceRepository->getByNewspaperReport($dateFrom, $dateTo, $newspaperId, $invoiceType);
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $newspaperId, $invoiceType, $shopId) {
+            $items = $this->invoiceRepository->getByNewspaperReport($dateFrom, $dateTo, $newspaperId, $shopId, $invoiceType);
 
             $totalRevenue = 0;
             $totalCost = 0;

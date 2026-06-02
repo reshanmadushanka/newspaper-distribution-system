@@ -216,7 +216,7 @@ class InvoiceController extends Controller
 
         return Inertia::render('Admin/Reports/DailySales', [
             'shopReport' => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId, $invoiceType),
-            'newspaperReport' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId, $invoiceType),
+            'newspaperReport' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId, $invoiceType, $shopId),
             'invoiceReport' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId, $invoiceType),
             'shops' => Shop::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'newspapers' => Newspaper::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
@@ -255,7 +255,7 @@ class InvoiceController extends Controller
         $invoiceType = $validated['invoice_type'] ?? null;
 
         $report = match ($reportType) {
-            'by-newspaper' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId),
+            'by-newspaper' => $this->invoiceService->getByNewspaperReport($dateFrom, $dateTo, $newspaperId, $invoiceType, $shopId),
             'by-invoice' => $this->invoiceService->getInvoiceListReport($dateFrom, $dateTo, $shopId, $newspaperId, $invoiceType),
             default => $this->invoiceService->getByShopReport($dateFrom, $dateTo, $shopId),
         };
