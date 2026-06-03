@@ -1,12 +1,12 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3'
-import { Plus, Pencil, Trash2, Newspaper, Search } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Newspaper, Search, ChevronDown } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { useDeleteConfirm } from '@/Composables/useDeleteConfirm'
 import { useTranslation } from '@/Composables/useTranslation'
-import { onUnmounted, ref, watch } from 'vue'
+import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 const { t } = useTranslation()
 
@@ -44,6 +44,7 @@ watch(search, () => {
 
 onUnmounted(() => {
     clearTimeout(searchTimeout)
+    closeVariants()
 })
 
 const handleDelete = (newspaperId) => {
@@ -63,6 +64,66 @@ const languageVariant = (lang) => {
         case 'Sinhala': return 'outline'
         default: return 'secondary'
     }
+}
+
+const fmt = (value) => Number(value ?? 0).toFixed(2)
+
+// Variant price popover --------------------------------------------------
+const activeNewspaper = ref(null)
+const popoverStyle = ref({})
+const popoverEl = ref(null)
+
+const onDocMouseDown = (e) => {
+    if (popoverEl.value && !popoverEl.value.contains(e.target)) {
+        closeVariants()
+    }
+}
+
+const onKeydown = (e) => {
+    if (e.key === 'Escape') closeVariants()
+}
+
+const closeVariants = () => {
+    activeNewspaper.value = null
+    document.removeEventListener('mousedown', onDocMouseDown)
+    document.removeEventListener('keydown', onKeydown)
+    window.removeEventListener('scroll', closeVariants, true)
+    window.removeEventListener('resize', closeVariants)
+}
+
+const toggleVariants = async (newspaper, event) => {
+    if (activeNewspaper.value?.id === newspaper.id) {
+        closeVariants()
+        return
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect()
+    const width = 300
+    let left = Math.min(rect.right - width, window.innerWidth - width - 12)
+    if (left < 12) left = 12
+
+    popoverStyle.value = {
+        top: `${rect.bottom + 6}px`,
+        left: `${left}px`,
+        width: `${width}px`,
+    }
+    activeNewspaper.value = newspaper
+
+    await nextTick()
+
+    // Flip above the trigger if it would overflow the bottom of the viewport.
+    const height = popoverEl.value?.offsetHeight ?? 0
+    if (rect.bottom + 6 + height > window.innerHeight - 12) {
+        popoverStyle.value = {
+            ...popoverStyle.value,
+            top: `${Math.max(12, rect.top - 6 - height)}px`,
+        }
+    }
+
+    document.addEventListener('mousedown', onDocMouseDown)
+    document.addEventListener('keydown', onKeydown)
+    window.addEventListener('scroll', closeVariants, true)
+    window.addEventListener('resize', closeVariants)
 }
 </script>
 
@@ -136,9 +197,14 @@ const languageVariant = (lang) => {
                             <td class="px-6 py-4">
                                 <div class="text-xs text-muted-foreground">
                                     <template v-if="newspaper.prices?.length">
-                                        <span class="font-medium">{{ newspaper.prices.length }}</span> variant{{
-                                        newspaper.prices.length > 1 ? 's' : '' }}
-                                        <span class="block text-[10px] text-muted-foreground/60">
+                                        <button type="button" @click.stop="toggleVariants(newspaper, $event)"
+                                            class="inline-flex items-center gap-1 rounded-full border bg-secondary/40 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary"
+                                            :class="{ 'bg-secondary ring-2 ring-primary/30': activeNewspaper?.id === newspaper.id }">
+                                            <span>{{ newspaper.prices.length }} variant{{ newspaper.prices.length > 1 ? 's' : '' }}</span>
+                                            <ChevronDown class="h-3 w-3 transition-transform"
+                                                :class="{ 'rotate-180': activeNewspaper?.id === newspaper.id }" />
+                                        </button>
+                                        <span class="mt-0.5 block text-[10px] text-muted-foreground/60">
                                             From Rs. {{Math.min(...newspaper.prices.map(p =>
                                             parseFloat(p.price))).toFixed(2) }}
                                         </span>
@@ -179,5 +245,35 @@ const languageVariant = (lang) => {
                 </Link>
             </div>
         </div>
+
+        <Teleport to="body">
+            <div v-if="activeNewspaper" ref="popoverEl" :style="popoverStyle"
+                class="fixed z-50 overflow-hidden rounded-xl border bg-card shadow-xl ring-1 ring-black/5">
+                <div class="border-b bg-secondary/30 px-3 py-2">
+                    <div class="truncate text-xs font-semibold text-foreground">{{ activeNewspaper.name }}</div>
+                    <div class="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {{ t('newspapers.price_variants') }}
+                    </div>
+                </div>
+                <table class="w-full text-xs">
+                    <thead class="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        <tr>
+                            <th class="px-3 py-1.5 text-left font-medium">{{ t('common.label') }}</th>
+                            <th class="px-3 py-1.5 text-right font-medium">{{ t('common.price') }}</th>
+                            <th class="px-3 py-1.5 text-right font-medium">{{ t('common.cost_price') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border/50">
+                        <tr v-for="(variant, index) in activeNewspaper.prices" :key="variant.id ?? index">
+                            <td class="px-3 py-1.5 text-foreground">{{ variant.label || '—' }}</td>
+                            <td class="px-3 py-1.5 text-right font-semibold text-green-600">Rs. {{ fmt(variant.price) }}</td>
+                            <td class="px-3 py-1.5 text-right text-muted-foreground">
+                                {{ variant.cost_price != null ? `Rs. ${fmt(variant.cost_price)}` : '—' }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </Teleport>
     </AdminLayout>
 </template>
