@@ -167,8 +167,6 @@ const toggleVariants = async (newspaper, event) => {
                             <th class="px-6 py-4">{{ t('common.name') }}</th>
                             <th class="px-6 py-4">{{ t('newspapers.language') }}</th>
                             <th class="px-6 py-4">{{ t('newspapers.frequency') }}</th>
-                            <th class="px-6 py-4">{{ t('common.price') }}</th>
-                            <th class="px-6 py-4">{{ t('common.cost_price') }}</th>
                             <th class="px-6 py-4">{{ t('newspapers.price_variants') }}</th>
                             <th class="px-6 py-4 text-right">{{ t('common.actions') }}</th>
                         </tr>
@@ -187,12 +185,6 @@ const toggleVariants = async (newspaper, event) => {
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-xs font-medium">{{ newspaper.frequency }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-xs font-semibold text-green-600">Rs. {{ newspaper.price || '—' }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-xs text-muted-foreground">Rs. {{ newspaper.cost_price || '—' }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-xs text-muted-foreground">
@@ -229,7 +221,7 @@ const toggleVariants = async (newspaper, event) => {
                             </td>
                         </tr>
                         <tr v-if="newspapers.data.length === 0">
-                            <td colspan="7" class="px-6 py-12 text-center text-muted-foreground italic">
+                            <td colspan="5" class="px-6 py-12 text-center text-muted-foreground italic">
                                 {{ search ? 'No newspapers match your search.' : 'No newspapers found. Click "Add newspaper" to get started.' }}
                             </td>
                         </tr>
