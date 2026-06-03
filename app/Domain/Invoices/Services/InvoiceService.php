@@ -390,7 +390,7 @@ class InvoiceService
                     'profit_margin' => $margin,
                     'invoice_count' => count($invoiceIds),
                 ];
-            })->values();
+            })->sortBy('newspaper_name', SORT_NATURAL | SORT_FLAG_CASE)->values();
 
             $totalProfit = $totalRevenue - $totalCost;
             $profitMargin = $totalRevenue > 0 ? round(($totalProfit / $totalRevenue) * 100, 1) : 0;
