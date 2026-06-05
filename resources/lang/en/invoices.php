@@ -77,4 +77,6 @@ return [
     'previous_deficit' => 'Previous Arrears',
     'special_discount' => 'Special Discount',
     'notes' => 'Notes',
+    'past_date_confirm_title' => 'Past Date Invoice',
+    'past_date_confirm_message' => 'This invoice date is in the past. Are you sure you want to update this invoice?',
 ];

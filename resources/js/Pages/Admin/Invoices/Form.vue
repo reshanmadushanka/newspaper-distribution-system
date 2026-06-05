@@ -240,7 +240,16 @@ const removeRow = async (index) => {
     })
 }
 
-const submit = () => {
+const isPastDate = (dateStr) => {
+    if (!dateStr) return false
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const date = new Date(dateStr)
+    date.setHours(0, 0, 0, 0)
+    return date < today
+}
+
+const submit = async () => {
     // Validate return quantities before submission
     if (isEditing.value) {
         let hasError = false
@@ -258,6 +267,24 @@ const submit = () => {
         })
 
         if (hasError) {
+            return
+        }
+    }
+
+    // Confirm if editing an invoice with a past date
+    if (isEditing.value && isPastDate(form.invoice_date)) {
+        const result = await Swal.fire({
+            title: t('invoices.past_date_confirm_title') || 'Past Date Invoice',
+            text: t('invoices.past_date_confirm_message') || 'This invoice date is in the past. Are you sure you want to update this invoice?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: t('common.yes_update') || 'Yes, Update',
+            cancelButtonText: t('common.cancel') || 'Cancel',
+        })
+
+        if (!result.isConfirmed) {
             return
         }
     }
@@ -534,6 +561,6 @@ const filteredNewspaperOptions = (currentIndex) => {
                 </Button>
             </div>
         </form>
-        
+
     </AdminLayout>
 </template>
