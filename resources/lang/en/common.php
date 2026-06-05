@@ -74,6 +74,7 @@ return [
     'financial' => 'Financial Details',
     'view_all' => 'View all',
     'yes_delete' => 'Yes, delete it!',
+    'yes_update' => 'Yes, update it!',
     'unit_price' => 'Unit Price',
     'active' => 'Active',
     'create' => 'Add',

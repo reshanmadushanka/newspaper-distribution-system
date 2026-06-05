@@ -77,4 +77,6 @@ return [
     'previous_deficit' => 'පෙර හිඟ මුදල',
     'special_discount' => 'විශේෂ වට්ටම',
     'notes' => 'සටහන්',
+    'past_date_confirm_title' => 'පැරණි දින බිල්පත',
+    'past_date_confirm_message' => 'මෙම බිල්පතේ දිනය අතීතයේ ය. ඔබට මෙම බිල්පත යාවත්කාලීන කිරීමට අවශ්‍යද?',
 ];
