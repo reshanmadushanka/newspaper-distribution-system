@@ -30,10 +30,11 @@ class InvoiceService
         ?string $search = null,
         ?string $dateFrom = null,
         ?string $dateTo = null,
-        ?string $invoiceType = null
+        ?string $invoiceType = null,
+        ?int $newspaperId = null
     ): LengthAwarePaginator
     {
-        return $this->invoiceRepository->paginate($perPage, $search, $dateFrom, $dateTo, $invoiceType);
+        return $this->invoiceRepository->paginate($perPage, $search, $dateFrom, $dateTo, $invoiceType, $newspaperId);
     }
 
     public function createInvoice(array $data, int $userId): Invoice

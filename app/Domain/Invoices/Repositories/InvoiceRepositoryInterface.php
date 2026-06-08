@@ -14,7 +14,8 @@ interface InvoiceRepositoryInterface
         ?string $search = null,
         ?string $dateFrom = null,
         ?string $dateTo = null,
-        ?string $invoiceType = null
+        ?string $invoiceType = null,
+        ?int $newspaperId = null
     ): LengthAwarePaginator;
 
     public function find(int $id): ?Invoice;

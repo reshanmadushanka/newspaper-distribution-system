@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles, Tag } from 'lucide-vue-next'
+import { Plus, FileText, Eye, Pencil, Trash2, Store, CalendarDays, CheckCircle2, Search, Printer, Sparkles, Tag, Newspaper } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
@@ -17,13 +17,14 @@ const { t } = useTranslation()
 const componentProps = defineProps({
     invoices: Object,
     filters: Object,
+    newspapers: Array,
 })
 
 const page = usePage()
 const { props } = page
 const permissions = computed(() => props.auth.user?.permissions ?? [])
 const currentQuery = new URLSearchParams(page.url.split('?')[1] ?? '')
-const hasFilterQuery = ['search', 'date_from', 'date_to', 'invoice_type'].some((key) => currentQuery.has(key))
+const hasFilterQuery = ['search', 'date_from', 'date_to', 'invoice_type', 'newspaper_id'].some((key) => currentQuery.has(key))
 const rememberedFilters = useSessionStorage('admin.invoices.index.filters', {
     search: componentProps.filters?.search ?? '',
     dateRange: [
@@ -31,6 +32,7 @@ const rememberedFilters = useSessionStorage('admin.invoices.index.filters', {
         componentProps.filters?.date_to ?? '',
     ],
     invoiceType: componentProps.filters?.invoice_type ?? '',
+    newspaperId: componentProps.filters?.newspaper_id ?? '',
 }, { mergeDefaults: true })
 
 if (hasFilterQuery) {
@@ -41,6 +43,7 @@ if (hasFilterQuery) {
             componentProps.filters?.date_to ?? '',
         ],
         invoiceType: componentProps.filters?.invoice_type ?? '',
+        newspaperId: componentProps.filters?.newspaper_id ?? '',
     }
 }
 
@@ -62,6 +65,13 @@ const invoiceType = computed({
     get: () => rememberedFilters.value.invoiceType ?? '',
     set: (value) => {
         rememberedFilters.value.invoiceType = value
+    },
+})
+
+const newspaperId = computed({
+    get: () => rememberedFilters.value.newspaperId ?? '',
+    set: (value) => {
+        rememberedFilters.value.newspaperId = value
     },
 })
 let searchTimeout = null
@@ -127,6 +137,7 @@ const reloadInvoices = () => {
         date_from: dateFrom,
         date_to: dateTo,
         invoice_type: invoiceType.value || undefined,
+        newspaper_id: newspaperId.value || undefined,
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -141,17 +152,18 @@ onMounted(() => {
     const propDateTo = componentProps.filters?.date_to ?? ''
     const propSearch = componentProps.filters?.search ?? ''
     const propInvoiceType = componentProps.filters?.invoice_type ?? ''
+    const propNewspaperId = componentProps.filters?.newspaper_id ?? ''
 
     if (!dateFrom || !dateTo) {
         return
     }
 
-    if (dateFrom !== propDateFrom || dateTo !== propDateTo || search.value !== propSearch || invoiceType.value !== propInvoiceType) {
+    if (dateFrom !== propDateFrom || dateTo !== propDateTo || search.value !== propSearch || invoiceType.value !== propInvoiceType || newspaperId.value !== propNewspaperId) {
         reloadInvoices()
     }
 })
 
-watch([search, dateRange, invoiceType], () => {
+watch([search, dateRange, invoiceType, newspaperId], () => {
     clearTimeout(searchTimeout)
 
     searchTimeout = setTimeout(() => {
@@ -242,6 +254,15 @@ const isPrinted = (invoice) => {
                                 <option value="">{{ t('invoices.type_all') }}</option>
                                 <option value="daily">{{ t('invoices.type_daily') }}</option>
                                 <option value="monthly">{{ t('invoices.type_monthly') }}</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <select v-model="newspaperId"
+                                class="h-9 w-full sm:w-auto rounded-lg border bg-secondary/30 text-sm px-3 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                                <option value="">All Newspapers</option>
+                                <option v-for="newspaper in newspapers" :key="newspaper.id" :value="newspaper.id">
+                                    {{ newspaper.name }}
+                                </option>
                             </select>
                         </div>
                     </div>

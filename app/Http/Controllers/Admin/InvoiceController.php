@@ -33,26 +33,31 @@ class InvoiceController extends Controller
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'invoice_type' => 'nullable|string|in:daily,monthly',
+            'newspaper_id' => 'nullable|integer|exists:newspapers,id',
         ]);
 
         $search = trim((string) ($validated['search'] ?? ''));
         $dateFrom = $validated['date_from'] ?? $defaultDateFrom;
         $dateTo = $validated['date_to'] ?? $defaultDateTo;
         $invoiceType = $validated['invoice_type'] ?? null;
+        $newspaperId = $validated['newspaper_id'] ?? null;
 
         return Inertia::render('Admin/Invoices/Index', [
             'invoices' => $this->invoiceService->getPaginatedInvoices(
                 search: $search,
                 dateFrom: $dateFrom,
                 dateTo: $dateTo,
-                invoiceType: $invoiceType
+                invoiceType: $invoiceType,
+                newspaperId: $newspaperId
             ),
             'filters' => [
                 'search' => $search,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
                 'invoice_type' => $invoiceType,
+                'newspaper_id' => $newspaperId,
             ],
+            'newspapers' => Newspaper::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
         ]);
     }
 

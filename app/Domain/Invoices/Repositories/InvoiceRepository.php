@@ -16,7 +16,8 @@ class InvoiceRepository implements InvoiceRepositoryInterface
         ?string $search = null,
         ?string $dateFrom = null,
         ?string $dateTo = null,
-        ?string $invoiceType = null
+        ?string $invoiceType = null,
+        ?int $newspaperId = null
     ): LengthAwarePaginator {
         $search = trim((string) $search);
         $invoiceId = ltrim($search, '#');
@@ -27,6 +28,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
                 $query->whereBetween('invoice_date', [$dateFrom, $dateTo]);
             })
             ->when($invoiceType, fn($query) => $query->where('invoice_type', $invoiceType))
+            ->when($newspaperId, fn($query) => $query->whereHas('items', fn($itemQuery) => $itemQuery->where('newspaper_id', $newspaperId)))
             ->when($search !== '', function ($query) use ($search, $invoiceId) {
                 $query->where(function ($query) use ($search, $invoiceId) {
                     if (ctype_digit($invoiceId)) {
@@ -45,6 +47,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
                 'invoice_type' => $invoiceType,
+                'newspaper_id' => $newspaperId,
             ]);
     }
 
