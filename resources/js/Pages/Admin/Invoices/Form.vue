@@ -185,6 +185,21 @@ watch(() => [form.invoice_date, form.shop_id], () => {
     }
 })
 
+watch(() => props.previousWeekSummary, (newSummary) => {
+    if (!newSummary || isEditing.value) return
+    if (!newSummary.items || newSummary.items.length === 0) return
+
+    const hasOnlyDefaultRow = form.items.length === 1 && !form.items[0].newspaper_id
+    if (!hasOnlyDefaultRow) return
+
+    form.items = newSummary.items.map(item => ({
+        newspaper_id: item.newspaper_id.toString(),
+        price_id: item.price_id ? parseInt(item.price_id) : '',
+        quantity: item.quantity,
+        unit_price: parseFloat(item.unit_price),
+    }))
+})
+
 const addRow = () => {
     const newItem = { newspaper_id: '', price_id: '', quantity: 1, unit_price: 0 }
     if (isEditing.value) {
