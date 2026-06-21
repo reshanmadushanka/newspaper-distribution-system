@@ -1,0 +1,51 @@
+# Ignore version control
+.git
+.gitignore
+.gitattributes
+
+# Ignore IDE / OS files
+.editorconfig
+.DS_Store
+.idea
+.vscode
+.cursor
+Thumbs.db
+
+# Node modules (will be re-installed in Docker)
+node_modules
+
+# PHP vendor (will be re-installed in Docker)
+vendor
+
+# Built frontend assets (built during Docker build)
+public/build
+public/hot
+public/storage
+
+# Laravel logs and storage (backed by Docker volumes)
+storage/logs
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+
+# Local env files (runtime config comes from docker-compose environment section)
+# List each variant explicitly so .env.example is NOT accidentally excluded
+.env
+.env.local
+.env.backup
+.env.docker
+.env.production
+.env.staging
+.env.development
+
+# Test files (not needed in production image)
+tests
+phpunit.xml
+
+# Development documentation files
+README.md
+plan.md
+deploy.sh
+
+# GitHub Actions workflows
+.github
