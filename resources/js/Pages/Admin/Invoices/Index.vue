@@ -164,18 +164,29 @@ onUnmounted(() => {
 })
 
 const markAsPaid = (id) => {
-    const { confirmDelete: confirmMarkPaid } = useDeleteConfirm(t('invoices.mark_paid_confirm'))
-    confirmMarkPaid(() => router.patch(`/admin/invoices/${id}/mark-paid`, {}, {
-        onSuccess: () => {
-            Swal.fire({
-                title: t('invoices.paid') + '!',
-                text: t('invoices.marked_paid_message'),
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false,
+    Swal.fire({
+        title: 'Mark as Paid?',
+        text: t('invoices.mark_paid_confirm'),
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        confirmButtonText: 'Yes, mark as paid',
+        cancelButtonText: 'Cancel',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.patch(`/admin/invoices/${id}/mark-paid`, {}, {
+                onSuccess: () => {
+                    Swal.fire({
+                        title: t('invoices.paid') + '!',
+                        text: t('invoices.marked_paid_message'),
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                    })
+                },
             })
-        },
-    }))
+        }
+    })
 }
 
 const statusVariant = (status) => {
