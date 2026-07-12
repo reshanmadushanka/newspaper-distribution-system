@@ -49,3 +49,11 @@ deploy.sh
 
 # GitHub Actions workflows
 .github
+
+# Docker and orchestration configs
+Dockerfile
+docker-compose.yml
+
+# Dev test scripts
+test_pgsql.php
+
