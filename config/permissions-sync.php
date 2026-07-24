@@ -45,7 +45,8 @@ return [
         'view system invoices',
         'create system invoices',
         'view daily sales',
-        'auto generate invoice'
+        'auto generate invoice',
+        'use ai chat',
     ],
 
 ];

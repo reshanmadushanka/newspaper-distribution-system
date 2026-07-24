@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Newsflow AI Service (Python)
+    |--------------------------------------------------------------------------
+    |
+    | Laravel proxies chat to this service. Browser never calls it directly.
+    | AI_SERVICE_TOKEN must match the Python service token.
+    |
+    */
+    'ai' => [
+        'url' => env('AI_SERVICE_URL', 'http://127.0.0.1:8001'),
+        'token' => env('AI_SERVICE_TOKEN'),
+        'timeout' => (int) env('AI_SERVICE_TIMEOUT', 60),
+    ],
+
 ];

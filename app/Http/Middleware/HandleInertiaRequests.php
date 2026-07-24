@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             'dashboard' => __('dashboard'),
             'users' => __('users'),
             'reports' => __('reports'),
+            'chat' => __('chat'),
         ];
     }
 }

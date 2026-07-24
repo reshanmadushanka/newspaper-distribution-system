@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            require __DIR__.'/../routes/internal.php';
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
@@ -21,10 +24,15 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'internal/*',
+        ]);
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'ai.service' => \App\Http\Middleware\VerifyAiServiceToken::class,
         ]);
     })
     ->withProviders()

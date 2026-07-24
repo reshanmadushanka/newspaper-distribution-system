@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
@@ -51,6 +52,12 @@ Route::middleware('auth')->group(function (): void {
             Route::delete('/{id}', [SystemInvoiceController::class, 'destroy'])->name('destroy');
             Route::patch('/{id}/mark-as-paid', [SystemInvoiceController::class, 'markAsPaid'])->name('mark-as-paid');
             Route::patch('/{id}/mark-as-pending', [SystemInvoiceController::class, 'markAsPending'])->name('mark-as-pending');
+        });
+
+        // AI Common Chat (Vue → Laravel → Python → xAI)
+        Route::prefix('chat')->name('chat.')->middleware(['permission:use ai chat', 'throttle:30,1'])->group(function (): void {
+            Route::post('messages', [ChatController::class, 'store'])->name('messages.store');
+            Route::get('conversations/{conversationId}', [ChatController::class, 'show'])->name('conversations.show');
         });
 
         // Admin Payment Routes (Admin viewing their invoices)

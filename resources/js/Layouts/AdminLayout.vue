@@ -9,6 +9,7 @@ import {
 import { computed, ref, onMounted } from 'vue'
 import Toast from '@/Components/Toast.vue'
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue'
+import AiChatWidget from '@/Components/Chat/AiChatWidget.vue'
 import { useTranslation } from '@/Composables/useTranslation'
 
 const page = usePage()
@@ -279,6 +280,9 @@ onMounted(() => {
                 </div>
             </main>
         </div>
+
+        <!-- Global AI chat (permission: use ai chat) -->
+        <AiChatWidget />
     </div>
 </template>
 
