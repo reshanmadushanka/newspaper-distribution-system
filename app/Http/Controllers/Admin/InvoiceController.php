@@ -12,6 +12,7 @@ use App\Domain\Shops\Models\Shop;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -120,6 +121,11 @@ class InvoiceController extends Controller
     {
         $invoice = $this->invoiceService->getInvoiceForEdit($id);
 
+        if ($this->isPastDate($invoice->invoice_date) && ! $this->canEditPastInvoices()) {
+            return redirect()->route('admin.invoices.index')
+                ->with('error', __('invoices.past_date_permission_denied'));
+        }
+
         return Inertia::render('Admin/Invoices/Form', [
             'invoice' => $invoice,
             'shops' => Shop::query()->where('status', 'active')->orderBy('name')->get(),
@@ -145,6 +151,16 @@ class InvoiceController extends Controller
         ]);
 
         $invoice = $this->invoiceService->getInvoiceForEdit($id);
+
+        $touchesPastDate = $this->isPastDate($invoice->invoice_date)
+            || $this->isPastDate($validated['invoice_date']);
+
+        if ($touchesPastDate && ! $this->canEditPastInvoices()) {
+            throw ValidationException::withMessages([
+                'invoice_date' => __('invoices.past_date_permission_denied'),
+            ]);
+        }
+
         $existing = $this->invoiceService->checkInvoiceExistsForDateAndShop(
             $validated['invoice_date'],
             $invoice->shop_id,
@@ -372,4 +388,25 @@ class InvoiceController extends Controller
         }
     }
 
+    /**
+     * Determine whether the given invoice date falls before today.
+     */
+    private function isPastDate(mixed $date): bool
+    {
+        if (empty($date)) {
+            return false;
+        }
+
+        return Carbon::parse($date)->startOfDay()->lt(today());
+    }
+
+    /**
+     * Only users granted the "edit past invoices" permission may modify historical invoices.
+     */
+    private function canEditPastInvoices(): bool
+    {
+        $user = Auth::user();
+
+        return $user !== null && $user->can('edit past invoices');
+    }
 }

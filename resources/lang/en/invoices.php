@@ -79,4 +79,6 @@ return [
     'notes' => 'Notes',
     'past_date_confirm_title' => 'Past Date Invoice',
     'past_date_confirm_message' => 'This invoice date is in the past. Are you sure you want to update this invoice?',
+    'past_date_permission_denied' => 'You do not have permission to edit invoices with a past date.',
+    'past_date_permission_denied_title' => 'Permission Required',
 ];

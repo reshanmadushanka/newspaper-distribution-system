@@ -16,8 +16,12 @@ const printButton = ref(null)
 const isPrinting = ref(false)
 
 const props = defineProps({
+    auth: Object,
     invoice: Object,
 })
+
+const permissions = computed(() => props.auth?.user?.permissions ?? [])
+const canEditPastInvoice = computed(() => permissions.value.includes('edit past invoices'))
 
 const totalQty = computed(() => {
     return props.invoice.items.reduce((sum, item) => sum + item.quantity, 0)
@@ -44,6 +48,17 @@ const totalReturnAmount = computed(() => {
 const hasWhatsApp = computed(() => !!props.invoice.shop?.whatsapp_phone)
 const hasEmail = computed(() => !!props.invoice.shop?.email)
 const isDraft = computed(() => props.invoice.status === 'draft')
+
+const isPastDate = computed(() => {
+    if (!props.invoice?.invoice_date) return false
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const date = new Date(`${props.invoice.invoice_date}T00:00:00`)
+    if (Number.isNaN(date.getTime())) return false
+    return date < today
+})
+
+const canEdit = computed(() => isDraft.value && (canEditPastInvoice.value || !isPastDate.value))
 
 const pdfUrl = computed(() => `/admin/invoices/${props.invoice.id}/pdf`)
 const invoiceUrl = computed(() => window.location.origin + `/admin/invoices/${props.invoice.id}`)
@@ -194,7 +209,7 @@ const statusVariant = (status) => {
                     {{ invoice.printed_at ? t('invoices.reprint') : t('invoices.print') }}
                 </Button>
                 <div class="mx-2 h-6 w-px bg-border"></div>
-                <Link v-if="isDraft" :href="`/admin/invoices/${invoice.id}/edit`">
+                <Link v-if="canEdit" :href="`/admin/invoices/${invoice.id}/edit`">
                     <Button variant="outline" class="rounded-xl">
                         <Pencil class="mr-2 h-4 w-4" />
                         {{ t('common.edit') }}
