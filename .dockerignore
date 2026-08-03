@@ -14,6 +14,9 @@ Thumbs.db
 # Node modules (will be re-installed in Docker)
 node_modules
 
+# Python AI service — built as its own image from ./ai-service
+ai-service
+
 # PHP vendor (will be re-installed in Docker)
 vendor
 
@@ -27,6 +30,13 @@ storage/logs
 storage/framework/cache
 storage/framework/sessions
 storage/framework/views
+
+# Laravel bootstrap cache — regenerated on boot. The host's copy is built with
+# dev dependencies, so shipping it makes the container demand providers that
+# `composer install --no-dev` never installed (e.g. Debugbar) and crash-loop.
+# Keep the directory itself (its .gitignore) so the Dockerfile chmod still works.
+bootstrap/cache/*.php
+bootstrap/cache/*.tmp
 
 # Local env files (runtime config comes from docker-compose environment section)
 # List each variant explicitly so .env.example is NOT accidentally excluded

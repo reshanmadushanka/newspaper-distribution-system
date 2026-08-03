@@ -47,7 +47,8 @@ class AiGateway
 
             throw new RuntimeException(
                 'AI service is unreachable at '.$baseUrl.'. '
-                .'Start it with: cd ai-service && uvicorn app.main:app --reload --host 127.0.0.1 --port 8001. '
+                .'Start it with: docker compose up -d ai-service '
+                .'(or locally: cd ai-service && uvicorn app.main:app --reload --host 127.0.0.1 --port 8001). '
                 .'Details: '.$reason,
                 0,
                 $e

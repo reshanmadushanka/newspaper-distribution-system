@@ -27,6 +27,28 @@ Pick any model slug from [openrouter.ai/models](https://openrouter.ai/models), e
 - OpenAI Python SDK → OpenRouter
 - Calls Laravel internal tool routes for auto-generate preview/start/progress
 
+## Run with Docker (recommended)
+
+From the repository root:
+
+```bash
+cp ai-service/.env.example ai-service/.env   # then set OPENROUTER_API_KEY
+docker compose up -d --build
+```
+
+The compose file reads `ai-service/.env` for the `OPENROUTER_*` values only.
+`AI_SERVICE_TOKEN`, `LARAVEL_BASE_URL`, `HOST` and `PORT` are set by
+`docker-compose.yml` and override anything in that file, so the token always
+matches Laravel's and callbacks resolve to `http://app` on the compose network.
+
+| From | URL |
+|------|-----|
+| Host machine | `http://localhost:8001/health` |
+| Laravel container | `http://ai-service:8001` |
+
+The container boots without an API key — `/health` responds and `/v1/chat`
+returns 503 until `OPENROUTER_API_KEY` is set.
+
 ## Run locally
 
 ```bash

@@ -81,6 +81,35 @@ php artisan view:clear
 echo "[INFO] Running migrations..."
 php artisan migrate --force --no-interaction
 
+# -------------------------------------------------------
+# 5b. Seed a fresh database
+# -------------------------------------------------------
+# Migrations create empty tables, so without this a brand-new stack has zero
+# users and the default admin@example.com login cannot work. Only seeds when the
+# users table is empty, so an existing database is never touched.
+# DB_SEED=always forces it; DB_SEED=never skips it.
+NEEDS_SEED=$(php -r "
+try {
+    \$pdo = new PDO(
+        'pgsql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT') . ';dbname=' . getenv('DB_DATABASE'),
+        getenv('DB_USERNAME'),
+        getenv('DB_PASSWORD')
+    );
+    echo \$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn() == 0 ? 'yes' : 'no';
+} catch (Exception \$e) {
+    echo 'no';
+}
+" 2>/dev/null)
+
+if [ "$DB_SEED" = "never" ]; then
+    echo "[INFO] Seeding skipped (DB_SEED=never)."
+elif [ "$DB_SEED" = "always" ] || [ "$NEEDS_SEED" = "yes" ]; then
+    echo "[INFO] Empty database — seeding (default login: admin@example.com / password)..."
+    php artisan db:seed --force --no-interaction
+else
+    echo "[INFO] Database already has users — skipping seeding."
+fi
+
 # Cache for non-local environments
 if [ "$APP_ENV" != "local" ] && [ "$APP_ENV" != "development" ]; then
     echo "[INFO] Caching config, routes and views..."

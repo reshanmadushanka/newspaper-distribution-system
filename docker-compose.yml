@@ -8,8 +8,11 @@ services:
       dockerfile: Dockerfile
     container_name: newspaper-app
     restart: unless-stopped
+    # Host-side ports are only for reaching services from your machine; services
+    # talk to each other by name on newspaper-network. Override the *_HOST_PORT
+    # vars in .env if another project already owns one of these ports.
     ports:
-      - "8000:80"
+      - "${APP_HOST_PORT:-8000}:80"
     environment:
       APP_NAME: "Newspaper Distribution System"
       APP_ENV: local
@@ -36,6 +39,11 @@ services:
 
       LOG_CHANNEL: stack
       LOG_LEVEL: debug
+
+      # Newsflow AI service — reached over the compose network, never by the browser
+      AI_SERVICE_URL: http://ai-service:8001
+      AI_SERVICE_TOKEN: ${AI_SERVICE_TOKEN:-dev-shared-secret}
+      AI_SERVICE_TIMEOUT: ${AI_SERVICE_TIMEOUT:-60}
     volumes:
       # Persist Laravel storage (logs, file uploads, etc.)
       - app-storage:/var/www/html/storage/app
@@ -49,6 +57,49 @@ services:
       - newspaper-network
 
   # ============================================================
+  # Newsflow AI Service (Python 3.12 + FastAPI)
+  # ============================================================
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: newspaper-ai-service
+    restart: unless-stopped
+    ports:
+      - "${AI_SERVICE_HOST_PORT:-8001}:8001"
+    # OpenRouter credentials live in ai-service/.env (gitignored, same file the
+    # service uses when run outside Docker). Optional: without it the container
+    # still boots and /health responds — /v1/chat returns 503 until a key is set.
+    # NOTE: anything also listed under `environment:` below wins over this file,
+    # so only put OPENROUTER_* / non-topology settings in ai-service/.env.
+    env_file:
+      - path: ./ai-service/.env
+        required: false
+    environment:
+      # Callbacks to Laravel's internal tool routes go to Apache on the compose
+      # network. Unlike `php artisan serve`, Apache is not single-worker, so the
+      # reentrant browser -> Laravel -> AI -> Laravel call cannot deadlock.
+      LARAVEL_BASE_URL: http://app
+      # Must match the app service's AI_SERVICE_TOKEN — both read the same var.
+      AI_SERVICE_TOKEN: ${AI_SERVICE_TOKEN:-dev-shared-secret}
+      APP_NAME: Newsflow
+      APP_URL: http://localhost:8000
+      # Pinned to match the uvicorn bind hardcoded in ai-service/Dockerfile's CMD;
+      # overriding these in ai-service/.env would not move the listener.
+      HOST: 0.0.0.0
+      PORT: 8001
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      - app
+    networks:
+      - newspaper-network
+
+  # ============================================================
   # PostgreSQL 16 Database
   # ============================================================
   postgres:
@@ -56,7 +107,7 @@ services:
     container_name: newspaper-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     environment:
       POSTGRES_DB: ${DB_DATABASE:-new_papers}
       POSTGRES_USER: ${DB_USERNAME:-postgres}
@@ -80,7 +131,7 @@ services:
     container_name: newspaper-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data

@@ -12,7 +12,12 @@ class AuthSeeder extends Seeder
 {
     public function run(): void
     {
-        $permissions = [
+        // config/permissions-sync.php is the source of truth for what super-admin
+        // can do — the same list `permissions:sync-admin` applies. Merging it here
+        // (rather than repeating a hardcoded list) stops the seeder drifting behind
+        // newly added permissions, which is how a freshly seeded super-admin ended
+        // up without 'use ai chat' and lost the AI chat widget.
+        $permissions = array_values(array_unique([...[
             'manage users',
             'view users',
             'create users',
@@ -29,7 +34,7 @@ class AuthSeeder extends Seeder
             'view invoices',
             'create invoices',
             'view dashboard',
-        ];
+        ], ...config('permissions-sync.admin_permissions', [])]));
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(

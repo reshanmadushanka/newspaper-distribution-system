@@ -8,6 +8,7 @@ import { Button } from '@/Components/ui/button'
 import { useTranslation } from '@/Composables/useTranslation'
 import { useAiChat } from '@/Composables/useAiChat'
 import ChatActionCard from '@/Components/Chat/ChatActionCard.vue'
+import MarkdownMessage from '@/Components/Chat/MarkdownMessage.vue'
 
 const page = usePage()
 const { t } = useTranslation()
@@ -147,7 +148,9 @@ onUnmounted(() => {
                                 ? 'rounded-br-md bg-primary text-primary-foreground'
                                 : 'rounded-bl-md border bg-background text-foreground'"
                         >
-                            <p class="whitespace-pre-wrap break-words">{{ msg.content }}</p>
+                            <!-- Assistant replies arrive as markdown; the user's own text stays literal. -->
+                            <MarkdownMessage v-if="msg.role !== 'user'" :content="msg.content" />
+                            <p v-else class="whitespace-pre-wrap break-words">{{ msg.content }}</p>
                             <template v-if="msg.actions?.length">
                                 <ChatActionCard
                                     v-for="(action, idx) in msg.actions"
