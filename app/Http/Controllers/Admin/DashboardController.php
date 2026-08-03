@@ -13,52 +13,58 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use App\Domain\Admin\Services\DashboardAnalyticsService;
+
 class DashboardController extends Controller
 {
     public function __construct(
-        private SystemInvoiceService $systemInvoiceService
+        private SystemInvoiceService $systemInvoiceService,
+        private DashboardAnalyticsService $analyticsService
     ) {}
 
     public function index(): Response
     {
         $user = Auth::user();
         
+        $monthlyOverview = $this->analyticsService->getMonthlyOverview();
+        $momGrowth = $monthlyOverview['mom_growth_percent'];
+
         $stats = [
             [
-                'label' => 'Total Shops',
+                'label' => 'Total Outlets',
                 'value' => (string) Shop::count(),
                 'icon' => 'Store',
-                'change' => '+2',
+                'change' => $monthlyOverview['active_shops_count'] . ' active this mo.',
                 'trendingUp' => true,
                 'color' => 'text-blue-600',
-                'bg' => 'bg-blue-100/50'
+                'bg' => 'bg-blue-100/50 dark:bg-blue-900/30'
             ],
             [
-                'label' => 'Total Newspapers',
+                'label' => 'Newspapers Catalog',
                 'value' => (string) Newspaper::count(),
                 'icon' => 'Newspaper',
-                'change' => '+1',
+                'change' => 'Active',
                 'trendingUp' => true,
                 'color' => 'text-purple-600',
-                'bg' => 'bg-purple-100/50'
+                'bg' => 'bg-purple-100/50 dark:bg-purple-900/30'
             ],
             [
-                'label' => 'Total Invoices',
+                'label' => 'Monthly Net Income',
+                'value' => 'Rs. ' . number_format($monthlyOverview['current_month_net'], 2),
+                'icon' => 'DollarSign',
+                'change' => ($momGrowth >= 0 ? '+' : '') . $momGrowth . '% MoM',
+                'trendingUp' => $momGrowth >= 0,
+                'color' => 'text-emerald-600',
+                'bg' => 'bg-emerald-100/50 dark:bg-emerald-900/30'
+            ],
+            [
+                'label' => 'Total Invoices Issued',
                 'value' => (string) Invoice::count(),
                 'icon' => 'FileText',
-                'change' => '+18',
+                'change' => $monthlyOverview['current_month_invoices'] . ' this mo.',
                 'trendingUp' => true,
                 'color' => 'text-amber-600',
-                'bg' => 'bg-amber-100/50'
-            ],
-            [
-                'label' => 'Total Revenue',
-                'value' => 'Rs. ' . number_format(Invoice::sum('total_amount'), 2),
-                'icon' => 'DollarSign',
-                'change' => '+12.5%',
-                'trendingUp' => true,
-                'color' => 'text-emerald-600',
-                'bg' => 'bg-emerald-100/50'
+                'bg' => 'bg-amber-100/50 dark:bg-amber-900/30'
             ],
         ];
 
@@ -81,6 +87,11 @@ class DashboardController extends Controller
             'recentInvoices' => $recentInvoices,
             'pendingSystemInvoices' => $pendingSystemInvoices,
             'systemInvoiceStats' => $this->systemInvoiceService->getDashboardStats($user),
+            'monthlyTrends' => $this->analyticsService->getMonthlyIncomeTrends(12),
+            'monthlyOverview' => $monthlyOverview,
+            'topShops' => $this->analyticsService->getTopShops(5),
+            'topNewspapers' => $this->analyticsService->getTopNewspapers(5),
+            'smartInsights' => $this->analyticsService->getSmartInsights(),
         ]);
     }
 }
