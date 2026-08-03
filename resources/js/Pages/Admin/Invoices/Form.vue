@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
-import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, StickyNote, Tags, Calendar } from 'lucide-vue-next'
+import { ChevronLeft, Save, Plus, Trash2, Store, Newspaper, StickyNote, Tags, Calendar, Copy } from 'lucide-vue-next'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -165,11 +165,14 @@ const deletingItemId = ref(null)
 // Delete confirmation (SweetAlert2)
 // We'll call `useDeleteConfirm` per-invocation to allow dynamic messages
 
+const filledFromLastWeek = ref(false)
+
 const fetchPreviousWeekSummary = () => {
     if (!form.invoice_date || !form.shop_id) {
         return
     }
 
+    filledFromLastWeek.value = false
     isLoadingSummary.value = true
     router.reload({
         data: {
@@ -186,6 +189,88 @@ const fetchPreviousWeekSummary = () => {
 watch(() => [form.invoice_date, form.shop_id], () => {
     if (!isEditing.value) {
         fetchPreviousWeekSummary()
+    }
+})
+
+// The form is considered "pristine" while it still only holds the single,
+// empty default row — i.e. the user has not started entering items yet.
+const itemsArePristine = () => {
+    return form.items.length === 1
+        && !form.items[0].newspaper_id
+        && (parseInt(form.items[0].quantity) || 0) <= 1
+}
+
+// Build form rows from last week's same-day invoice items. Quantities are
+// copied as-is; pricing is resolved against the newspaper's *current* prices
+// so a price change since last week is reflected. Newspapers that are no
+// longer active (not in the options list) are skipped.
+const mapSummaryItemsToForm = () => {
+    const summary = props.previousWeekSummary
+    if (!summary?.items?.length) return []
+
+    return summary.items
+        .map((item) => {
+            const newspaper = props.newspapers.find(n => n.id === parseInt(item.newspaper_id))
+            if (!newspaper) return null
+
+            const prices = newspaper.prices || []
+            const matched = item.price_id
+                ? prices.find(p => p.id === parseInt(item.price_id))
+                : null
+
+            let priceId = ''
+            let unitPrice = 0
+            if (matched) {
+                priceId = matched.id
+                unitPrice = parseFloat(matched.price)
+            } else if (prices.length === 1) {
+                priceId = prices[0].id
+                unitPrice = parseFloat(prices[0].price)
+            }
+
+            return {
+                newspaper_id: item.newspaper_id.toString(),
+                price_id: priceId,
+                quantity: parseInt(item.quantity) || 1,
+                unit_price: unitPrice,
+            }
+        })
+        .filter(Boolean)
+}
+
+const applyPreviousWeekItems = () => {
+    const mapped = mapSummaryItemsToForm()
+    if (!mapped.length) return
+    form.items = mapped
+    filledFromLastWeek.value = true
+}
+
+// Manual re-apply from the summary panel. Confirms before overwriting items
+// the user may have already entered.
+const copyPreviousWeekItems = async () => {
+    if (!mapSummaryItemsToForm().length) return
+
+    if (!itemsArePristine()) {
+        const result = await Swal.fire({
+            title: t('common.confirm'),
+            text: t('invoices.overwrite_items_confirm'),
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: t('common.yes'),
+            cancelButtonText: t('common.cancel'),
+        })
+        if (!result.isConfirmed) return
+    }
+
+    applyPreviousWeekItems()
+}
+
+// Auto-fill the items table when last week's summary loads, but only while
+// the form is still pristine so we never clobber what the user has typed.
+watch(() => props.previousWeekSummary, (summary) => {
+    if (isEditing.value) return
+    if (summary && itemsArePristine()) {
+        applyPreviousWeekItems()
     }
 })
 
@@ -387,9 +472,15 @@ const filteredNewspaperOptions = (currentIndex) => {
 
                 <!-- Previous Week Summary -->
                 <div v-if="form.invoice_date && form.shop_id" class="mt-6 border-t pt-6">
-                    <div class="flex items-center gap-2 mb-4">
-                        <History class="h-4 w-4 text-muted-foreground" />
-                        <h4 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{{ t('invoices.last_week_comparison') }}</h4>
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <div class="flex items-center gap-2">
+                            <History class="h-4 w-4 text-muted-foreground" />
+                            <h4 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{{ t('invoices.last_week_comparison') }}</h4>
+                        </div>
+                        <Button v-if="props.previousWeekSummary && !isLoadingSummary" type="button" variant="outline"
+                            size="sm" class="rounded-xl" @click="copyPreviousWeekItems">
+                            <Copy class="mr-1 h-4 w-4" /> {{ t('invoices.copy_last_week_items') }}
+                        </Button>
                     </div>
 
                     <div v-if="isLoadingSummary" class="flex items-center justify-center py-8">
@@ -429,6 +520,10 @@ const filteredNewspaperOptions = (currentIndex) => {
                     <div class="flex items-center gap-2">
                         <Newspaper class="h-5 w-5 text-primary" />
                         <h3 class="font-bold">{{ t('invoices.newspaper_items') }}</h3>
+                        <span v-if="filledFromLastWeek"
+                            class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                            <History class="h-3 w-3" /> {{ t('invoices.filled_from_last_week') }}
+                        </span>
                     </div>
                     <Button type="button" variant="outline" size="sm" @click="addRow" class="rounded-xl">
                         <Plus class="mr-1 h-4 w-4" /> {{ t('invoices.add_newspaper') }}
