@@ -231,6 +231,7 @@ const statusVariant = (status) => {
                 <div>
                     <h1 class="text-base font-bold uppercase tracking-normal text-foreground">{{ t('invoices.invoice') }}</h1>
                     <p class="mt-1 text-xs font-medium text-muted-foreground">#{{ invoice.id }}</p>
+                    <p class="mt-1 text-xs font-medium text-muted-foreground">074-264 6918 (WhatsApp Only)</p>
                 </div>
                 <div class="absolute right-0 top-0">
                     <Badge :variant="statusVariant(invoice.status)"
@@ -326,10 +327,6 @@ const statusVariant = (status) => {
                     </div>
                     <template v-if="hasReturns">
                         <div class="flex justify-between text-sm">
-                            <span class="text-muted-foreground">+ {{ t('invoices.previous_deficit') }}</span>
-                            <span>Rs. {{ parseFloat(invoice.previous_deficit || 0).toFixed(2) }}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
                             <span class="text-muted-foreground">- {{ t('invoices.special_discount') }}</span>
                             <span class="text-destructive">Rs. {{ parseFloat(invoice.special_discount || 0).toFixed(2) }}</span>
                         </div>
@@ -352,10 +349,6 @@ const statusVariant = (status) => {
                             <div class="flex justify-between text-sm">
                                 <span class="text-muted-foreground">{{ t('invoices.subtotal') }}</span>
                                 <span>Rs. {{ parseFloat(invoice.total_amount).toFixed(2) }}</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-muted-foreground">+ {{ t('invoices.previous_deficit') }}</span>
-                                <span class="text-amber-600">Rs. {{ parseFloat(invoice.previous_deficit || 0).toFixed(2) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-muted-foreground">- {{ t('invoices.special_discount') }}</span>
