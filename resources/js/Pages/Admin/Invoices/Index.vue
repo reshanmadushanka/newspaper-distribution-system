@@ -79,6 +79,18 @@ let searchTimeout = null
 const canCreate = computed(() => permissions.value.includes('create invoices') || permissions.value.includes('manage invoices'))
 const canUpdate = computed(() => permissions.value.includes('manage invoices'))
 const canAutoGenerate = computed(() => permissions.value.includes('auto generate invoice'))
+const canEditPastInvoice = computed(() => permissions.value.includes('edit past invoices'))
+
+const isPastDate = (dateStr) => {
+    if (!dateStr) return false
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const date = new Date(dateStr)
+    date.setHours(0, 0, 0, 0)
+    return date < today
+}
+
+const canEditInvoice = (inv) => canUpdate.value && (canEditPastInvoice.value || !isPastDate(inv.invoice_date))
 
 const showAutoGenerateModal = ref(false)
 
@@ -350,7 +362,7 @@ const isPrinted = (invoice) => {
                                         title="Mark as Paid">
                                         <CheckCircle2 class="h-4 w-4" />
                                     </Button>
-                                    <Link v-if="canUpdate && inv.status === 'draft'"
+                                    <Link v-if="canEditInvoice(inv) && inv.status === 'draft'"
                                         :href="`/admin/invoices/${inv.id}/edit`">
                                         <Button variant="ghost" size="icon"
                                             class="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-50"

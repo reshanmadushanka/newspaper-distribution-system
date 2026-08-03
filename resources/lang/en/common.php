@@ -78,4 +78,5 @@ return [
     'unit_price' => 'Unit Price',
     'active' => 'Active',
     'create' => 'Add',
+    'ok' => 'OK',
 ];

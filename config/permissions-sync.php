@@ -39,6 +39,7 @@ return [
         'manage invoices',
         'view invoices',
         'create invoices',
+        'edit past invoices',
         'view dashboard',
         'view daily sales',
         'manage system invoices',

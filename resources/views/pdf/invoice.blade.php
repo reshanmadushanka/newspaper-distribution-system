@@ -325,6 +325,14 @@
             </div>
         </div>
 
+        <div class="contact-banner">
+            <div>
+                <div class="contact-banner-label">Customer Contact</div>
+                <div class="contact-banner-number">074-264 6918</div>
+            </div>
+            <div class="contact-banner-pill">WhatsApp Only</div>
+        </div>
+
     <!-- Items Table -->
     <div class="table-container">
         <table>

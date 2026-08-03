@@ -16,6 +16,7 @@ import { History, AlertCircle, Loader2 } from 'lucide-vue-next'
 const { t } = useTranslation()
 
 const props = defineProps({
+    auth: Object,
     invoice: Object,
     shops: Array,
     newspapers: Array,
@@ -23,6 +24,9 @@ const props = defineProps({
 })
 
 const isEditing = computed(() => !!props.invoice)
+
+const permissions = computed(() => props.auth?.user?.permissions ?? [])
+const canEditPastInvoice = computed(() => permissions.value.includes('edit past invoices'))
 
 const tomorrow = new Date()
 tomorrow.setDate(tomorrow.getDate() + 1)
@@ -269,6 +273,19 @@ const submit = async () => {
         if (hasError) {
             return
         }
+    }
+
+    // Editing a past date invoice requires a dedicated permission
+    if (isEditing.value && isPastDate(form.invoice_date) && !canEditPastInvoice.value) {
+        await Swal.fire({
+            title: t('invoices.past_date_permission_denied_title') || 'Permission Required',
+            text: t('invoices.past_date_permission_denied') || 'You do not have permission to edit invoices with a past date.',
+            icon: 'error',
+            confirmButtonColor: '#6b7280',
+            confirmButtonText: t('common.ok') || 'OK',
+        })
+
+        return
     }
 
     // Confirm if editing an invoice with a past date

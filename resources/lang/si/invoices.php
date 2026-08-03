@@ -79,4 +79,6 @@ return [
     'notes' => 'සටහන්',
     'past_date_confirm_title' => 'පැරණි දින බිල්පත',
     'past_date_confirm_message' => 'මෙම බිල්පතේ දිනය අතීතයේ ය. ඔබට මෙම බිල්පත යාවත්කාලීන කිරීමට අවශ්‍යද?',
+    'past_date_permission_denied' => 'අතීත දිනයක් සහිත බිල්පත් සංස්කරණය කිරීමට ඔබට අවසර නැත.',
+    'past_date_permission_denied_title' => 'අවසර අවශ්‍යයි',
 ];
