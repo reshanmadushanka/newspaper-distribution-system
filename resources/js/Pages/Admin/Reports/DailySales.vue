@@ -151,8 +151,8 @@ const newspaperOptions = computed(() => {
                 />
             </div>
 
-            <!-- Newspaper Dropdown - Show for By Newspaper and Invoices tabs -->
-            <div v-if="activeTab === 'by-newspaper'">
+            <!-- Newspaper Dropdown - Show for By Shop and By Newspaper tabs -->
+            <div v-if="activeTab === 'by-shop' || activeTab === 'by-newspaper'">
                 <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{{ t('reports.newspaper') }}</label>
                 <Select2
                     v-model="newspaperId"
