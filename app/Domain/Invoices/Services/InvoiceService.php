@@ -280,12 +280,12 @@ class InvoiceService
         });
     }
 
-    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null, ?string $invoiceType = null): array
+    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null, ?string $invoiceType = null, ?int $newspaperId = null): array
     {
-        $cacheKey = self::CACHE_KEY_BY_SHOP . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all') . '_' . ($invoiceType ?? 'all');
+        $cacheKey = self::CACHE_KEY_BY_SHOP . "{$dateFrom}_{$dateTo}_" . ($shopId ?? 'all') . '_' . ($invoiceType ?? 'all') . '_' . ($newspaperId ?? 'all');
 
-        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId, $invoiceType) {
-            $invoices = $this->invoiceRepository->getByShopReport($dateFrom, $dateTo, $shopId, $invoiceType);
+        return Cache::remember($cacheKey, self::RANGE_CACHE_TTL, function () use ($dateFrom, $dateTo, $shopId, $invoiceType, $newspaperId) {
+            $invoices = $this->invoiceRepository->getByShopReport($dateFrom, $dateTo, $shopId, $invoiceType, $newspaperId);
 
             $totalRevenue = 0;
             $totalCost = 0;

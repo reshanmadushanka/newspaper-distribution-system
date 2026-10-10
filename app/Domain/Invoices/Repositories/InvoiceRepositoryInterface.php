@@ -36,7 +36,7 @@ interface InvoiceRepositoryInterface
 
     public function getDailyReportInvoices(string $date): Collection;
 
-    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null): Collection;
+    public function getByShopReport(string $dateFrom, string $dateTo, ?int $shopId = null, ?string $invoiceType = null, ?int $newspaperId = null): Collection;
 
     public function getByNewspaperReport(string $dateFrom, string $dateTo, ?int $newspaperId = null, ?int $shopId = null, ?string $invoiceType = null): Collection;
 
